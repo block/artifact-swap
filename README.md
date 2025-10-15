@@ -1,30 +1,12 @@
 # artifact-swap README
 
-Congrats, project leads! You got a new project to grow!
-
-This stub is meant to help you form a strong community around your work. It's yours to adapt, and may 
-diverge from this initial structure. Just keep the files seeded in this repo, and the rest is yours to evolve! 
-
 ## Introduction
 
-Orient users to the project here. This is a good place to start with an assumption
-that the user knows very little - so start with the Big Picture and show how this
-project fits into it.
+Artifact Swap is a tool that solves the problem of "Gradle build/sync is slow" for large Gradle projects.
 
-Then maybe a dive into what this project does.
+The core idea is to minimize the time Gradle spends in its Configuration Phase. This is achieved by taking declared gradle projects and, just before they are set to be included/configured, swapping them with a published artifact. Doing this swap in a way to respects what, specifically, the developer wants to work on can result in a large reduction in the number of full gradle projects participating in the build. And if you manage the publishing and downloading of these artifacts reasonably well, you can avoid the problem of dependency resolution causing artifact-swap-based builds to be slow themselves.
 
-Diagrams and other visuals are helpful here. Perhaps code snippets showing usage.
-
-Project leads should complete, alongside this `README`:
-* [CODEOWNERS](./CODEOWNERS) - set project lead(s)
-* [CONTRIBUTING.md](./CONTRIBUTING.md) - Fill out how to: install prereqs, build, test, run, access CI, chat, discuss, file issues
-* [Bug-report.md](.github/ISSUE_TEMPLATE/bug-report.md) - Fill out `Assignees` add codeowners @names
-* [config.yml](.github/ISSUE_TEMPLATE/config.yml) - remove "(/add your discord channel..)" and replace the url with your Discord channel if applicable
-
-The other files in this template repo may be used as-is:
-* [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
-* [GOVERNANCE.md](./GOVERNANCE.md)
-* [LICENSE](./LICENSE)
+Artifact Swap exists to help teams set up this swapping system with minimal effort.
 
 ## Project Resources
 
