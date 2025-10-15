@@ -4,11 +4,11 @@ about: Thank you for taking the time, please report a reproducible bug
 title: "[Bug] <Bug Title Here>"
 labels: bug
 assignees: 
-  - @wclausen-square
-  - @joshfriend
-  - @ss-block
-  - @inez
-  - @lucasconti-dev
+  - wclausen-square
+  - joshfriend
+  - ss-block
+  - inez
+  - lucasconti-dev
 ---
 
 **Describe the bug**
