@@ -4,7 +4,7 @@ plugins {
     id("buildsrc.convention.kotlin-jvm")
 }
 
-group = "com.squareup.artifactswap"
+group = "xyz.block.artifactswap"
 version = "0.1.0-SNAPSHOT"
 
 repositories {

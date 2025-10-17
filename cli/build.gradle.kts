@@ -7,7 +7,7 @@ plugins {
     application
 }
 
-group = "com.squareup.artifactswap"
+group = "xyz.block.artifactswap"
 version = "0.1.0-SNAPSHOT"
 
 repositories {
@@ -19,5 +19,5 @@ dependencies {
 }
 
 application {
-    mainClass = "com.squareup.artifactswap.cli.MainKt"
+    mainClass = "xyz.block.artifactswap.cli.MainKt"
 }
