@@ -1,0 +1,66 @@
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Icon?
+.Spotlight-V100
+.Trashes
+
+# IDE settings
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.fleet/
+
+# Gradle
+.gradle/
+**/build/
+**/out/
+# Local Android-style properties (sometimes used by Gradle setups)
+local.properties
+
+# Logs and temp files
+logs/
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+tmp/
+.temp/
+.cache/
+
+# Java/Kotlin compiled artifacts
+*.class
+
+# Code coverage
+**/jacoco.exec
+**/jacoco*.exec
+coverage/
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*
+
+# Keep Gradle Wrapper files tracked
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!gradlew
+!gradlew.bat
+
+# --- buildSrc-specific ignores ---
+buildSrc/.gradle/
+buildSrc/build/
+buildSrc/out/
+buildSrc/.idea/
+buildSrc/.kotlin/
+buildSrc/*.iml
+
+# Prevent nested Gradle wrapper inside buildSrc (use root wrapper only)
+buildSrc/gradle/
+buildSrc/gradlew
+buildSrc/gradlew.bat
