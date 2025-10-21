@@ -14,5 +14,6 @@ plugins {
 include(":cli")
 include(":core")
 include(":gradle-plugin")
+include(":gradle-utilities")
 
 rootProject.name = "artifactswap"
