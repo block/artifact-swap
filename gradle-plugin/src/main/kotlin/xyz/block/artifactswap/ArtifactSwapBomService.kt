@@ -1,8 +1,8 @@
-package com.squareup.register.artifactsync
+package xyz.block.artifactswap
 
-import com.squareup.gradle.services.SharedServiceKey
-import com.squareup.gradle.services.SharedServices
-import com.squareup.register.artifactsync.ArtifactSyncBomService.Parameters
+import xyz.block.gradle.services.SharedServiceKey
+import xyz.block.gradle.services.SharedServices
+import xyz.block.artifactswap.ArtifactSwapBomService.Parameters
 import groovy.xml.XmlSlurper
 import groovy.xml.slurpersupport.GPathResult
 import org.gradle.api.logging.Logger
@@ -17,23 +17,23 @@ import kotlin.io.path.inputStream
 
 
 // Service to parse local BOM file once per sync
-abstract class ArtifactSyncBomService : BuildService<Parameters> {
+abstract class ArtifactSwapBomService : BuildService<Parameters> {
   private companion object {
-    val logger: Logger = Logging.getLogger(ArtifactSyncBomService::class.java)
+    val logger: Logger = Logging.getLogger(ArtifactSwapBomService::class.java)
   }
 
   interface Parameters : BuildServiceParameters {
     val bomVersion: Property<String>
   }
 
-  object KEY : SharedServiceKey<ArtifactSyncBomService, Parameters>("artifactSyncBom")
+  object KEY : SharedServiceKey<ArtifactSwapBomService, Parameters>("artifactSyncBom")
 
   private val bomFile: Path
     get() {
       val bomVersion = parameters.bomVersion.get()
       return Path(System.getProperty("user.home"))
         .resolve(".m2/repository")
-        .resolve(ARTIFACT_SYNC_MAVEN_GROUP.replace(".", "/"))
+        .resolve(ARTIFACT_SWAP_MAVEN_GROUP.replace(".", "/"))
         .resolve("bom/$bomVersion/bom-$bomVersion.pom")
     }
 
@@ -53,4 +53,4 @@ abstract class ArtifactSyncBomService : BuildService<Parameters> {
   }
 }
 
-val SharedServices.artifactSyncBomService get() = get(ArtifactSyncBomService.KEY)
+val SharedServices.artifactSyncBomService get() = get(ArtifactSwapBomService.KEY)

@@ -1,14 +1,14 @@
 @file:Suppress("UnstableApiUsage")
 
-package com.squareup.register.artifactsync
+package xyz.block.artifactswap
 
-import com.squareup.gradle.LOCAL_PROTOS_ARTIFACTS
-import com.squareup.gradle.bomVersion
-import com.squareup.gradle.useArtifactSync
-import com.squareup.gradle.useLocalProtos
-import com.squareup.ide.forceSettingsModulesOverride
-import com.squareup.ide.isIdeSync
-import com.squareup.gradle.services.services
+import xyz.block.gradle.LOCAL_PROTOS_ARTIFACTS
+import xyz.block.gradle.bomVersion
+import xyz.block.gradle.useArtifactSync
+import xyz.block.gradle.useLocalProtos
+import xyz.block.ide.forceSettingsModulesOverride
+import xyz.block.ide.isIdeSync
+import xyz.block.gradle.services.services
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
@@ -22,14 +22,14 @@ import java.io.File
  *    is not used)
  * 2. Mangling build files to redirect `project()` references to artifacts
  * 3. Setting up the local maven repo where those artifacts may be found
- * 4. Applying [ArtifactSyncProjectPlugin] to each project
+ * 4. Applying [ArtifactSwapProjectPlugin] to each project
  *
  * plugins {
  *   id 'com.squareup.register.artifactsync.settings'
  * }
  */
 @Suppress("unused")
-class ArtifactSyncSettingsPlugin : Plugin<Settings> {
+class ArtifactSwapSettingsPlugin : Plugin<Settings> {
   override fun apply(target: Settings) = target.run {
     applyProjectIncludes()
     maybeApplyArtifactSync()
@@ -109,7 +109,7 @@ class ArtifactSyncSettingsPlugin : Plugin<Settings> {
 
         // Service should only be registered and retrieved when using artifact sync and during an
         // IDE sync
-        gradle.services.register(ArtifactSyncBomService.KEY, ArtifactSyncBomService::class.java) {
+        gradle.services.register(ArtifactSwapBomService.KEY, ArtifactSwapBomService::class.java) {
           it.parameters.bomVersion.set(bomVersion)
         }
       }
@@ -118,10 +118,10 @@ class ArtifactSyncSettingsPlugin : Plugin<Settings> {
       gradle.lifecycle.beforeProject {
         // Groovy metaprogramming to rewrite project() references
         // Kotlin source can't reference the groovy class so we apply by ID instead.
-        it.plugins.apply("com.squareup.artifactsync.groovy-override")
+        it.plugins.apply("xyz.block.artifactswap.groovy-override")
         // Apply sub-plugin to all projects that swaps artifact references back to gradle projects
         // if applicable.
-        it.plugins.apply(ArtifactSyncProjectPlugin::class.java)
+        it.plugins.apply(ArtifactSwapProjectPlugin::class.java)
       }
     } else {
       logger.debug("Artifact Sync is inactive.")
@@ -139,7 +139,7 @@ class ArtifactSyncSettingsPlugin : Plugin<Settings> {
       repos.exclusiveContent { ex ->
         ex.forRepositories(repos.mavenLocal())
         ex.filter { config ->
-          config.includeGroup(ARTIFACT_SYNC_MAVEN_GROUP)
+          config.includeGroup(ARTIFACT_SWAP_MAVEN_GROUP)
         }
       }
     }
@@ -175,7 +175,7 @@ class ArtifactSyncSettingsPlugin : Plugin<Settings> {
   }
 
   private companion object {
-    val logger: Logger = Logging.getLogger(ArtifactSyncSettingsPlugin::class.java)
+    val logger: Logger = Logging.getLogger(ArtifactSwapSettingsPlugin::class.java)
 
     /** This is the default settings.gradle file containing ALL projects in our build */
     const val GRADLE_SETTINGS_MODULES_ALL = "settings_modules_all.gradle"

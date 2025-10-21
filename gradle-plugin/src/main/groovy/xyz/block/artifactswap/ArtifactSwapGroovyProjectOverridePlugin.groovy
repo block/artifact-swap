@@ -1,4 +1,4 @@
-package com.squareup.register.artifactsync
+package xyz.block.artifactswap
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -10,7 +10,7 @@ import org.gradle.api.Project
  * dependencies.
  */
 @SuppressWarnings('unused')
-class ArtifactSyncGroovyProjectOverridePlugin implements Plugin<Project> {
+class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
 
   @Override
   void apply(Project target) {

@@ -1,8 +1,8 @@
-package com.squareup.register.artifactsync
+package xyz.block.artifactswap
 
-import com.squareup.gradle.generatedProtosVersion
-import com.squareup.gradle.protosSchemaVersion
-import com.squareup.gradle.services.services
+import xyz.block.gradle.generatedProtosVersion
+import xyz.block.gradle.protosSchemaVersion
+import xyz.block.gradle.services.services
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencySubstitution
@@ -12,11 +12,11 @@ import org.jetbrains.kotlin.util.prefixIfNot
 /**
  * Artifact Sync project sub-plugin. This plugin is responsible for performing dependency substitution
  *
- * Do not apply this plugin directly! It is auto-applied by [ArtifactSyncSettingsPlugin].
+ * Do not apply this plugin directly! It is auto-applied by [ArtifactSwapSettingsPlugin].
  * For reference and searchability, the ID of this plugin is `com.squareup.register.artifactsync`.
  */
 @Suppress("unused")
-class ArtifactSyncProjectPlugin : Plugin<Project> {
+class ArtifactSwapProjectPlugin : Plugin<Project> {
   override fun apply(target: Project) = target.run {
     val map = gradle.services.artifactSyncBomService.bomVersionMap
     substituteAllDependencies {
@@ -37,7 +37,7 @@ class ArtifactSyncProjectPlugin : Plugin<Project> {
       //   `com.squareup.sandbags:mordor`, which is a published representation of a project that
       // is currently `include`-ed in the build. This needs to be rewritten via dependency
       // substitution to `project(':mordor')`.
-      if (requested.group == ARTIFACT_SYNC_MAVEN_GROUP) {
+      if (requested.group == ARTIFACT_SWAP_MAVEN_GROUP) {
         when (val p = findProject(requested.asProjectPath)) {
           null -> {
             // Force Gradle to use the BOM specified version for this artifact.
@@ -89,7 +89,7 @@ private fun Project.substituteAllDependencies(substitution: DependencySubstituti
 
 /**
  * This reverses the project -> maven dependency notation rewriting performed by
- * [ArtifactSyncSettingsPlugin].
+ * [ArtifactSwapSettingsPlugin].
  */
 private val ModuleComponentSelector.asProjectPath: String
   get() = module.replace("_", ":").prefixIfNot(":")
