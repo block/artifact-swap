@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package xyz.block.artifactswap
 
 import xyz.block.gradle.generatedProtosVersion
@@ -38,7 +40,7 @@ class ArtifactSwapProjectPlugin : Plugin<Project> {
       // is currently `include`-ed in the build. This needs to be rewritten via dependency
       // substitution to `project(':mordor')`.
       if (requested.group == ARTIFACT_SWAP_MAVEN_GROUP) {
-        when (val p = findProject(requested.asProjectPath)) {
+        when (val p = allprojects.firstOrNull { it.isolated.path == requested.asProjectPath }) {
           null -> {
             // Force Gradle to use the BOM specified version for this artifact.
             // Artifacts are only published when their source changes, so their POM references the
