@@ -9,7 +9,7 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.api.services.BuildServiceSpec
 
-val Gradle.services: SharedServices
+internal val Gradle.services: SharedServices
   get() = SharedServices(this)
 
 /**
@@ -18,7 +18,7 @@ val Gradle.services: SharedServices
  * These services are shared by *all* Gradle projects by default, and should be careful to properly
  * ensure thread-safe access where necessary.
  */
-class SharedServices(private val gradle: Gradle) {
+internal class SharedServices(private val gradle: Gradle) {
 
   /**
    * Registers a new service by the provided [key] and allows lazy configuration of the service.
@@ -57,6 +57,6 @@ class SharedServices(private val gradle: Gradle) {
 }
 
 /** Key used for service registration and lookup. */
-abstract class SharedServiceKey<T : BuildService<P>, P : BuildServiceParameters>(
+internal abstract class SharedServiceKey<T : BuildService<P>, P : BuildServiceParameters>(
   val name: String
 )

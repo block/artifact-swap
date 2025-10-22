@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 dependencyResolutionManagement {
   // Use Maven Central as the default repository (where Gradle will download dependencies) in all subprojects.
   @Suppress("UnstableApiUsage")
@@ -49,6 +51,5 @@ develocity {
 include(":cli")
 include(":core")
 include(":gradle-plugin")
-include(":gradle-utilities")
 
 rootProject.name = "artifactswap"

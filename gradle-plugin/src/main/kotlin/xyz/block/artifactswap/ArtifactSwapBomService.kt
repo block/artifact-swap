@@ -26,7 +26,7 @@ abstract class ArtifactSwapBomService : BuildService<Parameters> {
     val bomVersion: Property<String>
   }
 
-  object KEY : SharedServiceKey<ArtifactSwapBomService, Parameters>("artifactSyncBom")
+  internal object KEY : SharedServiceKey<ArtifactSwapBomService, Parameters>("artifactSyncBom")
 
   private val bomFile: Path
     get() {
@@ -53,4 +53,4 @@ abstract class ArtifactSwapBomService : BuildService<Parameters> {
   }
 }
 
-val SharedServices.artifactSyncBomService get() = get(ArtifactSwapBomService.KEY)
+internal val SharedServices.artifactSyncBomService get() = get(ArtifactSwapBomService.KEY)
