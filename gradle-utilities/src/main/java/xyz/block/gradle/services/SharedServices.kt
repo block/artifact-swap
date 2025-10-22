@@ -1,6 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
-package com.squareup.gradle.services
+package xyz.block.gradle.services
 
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Provider

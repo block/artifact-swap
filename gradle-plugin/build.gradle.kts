@@ -1,30 +1,30 @@
 plugins {
-    // Apply the shared build logic from a convention plugin.
-    // The shared code is located in `buildSrc/src/main/kotlin/kotlin-jvm.gradle.kts`.
-    id("buildsrc.convention.kotlin-jvm")
-    id("java-gradle-plugin")
-    id("groovy")
+  // Apply the shared build logic from a convention plugin.
+  // The shared code is located in `buildSrc/src/main/kotlin/kotlin-jvm.gradle.kts`.
+  id("buildsrc.convention.kotlin-jvm")
+  id("java-gradle-plugin")
+  id("groovy")
 }
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 gradlePlugin {
   plugins {
-    create("artifactSyncSettingsPlugin") {
-      id = "com.squareup.artifactsync.settings"
-      implementationClass = "com.squareup.register.artifactsync.ArtifactSyncSettingsPlugin"
+    create("artifactSwapSettingsPlugin") {
+      id = "xyz.block.artifactswap.settings"
+      implementationClass = "xyz.block.artifactswap.ArtifactSwapSettingsPlugin"
     }
-    create("artifactSyncProjectPlugin") {
-      id = "com.squareup.artifactsync"
-      implementationClass = "com.squareup.register.artifactsync.ArtifactSyncProjectPlugin"
+    create("artifactSwapProjectPlugin") {
+      id = "xyz.block.artifactswap"
+      implementationClass = "xyz.block.artifactswap.ArtifactSwapProjectPlugin"
     }
     create("groovyProjectOverridePlugin") {
-      id = "com.squareup.artifactsync.groovy-override"
-      implementationClass = "com.squareup.register.artifactsync.ArtifactSyncGroovyProjectOverridePlugin"
+      id = "xyz.block.artifactswap.groovy-override"
+      implementationClass = "xyz.block.artifactswap.ArtifactSwapGroovyProjectOverridePlugin"
     }
-    }
+  }
 }
 
 dependencies {

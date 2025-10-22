@@ -1,4 +1,4 @@
-package com.squareup.ide
+package xyz.block.ide
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
