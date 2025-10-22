@@ -1,13 +1,8 @@
 plugins {
-  // Apply the shared build logic from a convention plugin.
-  // The shared code is located in `buildSrc/src/main/kotlin/kotlin-jvm.gradle.kts`.
-  id("buildsrc.convention.kotlin-jvm")
+  id("org.jetbrains.kotlin.jvm")
+  id("com.android.lint")
   id("java-gradle-plugin")
   id("groovy")
-}
-
-repositories {
-  mavenCentral()
 }
 
 gradlePlugin {
@@ -28,7 +23,14 @@ gradlePlugin {
 }
 
 dependencies {
-  implementation(project(":gradle-utilities"))
+  api(project(":gradle-utilities"))
+
   implementation(gradleApi())
   implementation(libs.kotlin.utilio)
+
+  lintChecks(libs.androidx.lintGradle)
+}
+
+tasks.withType(ValidatePlugins::class.java).configureEach {
+  enableStricterValidation = true
 }
