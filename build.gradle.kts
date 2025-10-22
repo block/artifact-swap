@@ -1,5 +1,6 @@
 plugins {
   id("com.android.lint") apply false
+  id("com.vanniktech.maven.publish") apply false
 }
 
 dependencyAnalysis {

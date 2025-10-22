@@ -20,6 +20,7 @@ pluginManagement {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
     id("com.android.lint") version "8.13.0"
     id("com.autonomousapps.build-health") version "3.2.0"
+    id("com.vanniktech.maven.publish") version "0.34.0"
   }
 }
 
