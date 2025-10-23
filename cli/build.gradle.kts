@@ -18,25 +18,30 @@ dependencies {
   implementation(project(":core"))
   implementation(libs.bundles.log4j)
   implementation(libs.gradle.tooling.api)
+  implementation(libs.jackson.databind)
   implementation(libs.jackson.dataformat.xml)
   implementation(libs.jackson.module.kotlin)
   implementation(libs.koin.core)
   implementation(libs.kotlinxCoroutines)
-  implementation(libs.logback.classic)
-  implementation(libs.logback.core)
+  implementation(libs.moshi)
   implementation(libs.okhttp)
   implementation(libs.picocli.core)
   implementation(libs.retrofit.core)
   implementation(libs.retrofit.converter.jackson)
   implementation(libs.retrofit.wire)
 
+  // Runtime only
+  runtimeOnly(libs.logback.classic)
+
+  // Test dependencies
   testImplementation(platform(libs.junit.bom))
-  testImplementation(libs.junit.jupiter)
+  testImplementation(libs.junit.jupiter.api)
   testImplementation(libs.kotlin.test)
   testImplementation(libs.kotlinx.coroutines.test)
+  testImplementation(libs.mockito.core)
   testImplementation(libs.mockito.kotlin)
+  testImplementation(libs.okio)
   testRuntimeOnly(libs.junit.launcher)
-  testRuntimeOnly(libs.kotlin.test)
 }
 
 tasks.withType<Test>().configureEach {
