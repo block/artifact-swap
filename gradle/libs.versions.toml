@@ -10,6 +10,8 @@ kotlinxSerializationJSON = "1.8.1"
 kotlinxCoroutines = "1.10.2"
 junit = "5.10.0"
 lint-gradle = "1.0.0-alpha05"
+okhttp = "5.1.0"
+retrofit = "3.0.0"
 
 [libraries]
 androidx-lintGradle = { module = "androidx.lint:lint-gradle", version.ref = "lint-gradle" }
@@ -24,6 +26,9 @@ kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-j
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 kotlin-utilio = { module = "org.jetbrains.kotlin:kotlin-util-io", version.ref = "kotlin" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp"}
+retrofit-core = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-converter-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref = "retrofit" }
 
 # Libraries can be bundled together for easier import
 [bundles]
