@@ -50,8 +50,6 @@ mavenPublishing {
 }
 
 dependencies {
-  api(project(":gradle-utilities"))
-
   implementation(gradleApi())
   implementation(libs.kotlin.utilio)
 
