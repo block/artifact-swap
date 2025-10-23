@@ -3,6 +3,7 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
+jackson = "2.16.0"
 kotlin = "2.2.20"
 kotlinxDatetime = "0.6.2"
 kotlinxSerializationJSON = "1.8.1"
@@ -12,6 +13,8 @@ lint-gradle = "1.0.0-alpha05"
 
 [libraries]
 androidx-lintGradle = { module = "androidx.lint:lint-gradle", version.ref = "lint-gradle" }
+jackson-dataformat-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml", version.ref = "jackson" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
