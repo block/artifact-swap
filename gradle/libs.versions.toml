@@ -14,7 +14,9 @@ kotlinxCoroutines = "1.10.2"
 junit = "5.10.0"
 lint-gradle = "1.0.0-alpha05"
 log4j = "2.24.3"
+logback = "1.4.5"
 moshi = "1.15.1"
+picocli = "4.7.0"
 okhttp = "5.1.0"
 okio = "3.16.0"
 retrofit = "3.0.0"
@@ -39,10 +41,13 @@ kotlin-utilio = { module = "org.jetbrains.kotlin:kotlin-util-io", version.ref = 
 log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j"}
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j"}
 log4j-kotlin = { module = "org.apache.logging.log4j:log4j-api-kotlin", version = "1.5.0" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
 moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshi" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp"}
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+picocli-core = { module = "info.picocli:picocli", version.ref = "picocli" }
 retrofit-core = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-converter-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref = "retrofit" }
 retrofit-wire = { module = "com.squareup.retrofit2:converter-wire", version.ref = "retrofit" }
