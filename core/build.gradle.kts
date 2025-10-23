@@ -7,6 +7,8 @@ group = "xyz.block.artifactswap"
 version = "0.1.0-SNAPSHOT"
 
 dependencies {
+  implementation(libs.bundles.log4j)
+  implementation(libs.gradle.tooling.api)
   implementation(libs.jackson.dataformat.xml)
   implementation(libs.jackson.module.kotlin)
   implementation(libs.kotlinxCoroutines)
