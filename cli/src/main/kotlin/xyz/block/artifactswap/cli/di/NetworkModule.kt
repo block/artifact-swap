@@ -86,7 +86,7 @@ internal fun artifactoryNetworkModule() = module {
 
     single<ArtifactoryEndpoints> { get<Retrofit>(named("artifactoryRetrofit")).create<ArtifactoryEndpoints>() }
 
-    single(named("artifactoryBaseUrl")) { "https://global.block-artifacts.com/artifactory/" }
+    single(named("artifactoryBaseUrl")) { ArtifactSwapConfigHolder.instance.artifactoryBaseUrl }
 
     single(named("artifactorySecretsPath")) { System.getenv("SECRETS_PATH") }
 }

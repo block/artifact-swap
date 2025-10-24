@@ -3,6 +3,7 @@ package xyz.block.artifactswap.core.gradle
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.apache.logging.log4j.kotlin.logger
+import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.readLines
@@ -20,15 +21,7 @@ class SettingsGradleHashingProjectsProvider(
 
     companion object {
         val GRADLE_INCLUDE_PROJECT = Regex("include *[( ]['\"](.+)['\"][) ]?")
-        val GRADLE_EXCLUDE_PROJECTS = listOf(
-            // Conditionally included if `square.buildToolkitPlugin=true` is set
-            // This project will eventually move to it's own build or a new repo
-            ":tooling:idea-toolkit:public",
-
-            // Conditionally included if `buildSquidKeyboard` is true
-            ":squid:common:squid-keyboard",
-            ":squid:common:squid-keyboard:LatinIME:tools:make-keyboard-text"
-        )
+        val GRADLE_EXCLUDE_PROJECTS = ArtifactSwapConfigHolder.instance.excludeGradleProjects
     }
 
     override suspend fun getProjectHashingInfos(): Result<List<ProjectHashingInfo>> =
