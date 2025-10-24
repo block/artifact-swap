@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.util.prefixIfNot
  * Artifact Sync project sub-plugin. This plugin is responsible for performing dependency substitution
  *
  * Do not apply this plugin directly! It is auto-applied by [ArtifactSwapSettingsPlugin].
- * For reference and searchability, the ID of this plugin is `com.squareup.register.artifactsync`.
+ * For reference and searchability, the ID of this plugin is `xyz.block.artifactsync`.
  */
 @Suppress("unused")
 class ArtifactSwapProjectPlugin : Plugin<Project> {
