@@ -211,7 +211,7 @@ class ArtifactDownloaderTest {
         assertEquals(FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT, result.countArtifactsToDownload)
         assertEquals(
             FAKE_ARTIFACTS.size * DownloadFileType.entries.size,
-            result.countSuccessfulDownloadedArtifactFiles.toInt()
+            result.countSuccessfulDownloadedArtifactFiles.toInt(),
         )
         assertEquals(FAKE_ARTIFACTS.size / 2, result.countSuccessfulInstalledArtifacts.toInt())
         assertEquals(1, fakeEventStream.receivedEvents.size)
