@@ -2,6 +2,7 @@ package xyz.block.artifactswap.core.download.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
 import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import kotlinx.coroutines.async
@@ -39,8 +40,10 @@ import kotlin.io.path.notExists
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val BOM = "bom"
-internal const val SANDBAG_REPO = "android-register-sandbags"
-internal const val SQUARE_PUBLIC_REPO = "square-public"
+internal val SANDBAG_REPO: String
+    get() = ArtifactSwapConfigHolder.instance.primaryRepositoryName
+internal val SQUARE_PUBLIC_REPO: String
+    get() = ArtifactSwapConfigHolder.instance.publicRepositoryName
 
 interface ArtifactRepository {
 
@@ -94,11 +97,12 @@ class RealArtifactRepository(
 
   override suspend fun getInstalledBom(bomVersion: String): Result<Project> {
     val expectedBomFileName = "bom-$bomVersion.pom"
+    val config = ArtifactSwapConfigHolder.instance
     val expectedBomLocation = localMavenPath
       .resolve("com")
-      .resolve("squareup")
+      .resolve(config.mavenPathOrgSegment)
       .resolve("register")
-      .resolve("sandbags")
+      .resolve(config.mavenPathCategorySegment)
       .resolve("bom")
       .resolve(bomVersion)
       .resolve(expectedBomFileName)

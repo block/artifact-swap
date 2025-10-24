@@ -1,5 +1,6 @@
 package xyz.block.artifactswap.core.download
 
+import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
 import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.download.models.Artifact
@@ -30,9 +31,12 @@ class ArtifactDownloader(
 ) {
 
     companion object {
-        const val SQUARE_PROTOS_GENERATED_VERSION_PROPERTY = "square.protosGeneratedVersion"
-        const val SQUARE_PROTOS_SCHEMA_VERSION_PROPERTY = "square.protosSchemaVersion"
-        const val SQUARE_PROTOS_ARTIFACT_GROUP = "com.squareup.protos"
+        val SQUARE_PROTOS_GENERATED_VERSION_PROPERTY: String
+            get() = ArtifactSwapConfigHolder.instance.protosGeneratedVersionProperty
+        val SQUARE_PROTOS_SCHEMA_VERSION_PROPERTY: String
+            get() = ArtifactSwapConfigHolder.instance.protosSchemaVersionProperty
+        val SQUARE_PROTOS_ARTIFACT_GROUP: String
+            get() = ArtifactSwapConfigHolder.instance.protosMavenGroup
     }
 
     /**
