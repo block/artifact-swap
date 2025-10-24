@@ -6,6 +6,7 @@ import xyz.block.gradle.LOCAL_PROTOS_ARTIFACTS
 import xyz.block.gradle.bomVersion
 import xyz.block.gradle.useArtifactSync
 import xyz.block.gradle.useLocalProtos
+import xyz.block.gradle.isSandbagPublishingEnabled
 import xyz.block.ide.forceSettingsModulesOverride
 import xyz.block.ide.isIdeSync
 import xyz.block.gradle.services.services
@@ -25,7 +26,7 @@ import java.io.File
  * 4. Applying [ArtifactSwapProjectPlugin] to each project
  *
  * plugins {
- *   id 'com.squareup.register.artifactsync.settings'
+ *   id 'xyz.block.artifactswap.settings'
  * }
  */
 @Suppress("unused")
@@ -33,6 +34,7 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
   override fun apply(target: Settings) = target.run {
     applyProjectIncludes()
     maybeApplyArtifactSync()
+    maybeApplyPublishPlugin()
     maybeUseLocalProtos()
   }
 
@@ -125,6 +127,17 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
       }
     } else {
       logger.debug("Artifact Sync is inactive.")
+    }
+  }
+
+  /**
+   * Applies the publish plugin to all projects when sandbag publishing is enabled.
+   */
+  private fun Settings.maybeApplyPublishPlugin() {
+    if (isSandbagPublishingEnabled) {
+      gradle.lifecycle.beforeProject { project ->
+        project.plugins.apply(ArtifactSwapProjectPublishPlugin::class.java)
+      }
     }
   }
 

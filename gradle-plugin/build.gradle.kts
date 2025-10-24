@@ -18,6 +18,10 @@ gradlePlugin {
       id = "xyz.block.artifactswap"
       implementationClass = "xyz.block.artifactswap.ArtifactSwapProjectPlugin"
     }
+    create("artifactSwapProjectPublishPlugin") {
+      id = "xyz.block.artifactswap.publish"
+      implementationClass = "xyz.block.artifactswap.ArtifactSwapProjectPublishPlugin"
+    }
     create("groovyProjectOverridePlugin") {
       id = "xyz.block.artifactswap.groovy-override"
       implementationClass = "xyz.block.artifactswap.ArtifactSwapGroovyProjectOverridePlugin"
