@@ -18,6 +18,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.create
 import xyz.block.artifactswap.cli.network.EventStreamLoggingEnvironment
+import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
 import kotlin.time.Duration.Companion.seconds
@@ -64,7 +65,7 @@ internal fun artifactoryNetworkModule() = module {
 
     single(named("artifactoryToken")) {
         Path(get<String>(named("artifactorySecretsPath")))
-            .resolve("ci-worker-android-register-sandbags-publisher-token")
+            .resolve(ArtifactSwapConfigHolder.instance.artifactoryPublisherTokenFileName)
             .readLines()
             .first()
     }
@@ -102,7 +103,7 @@ internal fun analyticsNetworkModule() = module {
             .build()
 
         Retrofit.Builder()
-            .baseUrl("https://api.squareup.com")
+            .baseUrl(ArtifactSwapConfigHolder.instance.eventstreamBaseUrl)
             .client(httpClient)
             .addConverterFactory(retrofit2.converter.wire.WireConverterFactory.create())
             .build()

@@ -1,9 +1,9 @@
 package xyz.block.artifactswap.cli.network
 
 /**
- * Enum for configuring the ES2 logging environment
+ * Enum for configuring the environment to which event stream logs are sent.
  */
 enum class EventStreamLoggingEnvironment(val baseUrl: String) {
-    STAGING("https://api.squareupstaging.com"),
-    PRODUCTION("https://api.squareup.com");
+    STAGING("https://staging.example.com"),
+    PRODUCTION("https://prod.example.com"),;
 }

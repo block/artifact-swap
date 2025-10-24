@@ -9,23 +9,24 @@ import retrofit2.http.GET
 import retrofit2.http.HEAD
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import xyz.block.artifactswap.core.config.ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT
 
 interface ArtifactoryEndpoints {
 
-    @GET("{repo}/com/squareup/register/sandbags/{artifact}/maven-metadata.xml")
+    @GET("{repo}/${ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT}/{artifact}/maven-metadata.xml")
     suspend fun getMavenMetadata(
         @Path("repo") repo: String,
         @Path("artifact") artifact: String
     ): Response<Metadata>
 
-    @GET("{repo}/com/squareup/register/sandbags/{artifact}/{version}/{artifact}-{version}.pom")
+    @GET("{repo}/${ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT}/{artifact}/{version}/{artifact}-{version}.pom")
     suspend fun getPom(
         @Path("repo") repo: String,
         @Path("artifact") artifact: String,
         @Path("version") version: String
     ): Response<Project>
 
-    @HEAD("{repo}/com/squareup/register/sandbags/{artifact}/{version}/{artifact}-{version}{packaging}")
+    @HEAD("{repo}/${ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT}/{artifact}/{version}/{artifact}-{version}{packaging}")
     suspend fun headArtifact(
         @Path("repo") repo: String,
         @Path("artifact") artifact: String,
@@ -33,14 +34,14 @@ interface ArtifactoryEndpoints {
         @Path("packaging") packaging: String,
     ): Response<Void>
 
-    @PUT("{repo}/com/squareup/register/sandbags/{artifact}/maven-metadata.xml")
+    @PUT("{repo}/${ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT}/{artifact}/maven-metadata.xml")
     suspend fun pushMetadata(
         @Path("repo") repo: String,
         @Path("artifact") artifact: String,
         @Body metadata: Metadata
     ): Response<Unit>
 
-    @PUT("{repo}/com/squareup/register/sandbags/{artifact}/{version}/{filename}")
+    @PUT("{repo}/${ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT}/{artifact}/{version}/{filename}")
     suspend fun pushPom(
         @Path("repo") repo: String,
         @Path("artifact") artifact: String,

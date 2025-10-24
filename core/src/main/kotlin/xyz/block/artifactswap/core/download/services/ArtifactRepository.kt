@@ -43,7 +43,7 @@ private const val BOM = "bom"
 internal val SANDBAG_REPO: String
     get() = ArtifactSwapConfigHolder.instance.primaryRepositoryName
 internal val SQUARE_PUBLIC_REPO: String
-    get() = ArtifactSwapConfigHolder.instance.publicRepositoryName
+    get() = ArtifactSwapConfigHolder.instance.secondaryRepositoryName
 
 interface ArtifactRepository {
 
@@ -80,6 +80,10 @@ class RealArtifactRepository(
   private val objectMapper: ObjectMapper
 ) : ArtifactRepository {
 
+    companion object {
+        private const val MAVEN_GROUP_SEPARATOR = "."
+    }
+
   private val tempPathsToDelete = LinkedBlockingQueue<Path>()
 
   init {
@@ -97,12 +101,14 @@ class RealArtifactRepository(
 
   override suspend fun getInstalledBom(bomVersion: String): Result<Project> {
     val expectedBomFileName = "bom-$bomVersion.pom"
+      // determine bom location from local maven repo + primary maven group
+    var currentRepoLocation = localMavenPath
     val config = ArtifactSwapConfigHolder.instance
-    val expectedBomLocation = localMavenPath
-      .resolve("com")
-      .resolve(config.mavenPathOrgSegment)
-      .resolve("register")
-      .resolve(config.mavenPathCategorySegment)
+      config.primaryArtifactsMavenGroup.split(MAVEN_GROUP_SEPARATOR).forEach { group ->
+        currentRepoLocation = currentRepoLocation.resolve(group)
+      }
+      // the bom is always in the "bom" folder for the maven group in a subdir of the version
+    val expectedBomLocation = currentRepoLocation
       .resolve("bom")
       .resolve(bomVersion)
       .resolve(expectedBomFileName)

@@ -3,13 +3,14 @@ package xyz.block.artifactswap.core.network
 import xyz.block.artifactswap.core.maven.Project
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
 import java.io.FileNotFoundException
 
 class ArtifactoryService(
     private val artifactoryEndpoints: ArtifactoryEndpoints,
 ) {
     private companion object {
-        private const val REPO = "android-register-sandbags"
+        private val REPO = ArtifactSwapConfigHolder.instance.primaryRepositoryName
     }
 
     /**

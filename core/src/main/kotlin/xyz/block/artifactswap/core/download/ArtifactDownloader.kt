@@ -36,7 +36,7 @@ class ArtifactDownloader(
         val SQUARE_PROTOS_SCHEMA_VERSION_PROPERTY: String
             get() = ArtifactSwapConfigHolder.instance.protosSchemaVersionProperty
         val SQUARE_PROTOS_ARTIFACT_GROUP: String
-            get() = ArtifactSwapConfigHolder.instance.protosMavenGroup
+            get() = ArtifactSwapConfigHolder.instance.secondaryArtifactsMavenGroup
     }
 
     /**
