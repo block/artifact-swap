@@ -36,6 +36,7 @@ dependencies {
 
   // Test dependencies
   testImplementation(platform(libs.junit.bom))
+  testImplementation(libs.gradle.tooling.api)
   testImplementation(libs.junit.jupiter.api)
   testImplementation(libs.kotlin.test)
   testImplementation(libs.kotlinx.coroutines.test)
