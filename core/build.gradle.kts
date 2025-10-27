@@ -10,6 +10,7 @@ version = "0.1.0-SNAPSHOT"
 
 dependencies {
   // API - exposed to consumers
+  api(libs.gradle.tooling.api)
   api(libs.jackson.databind)
   api(libs.jackson.dataformat.xml)
   api(libs.jgit.core)
@@ -17,7 +18,6 @@ dependencies {
   api(libs.retrofit.core)
 
   // Implementation
-  implementation(libs.gradle.tooling.api)
   implementation(libs.jackson.core)
   implementation(libs.jackson.module.kotlin)
   implementation(libs.koin.core)
@@ -36,7 +36,6 @@ dependencies {
 
   // Test dependencies
   testImplementation(platform(libs.junit.bom))
-  testImplementation(libs.gradle.tooling.api)
   testImplementation(libs.junit.jupiter.api)
   testImplementation(libs.kotlin.test)
   testImplementation(libs.kotlinx.coroutines.test)
