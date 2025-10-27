@@ -64,7 +64,7 @@ class BomPublishingCommandTest {
         // Set up metadata responses
         fakeArtifactoryEndpoints.metadataResponses["project1"] = Response.success(
             Metadata(
-                groupId = "com.squareup.register.sandbags",
+                groupId = "xyz.block.artifactswap.artifacts",
                 artifactId = "project1",
                 versioning = Versioning(
                     latest = "version1",
@@ -128,7 +128,7 @@ class BomPublishingCommandTest {
 
         fakeArtifactoryEndpoints.metadataResponses["artifact1"] = Response.success(
             Metadata(
-                groupId = "com.squareup.register.sandbags",
+                groupId = "xyz.block.artifactswap.artifacts",
                 artifactId = "artifact1",
                 versioning = Versioning(
                     latest = "v1",
@@ -140,7 +140,7 @@ class BomPublishingCommandTest {
         )
         fakeArtifactoryEndpoints.metadataResponses["artifact2"] = Response.success(
             Metadata(
-                groupId = "com.squareup.register.sandbags",
+                groupId = "xyz.block.artifactswap.artifacts",
                 artifactId = "artifact2",
                 versioning = Versioning(
                     latest = "v2",

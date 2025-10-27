@@ -5,6 +5,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.apache.logging.log4j.kotlin.logger
 import retrofit2.Response
+import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
 import xyz.block.artifactswap.core.maven.Dependencies
 import xyz.block.artifactswap.core.maven.Dependency
 import xyz.block.artifactswap.core.maven.DependencyManagement
@@ -32,9 +33,9 @@ class BomPublisher(
     private val dryRun: Boolean = false
 ) {
     companion object {
-        private const val GROUP_ID = "com.squareup.register.sandbags"
+        private val GROUP_ID = ArtifactSwapConfigHolder.instance.primaryArtifactsMavenGroup
         private const val BOM = "bom"
-        private const val REPO = "android-register-sandbags"
+        private val REPO = ArtifactSwapConfigHolder.instance.primaryRepositoryName
     }
 
     /**

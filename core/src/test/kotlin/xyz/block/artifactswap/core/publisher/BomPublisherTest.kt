@@ -100,7 +100,7 @@ class BomPublisherTest {
         // Set up metadata responses for artifacts
         fakeArtifactoryEndpoints.metadataResponses["artifact1"] = Response.success(
             Metadata(
-                groupId = "com.squareup.register.sandbags",
+                groupId = "xyz.block.artifactswap.artifacts",
                 artifactId = "artifact1",
                 versioning = Versioning(
                     latest = "version1",
@@ -112,7 +112,7 @@ class BomPublisherTest {
         )
         fakeArtifactoryEndpoints.metadataResponses["artifact2"] = Response.success(
             Metadata(
-                groupId = "com.squareup.register.sandbags",
+                groupId = "xyz.block.artifactswap.artifacts",
                 artifactId = "artifact2",
                 versioning = Versioning(
                     latest = "version2",
@@ -149,7 +149,7 @@ class BomPublisherTest {
 
         fakeArtifactoryEndpoints.metadataResponses["artifact1"] = Response.success(
             Metadata(
-                groupId = "com.squareup.register.sandbags",
+                groupId = "xyz.block.artifactswap.artifacts",
                 artifactId = "artifact1",
                 versioning = Versioning(
                     latest = "version1",
@@ -182,7 +182,7 @@ class BomPublisherTest {
 
         fakeArtifactoryEndpoints.metadataResponses["artifact1"] = Response.success(
             Metadata(
-                groupId = "com.squareup.register.sandbags",
+                groupId = "xyz.block.artifactswap.artifacts",
                 artifactId = "artifact1",
                 versioning = Versioning(
                     latest = "version1",
@@ -196,7 +196,7 @@ class BomPublisherTest {
         // Set up existing BOM metadata
         fakeArtifactoryEndpoints.metadataResponses["bom"] = Response.success(
             Metadata(
-                groupId = "com.squareup.register.sandbags",
+                groupId = "xyz.block.artifactswap.artifacts",
                 artifactId = "bom",
                 versioning = Versioning(
                     latest = "0.9.0",
@@ -238,7 +238,7 @@ class BomPublisherTest {
 
         fakeArtifactoryEndpoints.metadataResponses["artifact1"] = Response.success(
             Metadata(
-                groupId = "com.squareup.register.sandbags",
+                groupId = "xyz.block.artifactswap.artifacts",
                 artifactId = "artifact1",
                 versioning = Versioning(
                     latest = "version1",
@@ -271,7 +271,7 @@ class BomPublisherTest {
 
         fakeArtifactoryEndpoints.metadataResponses["artifact1"] = Response.success(
             Metadata(
-                groupId = "com.squareup.register.sandbags",
+                groupId = "xyz.block.artifactswap.artifacts",
                 artifactId = "artifact1",
                 versioning = Versioning(
                     latest = "version1",
