@@ -87,7 +87,7 @@ data class ArtifactRemoverEvent(
   val startCountInstalledProjects: Long = -1,
   @Json(name = "repo_stats_start_count_installed_artifacts")
   val startCountInstalledArtifacts: Long = -1,
-  @Json(name = "repo_stats_start_count_boms_insalled")
+  @Json(name = "repo_stats_start_count_boms_installed")
   val startCountInstalledBoms: Long = -1,
   @Json(name = "repo_stats_start_size_of_installed_artifacts_bytes")
   val startSizeOfInstalledArtifactsBytes: Long = -1,
