@@ -17,6 +17,7 @@ dependencies {
   api(libs.retrofit.core)
 
   // Implementation
+  implementation(libs.gradle.tooling.api)
   implementation(libs.jackson.core)
   implementation(libs.jackson.module.kotlin)
   implementation(libs.koin.core)
