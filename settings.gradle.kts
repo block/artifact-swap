@@ -16,9 +16,6 @@ pluginManagement {
     mavenCentral()
     google()
     gradlePluginPortal()
-    maven { 
-      url = uri("https://repo.gradle.org/gradle/libs-releases")
-    }
   }
   plugins {
     id("com.gradle.develocity") version "4.2.2"
