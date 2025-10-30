@@ -73,13 +73,13 @@ class HashingCommandTest {
                 single<Eventstream>(named("analyticsModuleEventStream")) {
                     Eventstream(eventstreamService = mock<EventstreamService>())
                 }
-                single<GradleProjectsProvider> { fakeGradleProjectsProvider }
             }
         )
         command.init(testApplication)
         testApplication.modules(
             module {
                 single<HashingEventStream> { fakeEventStream }
+                single<GradleProjectsProvider> { fakeGradleProjectsProvider }
             }
         )
 
@@ -136,13 +136,13 @@ class HashingCommandTest {
                 single<Eventstream>(named("analyticsModuleEventStream")) {
                     Eventstream(eventstreamService = mock<EventstreamService>())
                 }
-                single<GradleProjectsProvider> { fakeGradleProjectsProvider }
             }
         )
         command.init(testApplication)
         testApplication.modules(
             module {
                 single<HashingEventStream> { fakeEventStream }
+                single<GradleProjectsProvider> { fakeGradleProjectsProvider }
             }
         )
 
@@ -193,13 +193,13 @@ class HashingCommandTest {
                 single<Eventstream>(named("analyticsModuleEventStream")) {
                     Eventstream(eventstreamService = mock<EventstreamService>())
                 }
-                single<GradleProjectsProvider> { fakeGradleProjectsProvider }
             }
         )
         command.init(testApplication)
         testApplication.modules(
             module {
                 single<HashingEventStream> { fakeEventStream }
+                single<GradleProjectsProvider> { fakeGradleProjectsProvider }
             }
         )
 
