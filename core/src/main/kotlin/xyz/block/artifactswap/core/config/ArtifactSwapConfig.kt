@@ -1,5 +1,9 @@
 package xyz.block.artifactswap.core.config
 
+import org.apache.logging.log4j.kotlin.logger
+import java.io.File
+import java.util.Properties
+
 /**
  * Central configuration for all artifact swap operations.
  *
@@ -213,5 +217,130 @@ object ArtifactSwapConfigHolder {
      * The current configuration instance. Defaults to Square/Block values.
      * Can be reassigned at runtime to customize behavior.
      */
-    var instance: ArtifactSwapConfig = ArtifactSwapConfig()
+    val instance: ArtifactSwapConfig = createFromGradleProperties()
+
+    /**
+     * Creates an ArtifactSwapConfig by reading values from gradle.properties in the working directory.
+     *
+     * Supported properties:
+     * - artifactswap.primaryRepositoryName
+     * - artifactswap.secondaryRepositoryName
+     * - artifactswap.primaryArtifactsMavenGroup
+     * - artifactswap.secondaryArtifactsMavenGroup
+     * - artifactswap.eventstreamBaseUrl
+     * - artifactswap.artifactoryPublisherTokenFileName
+     * - artifactswap.eventstreamGzipHeaderName
+     * - artifactswap.protosGeneratedVersionProperty
+     * - artifactswap.protosSchemaVersionProperty
+     * - artifactswap.useLocalProtosProperty
+     * - artifactswap.buildToolkitPluginProperty
+     * - artifactswap.forceModulesOverrideProperty
+     * - artifactswap.artifactVersionExtraProperty
+     * - artifactswap.settingsOverrideFileName
+     * - artifactswap.artifactHashCachePath
+     * - artifactswap.cliToolDisplayName
+     * - artifactswap.artifactoryBaseUrl
+     *
+     * Falls back to default values for any properties not specified.
+     */
+    private fun createFromGradleProperties(): ArtifactSwapConfig {
+        val gradlePropertiesFile = File(System.getProperty("user.dir"), "gradle.properties")
+
+        if (!gradlePropertiesFile.exists()) {
+            // Return default config if gradle.properties doesn't exist
+            logger.error { "Gradle properties file does not exist, falling back to default properties: $gradlePropertiesFile" }
+            return ArtifactSwapConfig()
+        }
+
+        logger.info { "Loading ArtifactSwapConfig from gradle properties: $gradlePropertiesFile" }
+        val properties = Properties()
+        gradlePropertiesFile.inputStream().use { properties.load(it) }
+
+        val defaults = ArtifactSwapConfig()
+
+        fun getPropertyWithLogging(key: String, default: String): String {
+            val value = properties.getProperty(key)
+            if (value != null) {
+                logger.info { "Using property from gradle.properties: $key = $value" }
+                return value
+            }
+            return default
+        }
+
+        fun getOptionalPropertyWithLogging(key: String): String? {
+            val value = properties.getProperty(key)
+            if (value != null) {
+                logger.info { "Using property from gradle.properties: $key = $value" }
+            }
+            return value
+        }
+
+        return ArtifactSwapConfig(
+            primaryRepositoryName = getPropertyWithLogging(
+                "artifactswap.primaryRepositoryName",
+                defaults.primaryRepositoryName
+            ),
+            secondaryRepositoryName = getPropertyWithLogging(
+                "artifactswap.secondaryRepositoryName",
+                defaults.secondaryRepositoryName
+            ),
+            primaryArtifactsMavenGroup = getPropertyWithLogging(
+                "artifactswap.primaryArtifactsMavenGroup",
+                defaults.primaryArtifactsMavenGroup
+            ),
+            secondaryArtifactsMavenGroup = getPropertyWithLogging(
+                "artifactswap.secondaryArtifactsMavenGroup",
+                defaults.secondaryArtifactsMavenGroup
+            ),
+            eventstreamBaseUrl = getPropertyWithLogging(
+                "artifactswap.eventstreamBaseUrl",
+                defaults.eventstreamBaseUrl
+            ),
+            artifactoryPublisherTokenFileName = getPropertyWithLogging(
+                "artifactswap.artifactoryPublisherTokenFileName",
+                defaults.artifactoryPublisherTokenFileName
+            ),
+            eventstreamGzipHeaderName = getOptionalPropertyWithLogging("artifactswap.eventstreamGzipHeaderName"),
+            protosGeneratedVersionProperty = getPropertyWithLogging(
+                "artifactswap.protosGeneratedVersionProperty",
+                defaults.protosGeneratedVersionProperty
+            ),
+            protosSchemaVersionProperty = getPropertyWithLogging(
+                "artifactswap.protosSchemaVersionProperty",
+                defaults.protosSchemaVersionProperty
+            ),
+            useLocalProtosProperty = getPropertyWithLogging(
+                "artifactswap.useLocalProtosProperty",
+                defaults.useLocalProtosProperty
+            ),
+            buildToolkitPluginProperty = getPropertyWithLogging(
+                "artifactswap.buildToolkitPluginProperty",
+                defaults.buildToolkitPluginProperty
+            ),
+            forceModulesOverrideProperty = getPropertyWithLogging(
+                "artifactswap.forceModulesOverrideProperty",
+                defaults.forceModulesOverrideProperty
+            ),
+            artifactVersionExtraProperty = getPropertyWithLogging(
+                "artifactswap.artifactVersionExtraProperty",
+                defaults.artifactVersionExtraProperty
+            ),
+            settingsOverrideFileName = getPropertyWithLogging(
+                "artifactswap.settingsOverrideFileName",
+                defaults.settingsOverrideFileName
+            ),
+            artifactHashCachePath = getPropertyWithLogging(
+                "artifactswap.artifactHashCachePath",
+                defaults.artifactHashCachePath
+            ),
+            cliToolDisplayName = getPropertyWithLogging(
+                "artifactswap.cliToolDisplayName",
+                defaults.cliToolDisplayName
+            ),
+            artifactoryBaseUrl = getPropertyWithLogging(
+                "artifactswap.artifactoryBaseUrl",
+                defaults.artifactoryBaseUrl
+            ),
+        )
+    }
 }
