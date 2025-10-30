@@ -1,15 +1,18 @@
 package xyz.block.artifactswap.core.hashing.di
 
 import kotlinx.coroutines.CoroutineDispatcher
+import org.gradle.tooling.GradleConnector
 import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
+import xyz.block.artifactswap.core.gradle.GradleToolingHashingProjectsProvider
 import xyz.block.artifactswap.core.hashing.ProjectHashService
 import xyz.block.artifactswap.core.hashing.services.HashingEventStream
 import xyz.block.artifactswap.core.hashing.services.RealHashingEventStream
+import java.nio.file.Path
 
 // Extension properties for accessing common values from KoinApplication
 val KoinApplication.ioDispatcher: kotlinx.coroutines.CoroutineDispatcher
@@ -33,6 +36,18 @@ fun projectHashServiceModules(application: KoinApplication, config: ProjectHashS
             RealHashingEventStream(
                 eventstream = get<Eventstream>(named(EVENT_STREAM_NAME)),
                 ioDispatcher = get<CoroutineDispatcher>(named("IO"))
+            )
+        }
+
+        single<GradleProjectsProvider> {
+            GradleToolingHashingProjectsProvider(
+                GradleConnector.newCancellationTokenSource(),
+                GradleConnector.newConnector()
+                    .forProjectDirectory(get<Path>(named("directory")).toFile())
+                    .useBuildDistribution()
+                    .connect(),
+                gradleArgs = get(named("gradleArgs")),
+                gradleJvmArgs = get(named("jvmArgs")),
             )
         }
 
