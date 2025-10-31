@@ -2,9 +2,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
-
-    // Apply the Application plugin to add support for building an executable JVM application.
     application
+    id("com.gradleup.shadow")
 }
 
 group = "xyz.block.artifactswap"
