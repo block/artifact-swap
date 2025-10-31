@@ -9,8 +9,8 @@ private const val SQUARE_GENERATED_PROTOS_VERSION = "square.protosGeneratedVersi
 private const val SQUARE_PROTOS_SCHEMA_VERSION = "square.protosSchemaVersion"
 const val USE_ARTIFACT_SYNC = "useArtifactSync"
 internal const val LOCAL_PROTOS_ARTIFACTS = "square.useLocalProtos"
-private const val IS_SANDBAG_PUBLISHING = "square.enableSandbagPublishing"
-private const val SANDBAG_HASH_FILE = "square.hashFile"
+private const val IS_SANDBAG_PUBLISHING = "artifactswap.enableSandbagPublishing"
+private const val SANDBAG_HASH_FILE = "artifactswap.hashFile"
 
 internal val Project.generatedProtosVersion
   get() = providers.gradleProperty(SQUARE_GENERATED_PROTOS_VERSION).get()
@@ -40,16 +40,18 @@ val Project.isSandbagPublishingEnabled: Boolean
   get() = providers.gradleProperty(IS_SANDBAG_PUBLISHING)
     .getOrElse("false").toBoolean()
 
-val Settings.isSandbagPublishingEnabled: Boolean
+val Settings.isArtifactPublishingEnabled: Boolean
   get() = providers.gradleProperty(IS_SANDBAG_PUBLISHING)
     .getOrElse("false").toBoolean()
+
+val Project.sandbagHashFile: File
+  get() = File(rootDir, providers.gradleProperty(SANDBAG_HASH_FILE).get())
 
 /**
  * Gets the sandbag version for this project from the sandbag hash file.
  */
-val Project.sandbagVersion: String
+val Project.sandbagVersion: String?
   get() {
-    val sandbagHashFile = File(rootDir, providers.gradleProperty(SANDBAG_HASH_FILE).get())
     if (!sandbagHashFile.exists()) {
       throw GradleException(
         "Sandbag hash file was not found in $sandbagHashFile. Please run sandbag tool."
@@ -58,7 +60,7 @@ val Project.sandbagVersion: String
     val result = sandbagHashFile.useLines { lines ->
       return@useLines lines.firstOrNull { line ->
         return@firstOrNull line.substringBefore('|') == project.path
-      } ?: throw GradleException("$path not found in hashing file. Please re-run sandbag tool.")
+      }
     }
-    return result.substringAfter('|')
+    return result?.substringAfter('|')
   }
