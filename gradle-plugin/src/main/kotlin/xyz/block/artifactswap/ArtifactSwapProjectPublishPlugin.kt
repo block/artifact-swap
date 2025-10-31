@@ -4,6 +4,7 @@ package xyz.block.artifactswap
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.gradle.api.plugins.JavaPluginExtension
@@ -30,59 +31,63 @@ import xyz.block.gradle.toSandbagArtifact
 class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
 
   override fun apply(target: Project): Unit = target.run {
+    val version = sandbagVersion ?: return@run
+
     pluginManager.apply("maven-publish")
     extensions.getByType(PublishingExtension::class.java).also { mavenPublishing ->
-      configureSandbagRepository(mavenPublishing)
-      configureSandbagPublication(mavenPublishing)
-      mavenPublishing.publications.withType(MavenPublication::class.java)
-        .configureEach { publication ->
-          configureSandbagPom(publication.pom)
-        }
+      val repo = configureSandbagRepository(mavenPublishing)
+
+      // Other plugins configure the components to be published, so we have to configure them after
+      // those plugins run
+      afterEvaluate {
+        val publication = configureSandbagPublication(mavenPublishing, version)
+        createPublishAliasTask(repo, publication)
+      }
     }
 
     tasks.withType(PublishToMavenRepository::class.java).configureEach {
       it.notCompatibleWithConfigurationCache("See https://github.com/gradle/gradle/issues/13468")
     }
-
-    // Create a simple alias task for publishing
-    tasks.register("publishToArtifactory") {
-      it.dependsOn(tasks.named("publishAllPublicationsToSandbagRepository"))
-    }
   }
 
-  private fun Project.configureSandbagRepository(mavenPublishing: PublishingExtension) = with(mavenPublishing) {
+  private fun Project.configureSandbagRepository(
+    mavenPublishing: PublishingExtension,
+  ): MavenArtifactRepository = with(mavenPublishing) {
     val sandbagsUrl = providers.gradleProperty("square.sandbagsUrl").get()
-    repositories { handler ->
-      handler.maven { repo ->
-        repo.name = "sandbag"
-        repo.url = uri(sandbagsUrl)
+    return repositories.maven { repo ->
+      repo.name = "artifactSwap"
+      repo.url = uri(sandbagsUrl)
 
-        with(getSandbagCredentials()) {
-          if (username != null && password != null) {
-            repo.credentials(PasswordCredentials::class.java) { creds ->
-              creds.username = username
-              creds.password = password
-            }
-          }
+      getSandbagCredentials()?.apply {
+        repo.credentials(PasswordCredentials::class.java) { creds ->
+          creds.username = username
+          creds.password = password
         }
       }
     }
   }
 
-  private fun Project.configureSandbagPublication(mavenPublishing: PublishingExtension) {
+  private fun Project.configureSandbagPublication(
+    mavenPublishing: PublishingExtension,
+    version: String
+  ): MavenPublication {
     val publication = mavenPublishing.publications
-      .maybeCreate("maven", MavenPublication::class.java)
+      .maybeCreate("projectArtifact", MavenPublication::class.java)
 
     // Automatically configure maven coordinates for sandbag
     publication.groupId = ARTIFACT_SWAP_MAVEN_GROUP
     publication.artifactId = path.toSandbagArtifact
-    publication.version = sandbagVersion
+    publication.version = version
 
     // For non-Android projects, automatically configure the java component and sources
     if (!isAndroid) {
       publication.from(components.getByName("java"))
       addSourcesArtifact(publication)
     }
+
+    configureSandbagPom(publication.pom)
+
+    return publication
   }
 
   private fun Project.addSourcesArtifact(publication: MavenPublication) {
@@ -121,14 +126,28 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     }
   }
 
-  private fun Project.getSandbagCredentials(): SandbagCredentials {
+  private fun Project.getSandbagCredentials(): SandbagCredentials? {
     val username = providers.gradleProperty("square.artifactory.username").orNull
     val password = providers.gradleProperty("square.artifactory.password").orNull
-    return SandbagCredentials(username, password)
+    return if (username != null && password != null) {
+      SandbagCredentials(username, password)
+    } else {
+      null
+    }
+  }
+
+  private fun Project.createPublishAliasTask(repo: MavenArtifactRepository, publication: MavenPublication) {
+    val pubName = publication.name.replaceFirstChar { it.uppercase() }
+    val repoName = repo.name.replaceFirstChar { it.uppercase() }
+    val publishTaskName = "publish${pubName}PublicationTo${repoName}Repository"
+
+    tasks.register("publishTo${repoName}Repository") {
+      it.dependsOn(tasks.named(publishTaskName))
+    }
   }
 
   private data class SandbagCredentials(
-    val username: String?,
-    val password: String?
+    val username: String,
+    val password: String
   )
 }
