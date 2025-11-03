@@ -45,6 +45,13 @@ mavenPublishing {
         distribution = "https://www.apache.org/licenses/LICENSE-2.0"
       }
     }
+    developers {
+      developer {
+        id = "block"
+        name = "Block Open Source"
+        email = "opensource@block.xyz"
+      }
+    }
     scm {
       url = "https://github.com/block/artifact-swap/"
       connection = "scm:git:git://github.com/block/artifact-swap.git"
