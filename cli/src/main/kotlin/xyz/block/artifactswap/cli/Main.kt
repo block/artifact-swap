@@ -2,7 +2,9 @@ package xyz.block.artifactswap.cli
 
 import org.apache.logging.log4j.kotlin.logger
 import picocli.CommandLine
+import xyz.block.artifactswap.cli.commands.ArtifactCheckerCommand
 import xyz.block.artifactswap.cli.commands.ArtifactDownloaderCommand
+import xyz.block.artifactswap.cli.commands.ArtifactRemoverCommand
 import xyz.block.artifactswap.cli.commands.BomPublishingCommand
 import xyz.block.artifactswap.cli.commands.HashingCommand
 import xyz.block.artifactswap.cli.commands.SandbaggingCommand
@@ -20,9 +22,9 @@ fun main(vararg args: String) {
             .addSubcommand(TaskFinderCommand())
             .addSubcommand(TaskRunnerCommand())
             .addSubcommand(BomPublishingCommand())
-//            .addSubcommand(ArtifactCheckerCommand())
+            .addSubcommand(ArtifactCheckerCommand())
             .addSubcommand(ArtifactDownloaderCommand())
-//            .addSubcommand(ArtifactRemoverCommand())
+            .addSubcommand(ArtifactRemoverCommand())
         commandLine.isCaseInsensitiveEnumValuesAllowed = true
         val result = commandLine.execute(*args)
         commandLine.checkExitCode(result)
