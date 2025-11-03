@@ -25,6 +25,7 @@ pluginManagement {
     id("com.android.lint") version "8.13.0"
     id("com.autonomousapps.build-health") version "3.2.0"
     id("com.vanniktech.maven.publish") version "0.34.0"
+    id("com.gradleup.shadow") version "9.2.2"
   }
 }
 
