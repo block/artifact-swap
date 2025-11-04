@@ -3,6 +3,7 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
+agp = "8.9.1"
 gradle-tapi = "8.14.3"
 jackson = "2.16.0"
 jgit = "6.10.0.202406032230-r"
@@ -22,9 +23,17 @@ okhttp = "5.1.0"
 okio = "3.16.0"
 retrofit = "3.0.0"
 wire = "5.3.11"
+ktfmt = "0.59"
+ktfmt-gradle = "0.25.0"
+vanniktech = "0.34.0"
+dagp = "3.4.1"
+develocity = "4.2.2"
 
 [libraries]
+android-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 androidx-lintGradle = { module = "androidx.lint:lint-gradle", version.ref = "lint-gradle" }
+dagp-gradle = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version.ref = "dagp" }
+develocity-gradle = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
 gradle-tooling-api = { module = "org.gradle:gradle-tooling-api", version.ref = "gradle-tapi" }
 jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
@@ -36,7 +45,7 @@ junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
-kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJSON" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
@@ -62,6 +71,8 @@ retrofit-core = { module = "com.squareup.retrofit2:retrofit", version.ref = "ret
 retrofit-converter-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref = "retrofit" }
 retrofit-wire = { module = "com.squareup.retrofit2:converter-wire", version.ref = "retrofit" }
 wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wire" }
+ktfmt-gradle = { module = "com.ncorti.ktfmt.gradle:plugin", version.ref = "ktfmt-gradle" }
+vanniktech-gradle = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "vanniktech" }
 
 # Libraries can be bundled together for easier import
 [bundles]
@@ -69,4 +80,6 @@ kotlinxEcosystem = ["kotlinxDatetime", "kotlinxSerialization", "kotlinxCoroutine
 log4j = ["log4j-api", "log4j-core", "log4j-kotlin"]
 
 [plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt-gradle" }

@@ -64,3 +64,6 @@ buildSrc/*.iml
 buildSrc/gradle/
 buildSrc/gradlew
 buildSrc/gradlew.bat
+
+# heap dumps
+*.hprof

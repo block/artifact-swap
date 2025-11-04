@@ -1,7 +1,4 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 plugins {
-  id("org.jetbrains.kotlin.jvm")
   id("com.google.devtools.ksp")
 }
 
@@ -42,19 +39,6 @@ dependencies {
   testImplementation(libs.mockito.core)
   testImplementation(libs.mockito.kotlin)
   testRuntimeOnly(libs.junit.launcher)
-}
 
-
-tasks.withType<Test>().configureEach {
-    // Configure all test Gradle tasks to use JUnitPlatform.
-    useJUnitPlatform()
-
-    // Log information about all test results, not only the failed ones.
-    testLogging {
-        events(
-            TestLogEvent.FAILED,
-            TestLogEvent.PASSED,
-            TestLogEvent.SKIPPED
-        )
-    }
+  lintChecks(libs.androidx.lintGradle)
 }
