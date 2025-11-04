@@ -34,6 +34,7 @@ class BomPublisher(
 ) {
     companion object {
         private val GROUP_ID = ArtifactSwapConfigHolder.instance.primaryArtifactsMavenGroup
+        private val GROUP_PATH_PART = ArtifactSwapConfigHolder.instance.primaryArtifactsMavenGroupArtifactoryPath
         private const val BOM = "bom"
         private val REPO = ArtifactSwapConfigHolder.instance.primaryRepositoryName
     }
@@ -130,7 +131,14 @@ class BomPublisher(
             logger.info { "Dry run, not pushing BOM artifact" }
             Response.success(Unit)
         } else {
-            artifactoryEndpoints.pushPom(REPO, BOM, bomVersion, "$BOM-$bomVersion.pom", project)
+            artifactoryEndpoints.pushPom(
+                repo = REPO,
+                groupPath = GROUP_PATH_PART,
+                artifact = BOM,
+                version = bomVersion,
+                filename = "$BOM-$bomVersion.pom",
+                project = project
+            )
         }
 
         result = if (pomResponse.isSuccessful) {
@@ -166,7 +174,11 @@ class BomPublisher(
         return@coroutineScope projectHashes.map { (artifact, version) ->
             // Query the artifactory repository to see if the artifact exists
             async {
-                val response = artifactoryEndpoints.getMavenMetadata(REPO, artifact)
+                val response = artifactoryEndpoints.getMavenMetadata(
+                    repo = REPO,
+                    groupPath = GROUP_PATH_PART,
+                    artifact = artifact
+                )
                 if (response.isSuccessful) {
                     val metadata = response.body()
                     if (metadata == null) {
@@ -199,7 +211,11 @@ class BomPublisher(
     }
 
     private suspend fun updateBomMetadata(newVersion: String, result: BomPublisherResult): BomPublisherResult {
-        val bomMetaDataResponse = artifactoryEndpoints.getMavenMetadata(REPO, BOM)
+        val bomMetaDataResponse = artifactoryEndpoints.getMavenMetadata(
+            repo = REPO,
+            groupPath = GROUP_PATH_PART,
+            artifact = BOM
+        )
         if (bomMetaDataResponse.isSuccessful) {
             // Create or update the BOM metadata
             val newBomMetaData = bomMetaDataResponse.body()?.let { bomMetaData ->
@@ -233,6 +249,7 @@ class BomPublisher(
                 } else {
                     artifactoryEndpoints.pushMetadata(
                         repo = REPO,
+                        groupPath = GROUP_PATH_PART,
                         artifact = BOM,
                         metadata = newBomMetaData
                     )
@@ -252,6 +269,7 @@ class BomPublisher(
         } else if (bomMetaDataResponse.code() == HttpURLConnection.HTTP_NOT_FOUND) {
             val response = artifactoryEndpoints.pushMetadata(
                 repo = REPO,
+                groupPath = GROUP_PATH_PART,
                 artifact = BOM,
                 metadata = Metadata(
                     groupId = GROUP_ID,

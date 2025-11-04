@@ -42,6 +42,8 @@ import kotlin.time.Duration.Companion.milliseconds
 private const val BOM = "bom"
 internal val SANDBAG_REPO: String
     get() = ArtifactSwapConfigHolder.instance.primaryRepositoryName
+internal val ARTIFACTORY_GROUP_PATH_SEGMENT =
+    ArtifactSwapConfigHolder.instance.primaryArtifactsMavenGroupArtifactoryPath
 internal val SQUARE_PUBLIC_REPO: String
     get() = ArtifactSwapConfigHolder.instance.secondaryRepositoryName
 
@@ -124,6 +126,7 @@ class RealArtifactRepository(
     return runCatching {
       val response = artifactoryService.getPom(
         repo = SANDBAG_REPO,
+        groupPath = ARTIFACTORY_GROUP_PATH_SEGMENT,
         artifact = BOM,
         bomVersion
       )
