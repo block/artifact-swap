@@ -219,7 +219,15 @@ object ArtifactSwapConfigHolder {
     val instance: ArtifactSwapConfig = createFromGradleProperties()
 
     /**
-     * Creates an ArtifactSwapConfig by reading values from gradle.properties in the working directory.
+     * Creates an ArtifactSwapConfig by reading values from gradle.properties files.
+     *
+     * Properties are loaded with the following precedence (highest to lowest priority):
+     * 1. ~/.gradle/gradle.properties (global user settings - highest priority)
+     * 2. $pwd/gradle.properties (project-specific settings)
+     * 3. Default values defined in ArtifactSwapConfig class (lowest priority)
+     *
+     * This means global settings in your home directory will override project-specific
+     * settings, which in turn override the defaults.
      *
      * Supported properties:
      * - artifactswap.primaryRepositoryName
@@ -243,22 +251,36 @@ object ArtifactSwapConfigHolder {
      * Falls back to default values for any properties not specified.
      */
     private fun createFromGradleProperties(): ArtifactSwapConfig {
-        val gradlePropertiesFile = File(System.getProperty("user.dir"), "gradle.properties")
+        val userHome = System.getProperty("user.home")
+        val globalGradlePropertiesFile = File(userHome, ".gradle/gradle.properties")
+        val localGradlePropertiesFile = File(System.getProperty("user.dir"), "gradle.properties")
 
-        if (!gradlePropertiesFile.exists()) {
-            // Return default config if gradle.properties doesn't exist
-            logger.error { "Gradle properties file does not exist, falling back to default properties: $gradlePropertiesFile" }
-            return ArtifactSwapConfig()
+        // Load properties with precedence: local first, then global (which will override)
+        val mergedProperties = Properties()
+
+        if (localGradlePropertiesFile.exists()) {
+            logger.info { "Loading ArtifactSwapConfig from local gradle properties: $localGradlePropertiesFile" }
+            localGradlePropertiesFile.inputStream().use { mergedProperties.load(it) }
+        } else {
+            logger.info { "Local gradle properties file does not exist: $localGradlePropertiesFile" }
         }
 
-        logger.info { "Loading ArtifactSwapConfig from gradle properties: $gradlePropertiesFile" }
-        val properties = Properties()
-        gradlePropertiesFile.inputStream().use { properties.load(it) }
+        if (globalGradlePropertiesFile.exists()) {
+            logger.info { "Loading ArtifactSwapConfig from global gradle properties: $globalGradlePropertiesFile" }
+            globalGradlePropertiesFile.inputStream().use { mergedProperties.load(it) }
+        } else {
+            logger.info { "Global gradle properties file does not exist: $globalGradlePropertiesFile" }
+        }
+
+        if (!globalGradlePropertiesFile.exists() && !localGradlePropertiesFile.exists()) {
+            logger.error { "No gradle properties files found, falling back to default properties" }
+            return ArtifactSwapConfig()
+        }
 
         val defaults = ArtifactSwapConfig()
 
         fun getPropertyWithLogging(key: String, default: String): String {
-            val value = properties.getProperty(key)
+            val value = mergedProperties.getProperty(key)
             if (value != null) {
                 logger.info { "Using property from gradle.properties: $key = $value" }
                 return value
@@ -267,7 +289,7 @@ object ArtifactSwapConfigHolder {
         }
 
         fun getOptionalPropertyWithLogging(key: String): String? {
-            val value = properties.getProperty(key)
+            val value = mergedProperties.getProperty(key)
             if (value != null) {
                 logger.info { "Using property from gradle.properties: $key = $value" }
             }
