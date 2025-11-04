@@ -8,6 +8,7 @@ version = "0.1.0-SNAPSHOT"
 
 application {
     mainClass = "xyz.block.artifactswap.cli.MainKt"
+    applicationName = "artifactswap"
 }
 
 dependencies {
