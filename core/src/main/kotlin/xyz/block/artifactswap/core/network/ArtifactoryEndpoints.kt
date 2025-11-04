@@ -13,37 +13,42 @@ import xyz.block.artifactswap.core.config.ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT
 
 interface ArtifactoryEndpoints {
 
-    @GET("{repo}/${ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT}/{artifact}/maven-metadata.xml")
+    @GET("{repo}/{groupPath}/{artifact}/maven-metadata.xml")
     suspend fun getMavenMetadata(
         @Path("repo") repo: String,
+        @Path("groupPath") groupPath: String,
         @Path("artifact") artifact: String
     ): Response<Metadata>
 
-    @GET("{repo}/${ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT}/{artifact}/{version}/{artifact}-{version}.pom")
+    @GET("{repo}/{groupPath}/{artifact}/{version}/{artifact}-{version}.pom")
     suspend fun getPom(
         @Path("repo") repo: String,
+        @Path("groupPath") groupPath: String,
         @Path("artifact") artifact: String,
         @Path("version") version: String
     ): Response<Project>
 
-    @HEAD("{repo}/${ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT}/{artifact}/{version}/{artifact}-{version}{packaging}")
+    @HEAD("{repo}/{groupPath}/{artifact}/{version}/{artifact}-{version}{packaging}")
     suspend fun headArtifact(
         @Path("repo") repo: String,
+        @Path("groupPath") groupPath: String,
         @Path("artifact") artifact: String,
         @Path("version") version: String,
         @Path("packaging") packaging: String,
     ): Response<Void>
 
-    @PUT("{repo}/${ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT}/{artifact}/maven-metadata.xml")
+    @PUT("{repo}/{groupPath}/{artifact}/maven-metadata.xml")
     suspend fun pushMetadata(
         @Path("repo") repo: String,
+        @Path("groupPath") groupPath: String,
         @Path("artifact") artifact: String,
         @Body metadata: Metadata
     ): Response<Unit>
 
-    @PUT("{repo}/${ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT}/{artifact}/{version}/{filename}")
+    @PUT("{repo}/{groupPath}/{artifact}/{version}/{filename}")
     suspend fun pushPom(
         @Path("repo") repo: String,
+        @Path("groupPath") groupPath: String,
         @Path("artifact") artifact: String,
         @Path("version") version: String,
         @Path("filename") filename: String,

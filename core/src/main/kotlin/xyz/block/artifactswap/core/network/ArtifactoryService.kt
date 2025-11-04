@@ -11,6 +11,7 @@ class ArtifactoryService(
 ) {
     private companion object {
         private val REPO = ArtifactSwapConfigHolder.instance.primaryRepositoryName
+        private val ARTIFACTORY_GROUP_PATH_SEGMENT = ArtifactSwapConfigHolder.instance.primaryArtifactsMavenGroupArtifactoryPath
     }
 
     /**
@@ -37,6 +38,7 @@ class ArtifactoryService(
     suspend fun getPom(artifactName: String, version: String): Project {
         val pomResponse = artifactoryEndpoints.getPom(
             repo = REPO,
+            groupPath = ARTIFACTORY_GROUP_PATH_SEGMENT,
             artifact = artifactName,
             version = version,
         )
@@ -50,6 +52,7 @@ class ArtifactoryService(
     private suspend fun checkArtifact(artifactName: String, version: String, packaging: String) {
         val response = artifactoryEndpoints.headArtifact(
             repo = REPO,
+            groupPath = ARTIFACTORY_GROUP_PATH_SEGMENT,
             artifact = artifactName,
             version = version,
             packaging = packaging,

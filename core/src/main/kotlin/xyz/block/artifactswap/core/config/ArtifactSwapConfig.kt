@@ -178,10 +178,9 @@ data class ArtifactSwapConfig(
     // Artifactory
     // ============================================================================
     val artifactoryBaseUrl: String = "https://artifactory.example.com",
-)
-
-// Default Maven group path segment used in Artifactory URLs.
-const val ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT = "com/example/artifactswap/artifacts"
+) {
+    val primaryArtifactsMavenGroupArtifactoryPath = primaryArtifactsMavenGroup.replace('.', '/')
+}
 
 // Eventstream Gzip Header
 const val EVENTSTREAM_GZIP_HEADER = "X-Square-Gzip: true"
