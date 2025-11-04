@@ -9,7 +9,6 @@ import retrofit2.http.GET
 import retrofit2.http.HEAD
 import retrofit2.http.PUT
 import retrofit2.http.Path
-import xyz.block.artifactswap.core.config.ARTIFACTORY_MAVEN_GROUP_PATH_SEGMENT
 
 interface ArtifactoryEndpoints {
 
