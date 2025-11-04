@@ -1,7 +1,5 @@
 plugins {
-  id("org.jetbrains.kotlin.jvm")
-  id("com.android.lint")
-  id("com.vanniktech.maven.publish")
+  id("conventions.publish")
   id("java-gradle-plugin")
   id("groovy")
 }
@@ -29,44 +27,9 @@ gradlePlugin {
   }
 }
 
-mavenPublishing {
-  publishToMavenCentral()
-  signAllPublications()
-
-  pom {
-    name = "Artifact Swap Gradle Plugin"
-    description = "A plugin that helps manage large Gradle builds"
-    inceptionYear = "2025"
-    url = "https://github.com/block/artifact-swap/"
-    licenses {
-      license {
-        name = "Apache 2.0"
-        url = "https://www.apache.org/licenses/LICENSE-2.0"
-        distribution = "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    }
-    developers {
-      developer {
-        id = "block"
-        name = "Block Open Source"
-        email = "opensource@block.xyz"
-      }
-    }
-    scm {
-      url = "https://github.com/block/artifact-swap/"
-      connection = "scm:git:git://github.com/block/artifact-swap.git"
-      developerConnection = "scm:git:ssh://git@github.com/block/artifact-swap.git"
-    }
-  }
-}
-
 dependencies {
   implementation(gradleApi())
   implementation(libs.kotlin.utilio)
 
   lintChecks(libs.androidx.lintGradle)
-}
-
-tasks.withType(ValidatePlugins::class.java).configureEach {
-  enableStricterValidation = true
 }

@@ -104,10 +104,10 @@ class RealArtifactRepository(
       // determine bom location from local maven repo + primary maven group
     var currentRepoLocation = localMavenPath
     val config = ArtifactSwapConfigHolder.instance
-      config.primaryArtifactsMavenGroup.split(MAVEN_GROUP_SEPARATOR).forEach { group ->
-        currentRepoLocation = currentRepoLocation.resolve(group)
-      }
-      // the bom is always in the "bom" folder for the maven group in a subdir of the version
+    config.primaryArtifactsMavenGroup.split(MAVEN_GROUP_SEPARATOR).forEach { group ->
+      currentRepoLocation = currentRepoLocation.resolve(group)
+    }
+    // the bom is always in the "bom" folder for the maven group in a subdir of the version
     val expectedBomLocation = currentRepoLocation
       .resolve("bom")
       .resolve(bomVersion)
