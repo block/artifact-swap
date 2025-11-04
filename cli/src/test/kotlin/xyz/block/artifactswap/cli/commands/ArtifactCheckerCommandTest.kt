@@ -279,11 +279,11 @@ class ArtifactCheckerCommandTest {
 class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.ArtifactoryEndpoints {
     var existingArtifacts = setOf<Pair<String, String>>()
 
-    override suspend fun getMavenMetadata(repo: String, artifact: String): Response<xyz.block.artifactswap.core.maven.Metadata> {
+    override suspend fun getMavenMetadata(repo: String, groupPath: String, artifact: String): Response<xyz.block.artifactswap.core.maven.Metadata> {
         return Response.error(404, okhttp3.ResponseBody.create(null, "Not needed for these tests"))
     }
 
-    override suspend fun getPom(repo: String, artifact: String, version: String): Response<xyz.block.artifactswap.core.maven.Project> {
+    override suspend fun getPom(repo: String, groupPath: String, artifact: String, version: String): Response<xyz.block.artifactswap.core.maven.Project> {
         // Return a basic POM with "jar" packaging for testing
         return if (existingArtifacts.contains(artifact to version)) {
             Response.success(
@@ -305,6 +305,7 @@ class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.Artif
 
     override suspend fun headArtifact(
         repo: String,
+        groupPath: String,
         artifact: String,
         version: String,
         packaging: String
@@ -316,12 +317,13 @@ class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.Artif
         }
     }
 
-    override suspend fun pushMetadata(repo: String, artifact: String, metadata: xyz.block.artifactswap.core.maven.Metadata): Response<Unit> {
+    override suspend fun pushMetadata(repo: String, groupPath: String, artifact: String, metadata: xyz.block.artifactswap.core.maven.Metadata): Response<Unit> {
         throw NotImplementedError("Not needed for these tests")
     }
 
     override suspend fun pushPom(
         repo: String,
+        groupPath: String,
         artifact: String,
         version: String,
         filename: String,

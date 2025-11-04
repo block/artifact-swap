@@ -10,11 +10,11 @@ import xyz.block.artifactswap.core.network.ArtifactoryService
 class FakeArtifactoryEndpointsForArtifactChecker : ArtifactoryEndpoints {
     var existingArtifacts = setOf<Pair<String, String>>()
 
-    override suspend fun getMavenMetadata(repo: String, artifact: String): Response<Metadata> {
+    override suspend fun getMavenMetadata(repo: String, groupPath: String, artifact: String): Response<Metadata> {
         return Response.error(404, ResponseBody.create(null, "Not needed for these tests"))
     }
 
-    override suspend fun getPom(repo: String, artifact: String, version: String): Response<Project> {
+    override suspend fun getPom(repo: String, groupPath: String, artifact: String, version: String): Response<Project> {
         // Return a basic POM with "jar" packaging for testing
         return if (existingArtifacts.contains(artifact to version)) {
             Response.success(
@@ -36,6 +36,7 @@ class FakeArtifactoryEndpointsForArtifactChecker : ArtifactoryEndpoints {
 
     override suspend fun headArtifact(
         repo: String,
+        groupPath: String,
         artifact: String,
         version: String,
         packaging: String
@@ -47,12 +48,13 @@ class FakeArtifactoryEndpointsForArtifactChecker : ArtifactoryEndpoints {
         }
     }
 
-    override suspend fun pushMetadata(repo: String, artifact: String, metadata: Metadata): Response<Unit> {
+    override suspend fun pushMetadata(repo: String, groupPath: String, artifact: String, metadata: Metadata): Response<Unit> {
         throw NotImplementedError("Not needed for these tests")
     }
 
     override suspend fun pushPom(
         repo: String,
+        groupPath: String,
         artifact: String,
         version: String,
         filename: String,

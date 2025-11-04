@@ -15,16 +15,17 @@ class FakeArtifactoryEndpoints : ArtifactoryEndpoints {
     val pushedPoms = mutableListOf<Project>()
     val pushedMetadata = mutableListOf<Metadata>()
 
-    override suspend fun getMavenMetadata(repo: String, artifact: String): Response<Metadata> {
+    override suspend fun getMavenMetadata(repo: String, groupPath: String, artifact: String): Response<Metadata> {
         return metadataResponses[artifact] ?: Response.error(404, ResponseBody.create(null, "Not found"))
     }
 
-    override suspend fun getPom(repo: String, artifact: String, version: String): Response<Project> {
+    override suspend fun getPom(repo: String, groupPath: String, artifact: String, version: String): Response<Project> {
         return pomResponses["$artifact:$version"] ?: Response.error(404, ResponseBody.create(null, "Not found"))
     }
 
     override suspend fun headArtifact(
         repo: String,
+        groupPath: String,
         artifact: String,
         version: String,
         packaging: String
@@ -32,13 +33,14 @@ class FakeArtifactoryEndpoints : ArtifactoryEndpoints {
         return Response.success(null)
     }
 
-    override suspend fun pushMetadata(repo: String, artifact: String, metadata: Metadata): Response<Unit> {
+    override suspend fun pushMetadata(repo: String, groupPath: String, artifact: String, metadata: Metadata): Response<Unit> {
         pushedMetadata.add(metadata)
         return pushMetadataResponses.removeFirstOrNull() ?: Response.success(Unit)
     }
 
     override suspend fun pushPom(
         repo: String,
+        groupPath: String,
         artifact: String,
         version: String,
         filename: String,
