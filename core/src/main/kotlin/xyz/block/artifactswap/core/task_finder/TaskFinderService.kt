@@ -49,7 +49,10 @@ class TaskFinderService(
       )
 
     val projectConnection =
-      GradleConnector.newConnector().forProjectDirectory(applicationDirectory.toFile()).connect()
+      GradleConnector.newConnector()
+        .forProjectDirectory(applicationDirectory.toFile())
+        .useBuildDistribution()
+        .connect()
 
     try {
       logger.info { "Grabbing Gradle project" }
