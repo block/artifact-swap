@@ -12,6 +12,5 @@ internal val Project.isIdeSync: Boolean get() =
 internal val Settings.isIdeSync: Boolean get() =
   providers.systemProperty(INTELLIJ_SYNC_ACTIVE_SYSTEM_PROPERTY).orNull != null
 
-
 internal val Settings.forceSettingsModulesOverride: Boolean get() =
   providers.gradleProperty(SQUARE_SETTINGS_OVERRIDE_FORCE_PROPERTY).orNull != null

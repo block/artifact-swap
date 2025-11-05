@@ -13,34 +13,37 @@ import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.bundling.Jar
+import xyz.block.gradle.artifactVersion
 import xyz.block.gradle.isAndroid
 import xyz.block.gradle.isKotlin
-import xyz.block.gradle.sandbagVersion
-import xyz.block.gradle.toSandbagArtifact
+import xyz.block.gradle.services.services
+import xyz.block.gradle.toProjectArtifactName
 
 /**
- * Artifact Swap project publish plugin for sandbags. This plugin is responsible for configuring
- * Maven publishing with sandbag-specific settings when sandbag publishing is enabled.
- *
- * This plugin extracts the sandbag publishing logic from PublishPlugin and AndroidLibJavaPlugin
- * to centralize artifact swap publishing concerns.
+ * Artifact Swap project publish plugin for project artifacts. This plugin is responsible for
+ * configuring Maven publishing with artifact-swap-specific settings when artifact publishing is
+ * enabled.
  *
  * For reference and searchability, the ID of this plugin is `xyz.block.artifactswap.publish`.
  */
 @Suppress("unused")
 class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
 
+  private lateinit var configService: ArtifactSwapConfigService
+
   override fun apply(target: Project): Unit = target.run {
-    val version = sandbagVersion ?: return@run
+    val version = artifactVersion ?: return@run
+
+    configService = gradle.services.artifactSwapConfigService
 
     pluginManager.apply("maven-publish")
     extensions.getByType(PublishingExtension::class.java).also { mavenPublishing ->
-      val repo = configureSandbagRepository(mavenPublishing)
+      val repo = configureArtifactRepository(mavenPublishing)
 
-      // Other plugins configure the components to be published, so we have to configure them after
-      // those plugins run
+      // Other plugins configure the components to be published, so we have to configure them
+      // after those plugins run
       afterEvaluate {
-        val publication = configureSandbagPublication(mavenPublishing, version)
+        val publication = configureArtifactPublication(mavenPublishing, version)
         createPublishAliasTask(repo, publication)
       }
     }
@@ -50,33 +53,35 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     }
   }
 
-  private fun Project.configureSandbagRepository(
+  private fun Project.configureArtifactRepository(
     mavenPublishing: PublishingExtension,
-  ): MavenArtifactRepository = with(mavenPublishing) {
-    val sandbagsUrl = providers.gradleProperty("square.sandbagsUrl").get()
-    return repositories.maven { repo ->
-      repo.name = "artifactSwap"
-      repo.url = uri(sandbagsUrl)
+  ): MavenArtifactRepository =
+    with(mavenPublishing) {
+      val repoUrl = configService.parameters.repoUrl.get()
+      return repositories.maven { repo ->
+        repo.name = "artifactSwap"
+        repo.url = uri(repoUrl)
 
-      getSandbagCredentials()?.apply {
-        repo.credentials(PasswordCredentials::class.java) { creds ->
-          creds.username = username
-          creds.password = password
+        val username = configService.parameters.repoUsername.orNull
+        val password = configService.parameters.repoPassword.orNull
+        if (username != null && password != null) {
+          repo.credentials(PasswordCredentials::class.java) { creds ->
+            creds.username = username
+            creds.password = password
+          }
         }
       }
     }
-  }
 
-  private fun Project.configureSandbagPublication(
+  private fun Project.configureArtifactPublication(
     mavenPublishing: PublishingExtension,
     version: String
   ): MavenPublication {
-    val publication = mavenPublishing.publications
-      .maybeCreate("projectArtifact", MavenPublication::class.java)
+    val publication = mavenPublishing.publications.maybeCreate("projectArtifact", MavenPublication::class.java)
 
-    // Automatically configure maven coordinates for sandbag
+    // Automatically configure maven coordinates for artifact
     publication.groupId = ARTIFACT_SWAP_MAVEN_GROUP
-    publication.artifactId = path.toSandbagArtifact
+    publication.artifactId = path.toProjectArtifactName
     publication.version = version
 
     // For non-Android projects, automatically configure the java component and sources
@@ -85,7 +90,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
       addSourcesArtifact(publication)
     }
 
-    configureSandbagPom(publication.pom)
+    configureArtifactPom(publication.pom)
 
     return publication
   }
@@ -113,26 +118,11 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     }
   }
 
-  private fun Project.configureSandbagPom(pom: MavenPom) {
+  private fun Project.configureArtifactPom(pom: MavenPom) {
     with(pom) {
       name.set(project.name)
-      description.set("Sandbag for ${project.name} in build ${project.isolated.rootProject.name}")
-      url.set(providers.gradleProperty("square.repoUrl"))
-      scm { scm ->
-        scm.connection.set(providers.gradleProperty("square.scmConnectionUrl"))
-        scm.developerConnection.set(providers.gradleProperty("square.scmDeveloperConnectionUrl"))
-        scm.url.set(providers.gradleProperty("square.repoUrl"))
-      }
-    }
-  }
-
-  private fun Project.getSandbagCredentials(): SandbagCredentials? {
-    val username = providers.gradleProperty("square.artifactory.username").orNull
-    val password = providers.gradleProperty("square.artifactory.password").orNull
-    return if (username != null && password != null) {
-      SandbagCredentials(username, password)
-    } else {
-      null
+      description.set("Artifact for ${project.name} in build ${project.isolated.rootProject.name}")
+      url.set(configService.parameters.repoUrl)
     }
   }
 
@@ -145,9 +135,4 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
       it.dependsOn(tasks.named(publishTaskName))
     }
   }
-
-  private data class SandbagCredentials(
-    val username: String,
-    val password: String
-  )
 }
