@@ -10,7 +10,5 @@ import xyz.block.artifactswap.core.config.EVENTSTREAM_LOG_EVENTS_PATH
 public interface EventstreamService {
   @Headers(EVENTSTREAM_GZIP_HEADER)
   @POST(EVENTSTREAM_LOG_EVENTS_PATH)
-  public fun logEvents(
-    @Body request: LogEventStreamV2Request
-  ): Call<LogEventStreamV2Response>
+  public fun logEvents(@Body request: LogEventStreamV2Request): Call<LogEventStreamV2Response>
 }

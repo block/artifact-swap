@@ -22,57 +22,60 @@ import xyz.block.gradle.toSandbagArtifact
  * Artifact Swap project publish plugin for sandbags. This plugin is responsible for configuring
  * Maven publishing with sandbag-specific settings when sandbag publishing is enabled.
  *
- * This plugin extracts the sandbag publishing logic from PublishPlugin and AndroidLibJavaPlugin
- * to centralize artifact swap publishing concerns.
+ * This plugin extracts the sandbag publishing logic from PublishPlugin and AndroidLibJavaPlugin to
+ * centralize artifact swap publishing concerns.
  *
  * For reference and searchability, the ID of this plugin is `xyz.block.artifactswap.publish`.
  */
 @Suppress("unused")
 class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
 
-  override fun apply(target: Project): Unit = target.run {
-    val version = sandbagVersion ?: return@run
+  override fun apply(target: Project): Unit =
+    target.run {
+      val version = sandbagVersion ?: return@run
 
-    pluginManager.apply("maven-publish")
-    extensions.getByType(PublishingExtension::class.java).also { mavenPublishing ->
-      val repo = configureSandbagRepository(mavenPublishing)
+      pluginManager.apply("maven-publish")
+      extensions.getByType(PublishingExtension::class.java).also { mavenPublishing ->
+        val repo = configureSandbagRepository(mavenPublishing)
 
-      // Other plugins configure the components to be published, so we have to configure them after
-      // those plugins run
-      afterEvaluate {
-        val publication = configureSandbagPublication(mavenPublishing, version)
-        createPublishAliasTask(repo, publication)
+        // Other plugins configure the components to be published, so we have to configure them
+        // after
+        // those plugins run
+        afterEvaluate {
+          val publication = configureSandbagPublication(mavenPublishing, version)
+          createPublishAliasTask(repo, publication)
+        }
+      }
+
+      tasks.withType(PublishToMavenRepository::class.java).configureEach {
+        it.notCompatibleWithConfigurationCache("See https://github.com/gradle/gradle/issues/13468")
       }
     }
 
-    tasks.withType(PublishToMavenRepository::class.java).configureEach {
-      it.notCompatibleWithConfigurationCache("See https://github.com/gradle/gradle/issues/13468")
-    }
-  }
-
   private fun Project.configureSandbagRepository(
-    mavenPublishing: PublishingExtension,
-  ): MavenArtifactRepository = with(mavenPublishing) {
-    val sandbagsUrl = providers.gradleProperty("square.sandbagsUrl").get()
-    return repositories.maven { repo ->
-      repo.name = "artifactSwap"
-      repo.url = uri(sandbagsUrl)
+    mavenPublishing: PublishingExtension
+  ): MavenArtifactRepository =
+    with(mavenPublishing) {
+      val sandbagsUrl = providers.gradleProperty("square.sandbagsUrl").get()
+      return repositories.maven { repo ->
+        repo.name = "artifactSwap"
+        repo.url = uri(sandbagsUrl)
 
-      getSandbagCredentials()?.apply {
-        repo.credentials(PasswordCredentials::class.java) { creds ->
-          creds.username = username
-          creds.password = password
+        getSandbagCredentials()?.apply {
+          repo.credentials(PasswordCredentials::class.java) { creds ->
+            creds.username = username
+            creds.password = password
+          }
         }
       }
     }
-  }
 
   private fun Project.configureSandbagPublication(
     mavenPublishing: PublishingExtension,
-    version: String
+    version: String,
   ): MavenPublication {
-    val publication = mavenPublishing.publications
-      .maybeCreate("projectArtifact", MavenPublication::class.java)
+    val publication =
+      mavenPublishing.publications.maybeCreate("projectArtifact", MavenPublication::class.java)
 
     // Automatically configure maven coordinates for sandbag
     publication.groupId = ARTIFACT_SWAP_MAVEN_GROUP
@@ -102,9 +105,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
       }
 
       else -> {
-        tasks.withType(Jar::class.java).configureEach {
-          it.duplicatesStrategy = EXCLUDE
-        }
+        tasks.withType(Jar::class.java).configureEach { it.duplicatesStrategy = EXCLUDE }
         // If the project doesn't have Kotlin, the java sources can be added to the "java" component
         // and the maven publication will pick them up automatically.
         // Those sources aren't added by default, though -- hence this call to `withSourcesJar()`.
@@ -136,18 +137,16 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     }
   }
 
-  private fun Project.createPublishAliasTask(repo: MavenArtifactRepository, publication: MavenPublication) {
+  private fun Project.createPublishAliasTask(
+    repo: MavenArtifactRepository,
+    publication: MavenPublication,
+  ) {
     val pubName = publication.name.replaceFirstChar { it.uppercase() }
     val repoName = repo.name.replaceFirstChar { it.uppercase() }
     val publishTaskName = "publish${pubName}PublicationTo${repoName}Repository"
 
-    tasks.register("publishTo${repoName}Repository") {
-      it.dependsOn(tasks.named(publishTaskName))
-    }
+    tasks.register("publishTo${repoName}Repository") { it.dependsOn(tasks.named(publishTaskName)) }
   }
 
-  private data class SandbagCredentials(
-    val username: String,
-    val password: String
-  )
+  private data class SandbagCredentials(val username: String, val password: String)
 }

@@ -1,13 +1,13 @@
 package xyz.block.artifactswap.core.download
 
+import kotlin.time.Duration
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult
 import xyz.block.artifactswap.core.download.models.DownloadedArtifactFileResult
 import xyz.block.artifactswap.core.download.models.DownloadedArtifactFileResult.Failure
 import xyz.block.artifactswap.core.download.models.DownloadedArtifactFileResult.Success
 import xyz.block.artifactswap.core.download.models.InstallArtifactFilesResult
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlin.time.Duration
 
 private const val UNKNOWN = -1L
 // okhttp sets content length to -1 if it is unknown
@@ -16,9 +16,8 @@ private const val UNKNOWN_DOWNLOAD_SIZE = UNKNOWN
 private const val BYTES_IN_MB = 1024 * 1024
 
 /**
- * Monitors data about count/timing of downloads/installs of maven artifacts into a local
- * maven repo.
- *
+ * Monitors data about count/timing of downloads/installs of maven artifacts into a local maven
+ * repo.
  */
 class DownloadAndInstallTracker {
 
@@ -44,11 +43,11 @@ class DownloadAndInstallTracker {
   private var failedInstallsCount: Long = UNKNOWN
 
   /**
-   * Records the download results for all files associated with an artifact where we attempted
-   * to download that file.
+   * Records the download results for all files associated with an artifact where we attempted to
+   * download that file.
    *
-   * An artifact can have multiple files associated with it that need downloading.
-   * See [xyz.block.artifactswap.core.download.models.DownloadFileType] enum.
+   * An artifact can have multiple files associated with it that need downloading. See
+   * [xyz.block.artifactswap.core.download.models.DownloadFileType] enum.
    */
   suspend fun recordFilesDownloadedForArtifactResult(results: List<DownloadedArtifactFileResult>) {
     mutex.withLock {
@@ -67,15 +66,18 @@ class DownloadAndInstallTracker {
       if (totalDownloadSizeBytes == UNKNOWN_DOWNLOAD_SIZE) {
         totalDownloadSizeBytes = 0L
       }
-      totalDownloadSizeBytes += results.filterIsInstance<Success>()
-        .filter { it.fileContentsSizeBytes != UNKNOWN_DOWNLOAD_SIZE } // okhttp reports
-        .sumOf { it.fileContentsSizeBytes }
+      totalDownloadSizeBytes +=
+        results
+          .filterIsInstance<Success>()
+          .filter { it.fileContentsSizeBytes != UNKNOWN_DOWNLOAD_SIZE } // okhttp reports
+          .sumOf { it.fileContentsSizeBytes }
 
       results.forEach { result ->
         when (result) {
           is Success -> individualDownloadTimes.add(result.downloadDurationMs)
           is Failure -> individualDownloadTimes.add(result.downloadDuration)
-          is DownloadedArtifactFileResult.NoFileExists -> { /* no-op */
+          is DownloadedArtifactFileResult.NoFileExists -> {
+            /* no-op */
           }
         }
       }
@@ -86,8 +88,8 @@ class DownloadAndInstallTracker {
    * Records the installation results for all files associated with an artifact where we attempted
    * to install that file after downloading it.
    *
-   * An artifact can have multiple files associated with it that need downloading.
-   * See [xyz.block.artifactswap.core.download.models.DownloadFileType] enum.
+   * An artifact can have multiple files associated with it that need downloading. See
+   * [xyz.block.artifactswap.core.download.models.DownloadFileType] enum.
    */
   suspend fun recordArtifactFilesInstallationResults(installResults: InstallArtifactFilesResult) {
     mutex.withLock {
@@ -100,12 +102,16 @@ class DownloadAndInstallTracker {
       when (installResults) {
         is InstallArtifactFilesResult.Success -> successfulInstallsCount++
         is InstallArtifactFilesResult.Failure -> failedInstallsCount++
-        is InstallArtifactFilesResult.NoOp -> { /* no-op */ }
+        is InstallArtifactFilesResult.NoOp -> {
+          /* no-op */
+        }
       }
       when (installResults) {
         is InstallArtifactFilesResult.Success -> individualInstallTimes.add(installResults.duration)
         is InstallArtifactFilesResult.Failure -> individualInstallTimes.add(installResults.duration)
-        is InstallArtifactFilesResult.NoOp -> { /* no-op */ }
+        is InstallArtifactFilesResult.NoOp -> {
+          /* no-op */
+        }
       }
     }
   }
@@ -129,9 +135,7 @@ class DownloadAndInstallTracker {
   }
 
   suspend fun recordWallClockDuration(wallClockDuration: Duration) {
-    mutex.withLock {
-      totalDurationMs = wallClockDuration.inWholeMilliseconds
-    }
+    mutex.withLock { totalDurationMs = wallClockDuration.inWholeMilliseconds }
   }
 
   suspend fun getDownloadAndInstallData(): DownloadAndInstallData {
@@ -142,13 +146,14 @@ class DownloadAndInstallTracker {
       val installTimesMs = individualInstallTimes.sorted()
       val installPercentiles = getRelevantPercentiles(installTimesMs)
 
-      val finalResult = if (failedDownloadsCount > successfulDownloadsCount * 0.1) {
+      val finalResult =
+        if (failedDownloadsCount > successfulDownloadsCount * 0.1) {
           ArtifactDownloaderResult.MANY_DOWNLOADS_FAILED
-      } else if (failedInstallsCount > successfulInstallsCount * 0.1) {
+        } else if (failedInstallsCount > successfulInstallsCount * 0.1) {
           ArtifactDownloaderResult.MANY_INSTALLS_FAILED
-      } else {
+        } else {
           ArtifactDownloaderResult.SUCCESS
-      }
+        }
 
       return DownloadAndInstallData(
         result = finalResult,
@@ -159,11 +164,12 @@ class DownloadAndInstallTracker {
         countSuccessfulInstalledArtifacts = successfulInstallsCount,
         countFailedInstalledArtifacts = failedInstallsCount,
         totalDurationMs = totalDurationMs,
-        totalDownloadSizeMb = if (totalDownloadSizeBytes == UNKNOWN_DOWNLOAD_SIZE) {
-          -1.0
-        } else {
-          totalDownloadSizeBytes.toDouble() / BYTES_IN_MB
-        },
+        totalDownloadSizeMb =
+          if (totalDownloadSizeBytes == UNKNOWN_DOWNLOAD_SIZE) {
+            -1.0
+          } else {
+            totalDownloadSizeBytes.toDouble() / BYTES_IN_MB
+          },
         p50DownloadTime = downloadPercentiles.p50,
         p90DownloadTime = downloadPercentiles.p90,
         p99DownloadTime = downloadPercentiles.p99,
@@ -184,21 +190,24 @@ class DownloadAndInstallTracker {
   )
 
   private fun getRelevantPercentiles(durations: List<Duration>): DurationPercentiles {
-    val p50Duration = if (durations.isNotEmpty()) {
-      durations[durations.size / 2]
-    } else {
-      Duration.INFINITE
-    }
-    val p90DownloadTimeMs = if (durations.isNotEmpty()) {
-      durations[(durations.size * 0.9).toInt()]
-    } else {
-      Duration.INFINITE
-    }
-    val p99DownloadTimeMs = if (durations.isNotEmpty()) {
-      durations[(durations.size * 0.99).toInt()]
-    } else {
-      Duration.INFINITE
-    }
+    val p50Duration =
+      if (durations.isNotEmpty()) {
+        durations[durations.size / 2]
+      } else {
+        Duration.INFINITE
+      }
+    val p90DownloadTimeMs =
+      if (durations.isNotEmpty()) {
+        durations[(durations.size * 0.9).toInt()]
+      } else {
+        Duration.INFINITE
+      }
+    val p99DownloadTimeMs =
+      if (durations.isNotEmpty()) {
+        durations[(durations.size * 0.99).toInt()]
+      } else {
+        Duration.INFINITE
+      }
     val maxDuration = if (durations.isNotEmpty()) durations.last() else Duration.INFINITE
     return DurationPercentiles(
       p50 = p50Duration,
@@ -210,22 +219,22 @@ class DownloadAndInstallTracker {
 }
 
 data class DownloadAndInstallData(
-    val result: ArtifactDownloaderResult = ArtifactDownloaderResult.NOT_SET,
-    val countLocallyPresentArtifactFiles: Long = -1,
-    val countFilesToCheckInArtifactory: Long = -1,
-    val countSuccessfulDownloadedArtifactFiles: Long = -1,
-    val countFailedDownloadedArtifactFiles: Long = -1,
-    val countSuccessfulInstalledArtifacts: Long = -1,
-    val countFailedInstalledArtifacts: Long = -1,
-    val totalDurationMs: Long = -1,
-    val totalDownloadSizeMb: Double = -1.0,
-    val getArtifactsToDownloadDurationMs: Long = -1,
-    val p50DownloadTime: Duration = Duration.INFINITE,
-    val p90DownloadTime: Duration = Duration.INFINITE,
-    val p99DownloadTime: Duration = Duration.INFINITE,
-    val maxDownloadTime: Duration = Duration.INFINITE,
-    val p50InstallTime: Duration = Duration.INFINITE,
-    val p90InstallTime: Duration = Duration.INFINITE,
-    val p99InstallTime: Duration = Duration.INFINITE,
-    val maxInstallTime: Duration = Duration.INFINITE,
+  val result: ArtifactDownloaderResult = ArtifactDownloaderResult.NOT_SET,
+  val countLocallyPresentArtifactFiles: Long = -1,
+  val countFilesToCheckInArtifactory: Long = -1,
+  val countSuccessfulDownloadedArtifactFiles: Long = -1,
+  val countFailedDownloadedArtifactFiles: Long = -1,
+  val countSuccessfulInstalledArtifacts: Long = -1,
+  val countFailedInstalledArtifacts: Long = -1,
+  val totalDurationMs: Long = -1,
+  val totalDownloadSizeMb: Double = -1.0,
+  val getArtifactsToDownloadDurationMs: Long = -1,
+  val p50DownloadTime: Duration = Duration.INFINITE,
+  val p90DownloadTime: Duration = Duration.INFINITE,
+  val p99DownloadTime: Duration = Duration.INFINITE,
+  val maxDownloadTime: Duration = Duration.INFINITE,
+  val p50InstallTime: Duration = Duration.INFINITE,
+  val p90InstallTime: Duration = Duration.INFINITE,
+  val p99InstallTime: Duration = Duration.INFINITE,
+  val maxInstallTime: Duration = Duration.INFINITE,
 )
