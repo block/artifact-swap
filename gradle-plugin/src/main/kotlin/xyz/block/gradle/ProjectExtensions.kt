@@ -19,5 +19,5 @@ val Project.isKotlin: Boolean
  * Converts a project path to a sandbag artifact name.
  * Example: ":hobbits:frodo" -> "hobbits_frodo"
  */
-val String.toSandbagArtifact: String
+val String.toProjectArtifactName: String
   get() = removePrefix(":").replace(":", "_")

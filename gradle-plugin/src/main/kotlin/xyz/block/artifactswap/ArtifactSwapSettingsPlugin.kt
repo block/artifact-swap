@@ -2,20 +2,20 @@
 
 package xyz.block.artifactswap
 
+import java.io.File
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import xyz.block.artifactswap.dsl.ArtifactSwapExtension
 import xyz.block.gradle.LOCAL_PROTOS_ARTIFACTS
 import xyz.block.gradle.bomVersion
-import xyz.block.gradle.isArtifactPublishingEnabled
 import xyz.block.gradle.services.services
 import xyz.block.gradle.useArtifactSync
 import xyz.block.gradle.useLocalProtos
 import xyz.block.ide.forceSettingsModulesOverride
 import xyz.block.ide.isIdeSync
-import java.io.File
 
 /**
  * Main Artifact Sync settings plugin. This plugin is responsible for:
@@ -31,7 +31,11 @@ import java.io.File
  */
 @Suppress("unused")
 class ArtifactSwapSettingsPlugin : Plugin<Settings> {
+  private lateinit var extension: ArtifactSwapExtension
+
   override fun apply(target: Settings) = target.run {
+    extension = ArtifactSwapExtension.of(target)
+
     applyProjectIncludes()
     maybeApplyArtifactSync()
     maybeApplyPublishPlugin()
@@ -130,13 +134,20 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
     }
   }
 
-  /**
-   * Applies the publish plugin to all projects when sandbag publishing is enabled.
-   */
+  /** Applies the publish plugin to all projects when artifact publishing is enabled. */
   private fun Settings.maybeApplyPublishPlugin() {
-    if (isArtifactPublishingEnabled) {
-      gradle.lifecycle.beforeProject { project ->
-        project.plugins.apply(ArtifactSwapProjectPublishPlugin::class.java)
+    gradle.settingsEvaluated {
+      if (extension.publishing.enabled.get()) {
+        gradle.services.register(ArtifactSwapConfigService.KEY) { spec ->
+          spec.parameters.artifactHashFile.set(extension.publishing.artifactHashFile)
+          spec.parameters.repoUrl.set(extension.publishing.repo.url)
+          spec.parameters.repoUsername.set(extension.publishing.repo.username)
+          spec.parameters.repoPassword.set(extension.publishing.repo.password)
+        }
+
+        gradle.lifecycle.beforeProject { project ->
+          project.plugins.apply(ArtifactSwapProjectPublishPlugin::class.java)
+        }
       }
     }
   }
