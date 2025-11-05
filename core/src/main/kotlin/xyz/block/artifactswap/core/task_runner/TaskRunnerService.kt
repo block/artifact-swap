@@ -66,7 +66,10 @@ class TaskRunnerService(
     }
 
     val projectConnection =
-      GradleConnector.newConnector().forProjectDirectory(applicationDirectory.toFile()).connect()
+      GradleConnector.newConnector()
+        .forProjectDirectory(applicationDirectory.toFile())
+        .useBuildDistribution()
+        .connect()
 
     try {
       // Collector of successful tasks
