@@ -8,15 +8,13 @@ private const val DEFAULT_RETRY_COUNT = 2
 
 public class Eventstream(
   private val eventstreamService: EventstreamService,
-  private val moshi: Moshi = defaultMoshi
+  private val moshi: Moshi = defaultMoshi,
 ) {
-  /**
-   * Sends the given events to Eventstream. Returns whether the request was sent successfully.
-   */
+  /** Sends the given events to Eventstream. Returns whether the request was sent successfully. */
   public fun sendEvents(
     events: List<EventstreamEvent>,
     logger: Logger = Logger.NO_OP,
-    retryCount: Int = DEFAULT_RETRY_COUNT
+    retryCount: Int = DEFAULT_RETRY_COUNT,
   ): Boolean {
     check(retryCount >= 1)
 
@@ -28,7 +26,7 @@ public class Eventstream(
           logger = logger,
           retryCount = retryCount,
           batchNumber = index + 1,
-          batchCount = batches.size
+          batchCount = batches.size,
         )
 
       if (!success) return false
@@ -37,15 +35,13 @@ public class Eventstream(
     return true
   }
 
-  /**
-   * Sends the given events to Eventstream. Returns whether the request was sent successfully.
-   */
+  /** Sends the given events to Eventstream. Returns whether the request was sent successfully. */
   private fun sendBatch(
     batch: List<EventstreamEvent>,
     logger: Logger,
     retryCount: Int,
     batchNumber: Int,
-    batchCount: Int
+    batchCount: Int,
   ): Boolean {
     check(retryCount >= 1)
 
@@ -71,13 +67,11 @@ public class Eventstream(
 
   private fun sendNetworkRequest(
     request: LogEventStreamV2Request,
-    logger: Logger
+    logger: Logger,
   ): LogEventStreamV2Response? {
     val rawResponse =
       try {
-        eventstreamService
-          .logEvents(request)
-          .execute()
+        eventstreamService.logEvents(request).execute()
       } catch (exception: IOException) {
         // E.g. a timeout. Ignore the error and retry when necessary.
         logger.error("An exception occurred while sending Eventstream events.", exception)
@@ -113,7 +107,7 @@ public class Eventstream(
       app_name = appName,
       recorded_at_usec = MILLISECONDS.toMicros(recordedAtMs),
       uuid = uuid.toString(),
-      json_data = moshi.adapter<Any>(event::class.java).toJson(event)
+      json_data = moshi.adapter<Any>(event::class.java).toJson(event),
     )
 
   public companion object {
@@ -129,7 +123,7 @@ public class Eventstream(
 public fun Eventstream.sendEventsOrFail(
   events: List<EventstreamEvent>,
   logger: Logger = Logger.NO_OP,
-  retryCount: Int = DEFAULT_RETRY_COUNT
+  retryCount: Int = DEFAULT_RETRY_COUNT,
 ) {
   if (!sendEvents(events, logger, retryCount)) {
     throw RuntimeException("Sending events to Eventstream failed.")

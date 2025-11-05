@@ -23,12 +23,12 @@ internal class SharedServices(private val gradle: Gradle) {
   /**
    * Registers a new service by the provided [key] and allows lazy configuration of the service.
    *
-   * Only the first service registered per [name][SharedServiceKey.name] will be used for lookup.
-   * It is an error to use the same name for multiple services of different types.
+   * Only the first service registered per [name][SharedServiceKey.name] will be used for lookup. It
+   * is an error to use the same name for multiple services of different types.
    */
   inline fun <reified T : BuildService<P>, P : BuildServiceParameters> register(
     key: SharedServiceKey<T, P>,
-    noinline configure: (BuildServiceSpec<P>) -> Unit = { }
+    noinline configure: (BuildServiceSpec<P>) -> Unit = {},
   ): Provider<T> {
     return register(key, T::class.java, configure)
   }
@@ -37,7 +37,7 @@ internal class SharedServices(private val gradle: Gradle) {
   fun <T : BuildService<P>, P : BuildServiceParameters> register(
     key: SharedServiceKey<T, P>,
     clazz: Class<T>,
-    configure: (BuildServiceSpec<P>) -> Unit = { }
+    configure: (BuildServiceSpec<P>) -> Unit = {},
   ): Provider<T> {
     return gradle.sharedServices.registerIfAbsent(key.name, clazz) { configure(it) }
   }

@@ -6,7 +6,7 @@ import picocli.CommandLine.ITypeConverter
 // Converts string to logback level. For Picocli.
 internal class LogBackLogLevelTypeConverter : ITypeConverter<Level> {
 
-    override fun convert(value: String?): Level {
-        return Level.toLevel(value)
-    }
+  override fun convert(value: String?): Level {
+    return Level.toLevel(value)
+  }
 }

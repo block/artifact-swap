@@ -13,16 +13,11 @@ private val uuidAdapter: JsonAdapter<UUID>
         return UUID.fromString(reader.nextString())
       }
 
-      override fun toJson(
-        writer: JsonWriter,
-        value: UUID?
-      ) {
+      override fun toJson(writer: JsonWriter, value: UUID?) {
         writer.value(value?.toString())
       }
     }
 
 public val defaultMoshi: Moshi by lazy {
-  Moshi.Builder()
-    .add(UUID::class.java, uuidAdapter)
-    .build()
+  Moshi.Builder().add(UUID::class.java, uuidAdapter).build()
 }

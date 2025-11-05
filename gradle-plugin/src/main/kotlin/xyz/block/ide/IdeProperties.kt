@@ -6,12 +6,11 @@ import org.gradle.api.initialization.Settings
 internal const val INTELLIJ_SYNC_ACTIVE_SYSTEM_PROPERTY = "idea.sync.active"
 internal const val SQUARE_SETTINGS_OVERRIDE_FORCE_PROPERTY = "square.force.modules.override"
 
-internal val Project.isIdeSync: Boolean get() =
-  providers.systemProperty(INTELLIJ_SYNC_ACTIVE_SYSTEM_PROPERTY).orNull != null
+internal val Project.isIdeSync: Boolean
+  get() = providers.systemProperty(INTELLIJ_SYNC_ACTIVE_SYSTEM_PROPERTY).orNull != null
 
-internal val Settings.isIdeSync: Boolean get() =
-  providers.systemProperty(INTELLIJ_SYNC_ACTIVE_SYSTEM_PROPERTY).orNull != null
+internal val Settings.isIdeSync: Boolean
+  get() = providers.systemProperty(INTELLIJ_SYNC_ACTIVE_SYSTEM_PROPERTY).orNull != null
 
-
-internal val Settings.forceSettingsModulesOverride: Boolean get() =
-  providers.gradleProperty(SQUARE_SETTINGS_OVERRIDE_FORCE_PROPERTY).orNull != null
+internal val Settings.forceSettingsModulesOverride: Boolean
+  get() = providers.gradleProperty(SQUARE_SETTINGS_OVERRIDE_FORCE_PROPERTY).orNull != null

@@ -1,9 +1,9 @@
 package xyz.block.artifactswap.core.download.services
 
-import xyz.block.artifactswap.core.eventstream.Eventstream
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.withContext
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderEvent
-import kotlin.coroutines.CoroutineContext
+import xyz.block.artifactswap.core.eventstream.Eventstream
 
 interface ArtifactDownloaderEventStream {
   suspend fun sendEvents(events: List<ArtifactDownloaderEvent>): Boolean
@@ -11,7 +11,7 @@ interface ArtifactDownloaderEventStream {
 
 class RealEventStream(
   private val eventstream: Eventstream,
-  private val ioDispatcher: CoroutineContext
+  private val ioDispatcher: CoroutineContext,
 ) : ArtifactDownloaderEventStream {
 
   override suspend fun sendEvents(events: List<ArtifactDownloaderEvent>): Boolean {

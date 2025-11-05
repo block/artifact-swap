@@ -13,5 +13,5 @@ public data class EventstreamEvent(
   val appName: String,
   val event: Any,
   val recordedAtMs: Long = System.currentTimeMillis(),
-  val uuid: UUID = UUID.randomUUID()
+  val uuid: UUID = UUID.randomUUID(),
 )

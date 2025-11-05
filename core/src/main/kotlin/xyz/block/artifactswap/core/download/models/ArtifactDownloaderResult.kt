@@ -10,5 +10,5 @@ enum class ArtifactDownloaderResult {
   // when more than 10% of installs failed
   MANY_INSTALLS_FAILED,
   // indicates we forgot to set this value
-  NOT_SET
+  NOT_SET,
 }

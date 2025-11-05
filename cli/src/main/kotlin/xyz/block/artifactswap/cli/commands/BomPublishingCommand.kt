@@ -14,46 +14,45 @@ import xyz.block.artifactswap.core.publisher.di.bomPublisher
 import xyz.block.artifactswap.core.publisher.di.bomPublisherModules
 
 @CommandLine.Command(
-    name = "bom-publisher",
-    description = ["Publishes the BOM for the given list of projects."]
+  name = "bom-publisher",
+  description = ["Publishes the BOM for the given list of projects."],
 )
 class BomPublishingCommand : AbstractArtifactSwapCommand() {
 
-    @Mixin
-    private lateinit var bomPublishingOptions: BomPublishingOptions
+  @Mixin private lateinit var bomPublishingOptions: BomPublishingOptions
 
-    @Mixin
-    private lateinit var ciConfigurationOptions: CiConfigurationOptions
+  @Mixin private lateinit var ciConfigurationOptions: CiConfigurationOptions
 
-    private lateinit var bomPublisher: BomPublisher
+  private lateinit var bomPublisher: BomPublisher
 
-    override fun init(application: KoinApplication) {
-        val config = BomPublisherConfig(
-            dryRun = application.koin.get(org.koin.core.qualifier.named("dryRun"))
-        )
-        application.modules(bomPublisherModules(application, config))
-    }
+  override fun init(application: KoinApplication) {
+    val config =
+      BomPublisherConfig(dryRun = application.koin.get(org.koin.core.qualifier.named("dryRun")))
+    application.modules(bomPublisherModules(application, config))
+  }
 
-    override suspend fun executeCommand(application: KoinApplication) {
-        bomPublisher = application.bomPublisher
+  override suspend fun executeCommand(application: KoinApplication) {
+    bomPublisher = application.bomPublisher
 
-        logger.info { "Starting BOM publisher" }
+    logger.info { "Starting BOM publisher" }
 
-        val ciMetadata = CiMetadata(
-            buildId = ciConfigurationOptions.buildId,
-            buildStepId = ciConfigurationOptions.buildStepId,
-            buildJobId = ciConfigurationOptions.buildJobId,
-            ciType = ciConfigurationOptions.ciType
-        )
+    val ciMetadata =
+      CiMetadata(
+        buildId = ciConfigurationOptions.buildId,
+        buildStepId = ciConfigurationOptions.buildStepId,
+        buildJobId = ciConfigurationOptions.buildJobId,
+        ciType = ciConfigurationOptions.ciType,
+      )
 
-        val result = bomPublisher.publishBom(
-            bomVersion = bomPublishingOptions.bomVersion,
-            hashPath = bomPublishingOptions.hashPath,
-            ciMetadata = ciMetadata
-        )
+    val result =
+      bomPublisher.publishBom(
+        bomVersion = bomPublishingOptions.bomVersion,
+        hashPath = bomPublishingOptions.hashPath,
+        ciMetadata = ciMetadata,
+      )
 
-        logger.info { "BOM publisher completed with result: ${result.result}" }
+    logger.info { "BOM publisher completed with result: ${result.result}" }
 
-        bomPublisher.logResult(result)
-    }
+    bomPublisher.logResult(result)
+  }
 }

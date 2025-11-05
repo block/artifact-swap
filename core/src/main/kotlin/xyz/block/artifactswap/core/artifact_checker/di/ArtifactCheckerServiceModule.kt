@@ -8,42 +8,33 @@ import xyz.block.artifactswap.core.artifact_checker.ArtifactCheckerService
 import xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream
 import xyz.block.artifactswap.core.artifact_checker.services.RealArtifactCheckerEventStream
 import xyz.block.artifactswap.core.eventstream.Eventstream
-import xyz.block.artifactswap.core.network.ArtifactoryService
 
-/**
- * Configuration for ArtifactCheckerService module.
- */
-data class ArtifactCheckerServiceConfig(
-    val placeholder: Boolean = false
-)
+/** Configuration for ArtifactCheckerService module. */
+data class ArtifactCheckerServiceConfig(val placeholder: Boolean = false)
 
-/**
- * Creates Koin modules for ArtifactCheckerService.
- */
+/** Creates Koin modules for ArtifactCheckerService. */
 fun artifactCheckerServiceModules(
-    application: KoinApplication,
-    config: ArtifactCheckerServiceConfig
+  application: KoinApplication,
+  config: ArtifactCheckerServiceConfig,
 ): Module {
-    return module {
-        single<ArtifactCheckerEventStream> {
-            RealArtifactCheckerEventStream(
-                eventstream = get<Eventstream>(named("analyticsModuleEventStream")),
-                ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO"))
-            )
-        }
-
-        single {
-            ArtifactCheckerService(
-                artifactoryService = get(),
-                eventStream = get(),
-                ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO"))
-            )
-        }
+  return module {
+    single<ArtifactCheckerEventStream> {
+      RealArtifactCheckerEventStream(
+        eventstream = get<Eventstream>(named("analyticsModuleEventStream")),
+        ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
+      )
     }
+
+    single {
+      ArtifactCheckerService(
+        artifactoryService = get(),
+        eventStream = get(),
+        ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
+      )
+    }
+  }
 }
 
-/**
- * Extension property to get ArtifactCheckerService from KoinApplication.
- */
+/** Extension property to get ArtifactCheckerService from KoinApplication. */
 val KoinApplication.artifactCheckerService: ArtifactCheckerService
-    get() = koin.get()
+  get() = koin.get()
