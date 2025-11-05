@@ -5,5 +5,5 @@ enum class DownloadFileType(val pathSuffix: String) {
   AAR(".aar"),
   JAR(".jar"),
   MODULE(".module"),
-  SOURCES_JAR("-sources.jar")
+  SOURCES_JAR("-sources.jar"),
 }

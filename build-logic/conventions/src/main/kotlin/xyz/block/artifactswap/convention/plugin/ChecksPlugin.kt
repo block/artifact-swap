@@ -3,6 +3,8 @@ package xyz.block.artifactswap.convention.plugin
 import com.android.build.gradle.LintPlugin
 import com.ncorti.ktfmt.gradle.KtfmtExtension
 import com.ncorti.ktfmt.gradle.KtfmtPlugin
+import com.ncorti.ktfmt.gradle.tasks.KtfmtBaseTask
+import com.ncorti.ktfmt.gradle.tasks.KtfmtFormatTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
@@ -16,6 +18,10 @@ class ChecksPlugin : Plugin<Project> {
     plugins.apply(KtfmtPlugin::class.java)
     extensions.getByType(KtfmtExtension::class.java).run {
       googleStyle()
+    }
+    tasks.withType(KtfmtBaseTask::class.java).configureEach { task ->
+      // Skip .kts files
+      task.exclude("**/*.kts")
     }
     tasks.register("ktfmt") { it.dependsOn("ktfmtFormat") }
 

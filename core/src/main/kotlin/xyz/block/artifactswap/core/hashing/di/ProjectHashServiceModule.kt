@@ -1,5 +1,6 @@
 package xyz.block.artifactswap.core.hashing.di
 
+import java.nio.file.Path
 import kotlinx.coroutines.CoroutineDispatcher
 import org.gradle.tooling.GradleConnector
 import org.koin.core.KoinApplication
@@ -12,55 +13,55 @@ import xyz.block.artifactswap.core.gradle.GradleToolingHashingProjectsProvider
 import xyz.block.artifactswap.core.hashing.ProjectHashService
 import xyz.block.artifactswap.core.hashing.services.HashingEventStream
 import xyz.block.artifactswap.core.hashing.services.RealHashingEventStream
-import java.nio.file.Path
 
 // Extension properties for accessing common values from KoinApplication
 val KoinApplication.ioDispatcher: kotlinx.coroutines.CoroutineDispatcher
-    get() = koin.get(named("IO"))
+  get() = koin.get(named("IO"))
 
 val KoinApplication.defaultDispatcher: CoroutineDispatcher
-    get() = koin.get(named("Default"))
+  get() = koin.get(named("Default"))
 
 internal const val EVENT_STREAM_NAME = "analyticsModuleEventStream"
 
-/**
- * Configuration options for the project hash service module.
- */
+/** Configuration options for the project hash service module. */
 data class ProjectHashServiceConfig(
-    val placeholder: Boolean = false // Placeholder for future config
+  val placeholder: Boolean = false // Placeholder for future config
 )
 
-fun projectHashServiceModules(application: KoinApplication, config: ProjectHashServiceConfig): Module {
-    return module {
-        single<HashingEventStream> {
-            RealHashingEventStream(
-                eventstream = get<Eventstream>(named(EVENT_STREAM_NAME)),
-                ioDispatcher = get<CoroutineDispatcher>(named("IO"))
-            )
-        }
-
-        single<GradleProjectsProvider> {
-            GradleToolingHashingProjectsProvider(
-                GradleConnector.newCancellationTokenSource(),
-                GradleConnector.newConnector()
-                    .forProjectDirectory(get<Path>(named("directory")).toFile())
-                    .useBuildDistribution()
-                    .connect(),
-                gradleArgs = get(named("gradleArgs")),
-                gradleJvmArgs = get(named("jvmArgs")),
-            )
-        }
-
-        single<ProjectHashService> {
-            ProjectHashService(
-                gradleProjectsProvider = get<GradleProjectsProvider>(),
-                eventStream = get(),
-                ioDispatcher = get<CoroutineDispatcher>(named("IO")),
-                defaultDispatcher = get<CoroutineDispatcher>(named("Default"))
-            )
-        }
+fun projectHashServiceModules(
+  application: KoinApplication,
+  config: ProjectHashServiceConfig,
+): Module {
+  return module {
+    single<HashingEventStream> {
+      RealHashingEventStream(
+        eventstream = get<Eventstream>(named(EVENT_STREAM_NAME)),
+        ioDispatcher = get<CoroutineDispatcher>(named("IO")),
+      )
     }
+
+    single<GradleProjectsProvider> {
+      GradleToolingHashingProjectsProvider(
+        GradleConnector.newCancellationTokenSource(),
+        GradleConnector.newConnector()
+          .forProjectDirectory(get<Path>(named("directory")).toFile())
+          .useBuildDistribution()
+          .connect(),
+        gradleArgs = get(named("gradleArgs")),
+        gradleJvmArgs = get(named("jvmArgs")),
+      )
+    }
+
+    single<ProjectHashService> {
+      ProjectHashService(
+        gradleProjectsProvider = get<GradleProjectsProvider>(),
+        eventStream = get(),
+        ioDispatcher = get<CoroutineDispatcher>(named("IO")),
+        defaultDispatcher = get<CoroutineDispatcher>(named("Default")),
+      )
+    }
+  }
 }
 
 val KoinApplication.projectHashService: ProjectHashService
-    get() = koin.get()
+  get() = koin.get()

@@ -9,10 +9,9 @@ interface GradlePropertiesProvider {
 }
 
 class RealGradlePropertiesProvider(private val propertiesFile: Path) : GradlePropertiesProvider {
-  private val gradleProperties = Properties().apply {
-    propertiesFile.inputStream().use { load(it) }
-  }
+  private val gradleProperties =
+    Properties().apply { propertiesFile.inputStream().use { load(it) } }
 
-  override fun get(key: String): String = gradleProperties[key]?.toString()
-    ?: error("$key must be set in $propertiesFile")
+  override fun get(key: String): String =
+    gradleProperties[key]?.toString() ?: error("$key must be set in $propertiesFile")
 }
