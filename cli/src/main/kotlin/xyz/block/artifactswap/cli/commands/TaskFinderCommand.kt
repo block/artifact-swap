@@ -62,8 +62,7 @@ class TaskFinderCommand : AbstractArtifactSwapCommand() {
 
       // Get Gradle arguments from the application
       val gradleArgs = application.koin.getOrNull<List<String>>(named("gradleArgs")) ?: emptyList()
-      val gradleJvmArgs =
-        application.koin.getOrNull<List<String>>(named("jvmArgs")) ?: emptyList()
+      val gradleJvmArgs = application.koin.getOrNull<List<String>>(named("jvmArgs")) ?: emptyList()
 
       // Find all tasks matching the task name
       val taskFindingResult =
