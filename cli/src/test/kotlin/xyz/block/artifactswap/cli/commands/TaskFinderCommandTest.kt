@@ -70,7 +70,7 @@ class TaskFinderCommandTest {
           Eventstream(eventstreamService = mock<EventstreamService>())
         }
         single(named("gradleArgs")) { emptyList<String>() }
-        single(named("gradleJvmArgs")) { emptyList<String>() }
+        single(named("jvmArgs")) { emptyList<String>() }
       }
     )
     command.init(testApplication)
@@ -129,7 +129,7 @@ class TaskFinderCommandTest {
             Eventstream(eventstreamService = mock<EventstreamService>())
           }
           single(named("gradleArgs")) { emptyList<String>() }
-          single(named("gradleJvmArgs")) { emptyList<String>() }
+          single(named("jvmArgs")) { emptyList<String>() }
         }
       )
       command.init(testApplication)
@@ -192,7 +192,7 @@ class TaskFinderCommandTest {
           Eventstream(eventstreamService = mock<EventstreamService>())
         }
         single(named("gradleArgs")) { emptyList<String>() }
-        single(named("gradleJvmArgs")) { emptyList<String>() }
+        single(named("jvmArgs")) { emptyList<String>() }
       }
     )
     command.init(testApplication)

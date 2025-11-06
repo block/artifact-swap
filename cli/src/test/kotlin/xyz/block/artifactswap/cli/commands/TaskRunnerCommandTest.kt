@@ -69,7 +69,7 @@ class TaskRunnerCommandTest {
             Eventstream(eventstreamService = mock<EventstreamService>())
           }
           single(named("gradleArgs")) { emptyList<String>() }
-          single(named("gradleJvmArgs")) { emptyList<String>() }
+          single(named("jvmArgs")) { emptyList<String>() }
           single(named("dryRun")) { false }
         }
       )
@@ -117,7 +117,7 @@ class TaskRunnerCommandTest {
           Eventstream(eventstreamService = mock<EventstreamService>())
         }
         single(named("gradleArgs")) { emptyList<String>() }
-        single(named("gradleJvmArgs")) { emptyList<String>() }
+        single(named("jvmArgs")) { emptyList<String>() }
         single(named("dryRun")) { false }
       }
     )
@@ -165,7 +165,7 @@ class TaskRunnerCommandTest {
           Eventstream(eventstreamService = mock<EventstreamService>())
         }
         single(named("gradleArgs")) { emptyList<String>() }
-        single(named("gradleJvmArgs")) { emptyList<String>() }
+        single(named("jvmArgs")) { emptyList<String>() }
         single(named("dryRun")) { false }
       }
     )

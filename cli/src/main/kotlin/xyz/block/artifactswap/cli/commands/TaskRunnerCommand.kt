@@ -71,7 +71,7 @@ class TaskRunnerCommand : AbstractArtifactSwapCommand() {
     // Get Gradle arguments and dry-run flag from the application
     val gradleArgs = application.koin.getOrNull<List<String>>(named("gradleArgs")) ?: emptyList()
     val gradleJvmArgs =
-      application.koin.getOrNull<List<String>>(named("gradleJvmArgs")) ?: emptyList()
+      application.koin.getOrNull<List<String>>(named("jvmArgs")) ?: emptyList()
     val dryRun = application.koin.getOrNull<Boolean>(named("dryRun")) ?: false
 
     // Run the tasks
