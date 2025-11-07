@@ -15,14 +15,14 @@ interface ArtifactoryEndpoints {
   @GET("{repo}/{groupPath}/{artifact}/maven-metadata.xml")
   suspend fun getMavenMetadata(
     @Path("repo") repo: String,
-    @Path("groupPath") groupPath: String,
+    @Path("groupPath", encoded = true) groupPath: String,
     @Path("artifact") artifact: String,
   ): Response<Metadata>
 
   @GET("{repo}/{groupPath}/{artifact}/{version}/{artifact}-{version}.pom")
   suspend fun getPom(
     @Path("repo") repo: String,
-    @Path("groupPath") groupPath: String,
+    @Path("groupPath", encoded = true) groupPath: String,
     @Path("artifact") artifact: String,
     @Path("version") version: String,
   ): Response<Project>
@@ -30,7 +30,7 @@ interface ArtifactoryEndpoints {
   @HEAD("{repo}/{groupPath}/{artifact}/{version}/{artifact}-{version}{packaging}")
   suspend fun headArtifact(
     @Path("repo") repo: String,
-    @Path("groupPath") groupPath: String,
+    @Path("groupPath", encoded = true) groupPath: String,
     @Path("artifact") artifact: String,
     @Path("version") version: String,
     @Path("packaging") packaging: String,
@@ -39,7 +39,7 @@ interface ArtifactoryEndpoints {
   @PUT("{repo}/{groupPath}/{artifact}/maven-metadata.xml")
   suspend fun pushMetadata(
     @Path("repo") repo: String,
-    @Path("groupPath") groupPath: String,
+    @Path("groupPath", encoded = true) groupPath: String,
     @Path("artifact") artifact: String,
     @Body metadata: Metadata,
   ): Response<Unit>
@@ -47,7 +47,7 @@ interface ArtifactoryEndpoints {
   @PUT("{repo}/{groupPath}/{artifact}/{version}/{filename}")
   suspend fun pushPom(
     @Path("repo") repo: String,
-    @Path("groupPath") groupPath: String,
+    @Path("groupPath", encoded = true) groupPath: String,
     @Path("artifact") artifact: String,
     @Path("version") version: String,
     @Path("filename") filename: String,
@@ -57,7 +57,7 @@ interface ArtifactoryEndpoints {
   @GET("{repo}/{group}/{artifact}/{version}/{artifact}-{version}{ext}")
   suspend fun getFile(
     @Path("repo") repo: String,
-    @Path("group") group: String,
+    @Path("group", encoded = true) group: String,
     @Path("artifact") artifact: String,
     @Path("version") version: String,
     @Path("ext") ext: String,
