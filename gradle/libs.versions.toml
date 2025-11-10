@@ -31,6 +31,7 @@ develocity = "4.2.2"
 
 [libraries]
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+android-gradle-api = { module = "com.android.tools.build:gradle-api", version.ref = "agp" }
 androidx-lintGradle = { module = "androidx.lint:lint-gradle", version.ref = "lint-gradle" }
 dagp-gradle = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version.ref = "dagp" }
 develocity-gradle = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }

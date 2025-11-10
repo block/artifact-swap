@@ -31,5 +31,7 @@ dependencies {
   implementation(gradleApi())
   implementation(libs.kotlin.utilio)
 
+  compileOnly(libs.android.gradle.api)
+
   lintChecks(libs.androidx.lintGradle)
 }
