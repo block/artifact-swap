@@ -6,7 +6,7 @@
 agp = "8.9.1"
 gradle-tapi = "8.14.3"
 jackson = "2.20.1"
-jgit = "6.10.1.202505221210-r"
+jgit = "7.4.0.202509020913-r"
 koin = "4.1.1"
 kotlin = "2.2.20"
 kotlinxDatetime = "0.7.1"
