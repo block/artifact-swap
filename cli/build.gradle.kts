@@ -22,10 +22,12 @@ dependencies {
   implementation(libs.kotlinxCoroutines)
   implementation(libs.moshi)
   implementation(libs.okhttp)
+  implementation(libs.okhttp.logging)
   implementation(libs.picocli.core)
   implementation(libs.retrofit.core)
   implementation(libs.retrofit.converter.jackson)
   implementation(libs.retrofit.wire)
+  implementation(libs.slf4j.api)
 
   // Runtime only
   runtimeOnly(libs.logback.classic)
