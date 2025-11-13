@@ -27,20 +27,24 @@ internal class CommonOptions {
   lateinit var loggingEnvironment: EventStreamLoggingEnvironment
     internal set
 
-  @Option(
+  @set:Option(
     names = ["--dry-run"],
     description = ["Dry run mode doesn't publish artifacts to artifactory"],
   )
   var dryRun: Boolean = false
     internal set
 
-  @Option(
+  @set:Option(
     names = ["--logging"],
     description = ["Logging level (OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, ALL)"],
     converter = [LogBackLogLevelTypeConverter::class],
-    defaultValue = "info",
   )
-  private fun setLogLevel(level: Level) {
-    Configurator.setRootLevel(level)
-  }
+  var logLevel: Level = Level.INFO
+    internal set(value) {
+      field = value
+      // Set the root logger level
+      Configurator.setRootLevel(value)
+      // Also update our application logger
+      Configurator.setLevel("xyz.block.artifactswap", value)
+    }
 }

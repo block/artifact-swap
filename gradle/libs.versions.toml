@@ -56,6 +56,7 @@ kotlin-utilio = { module = "org.jetbrains.kotlin:kotlin-util-io", version.ref = 
 log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j"}
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j"}
 log4j-kotlin = { module = "org.apache.logging.log4j:log4j-api-kotlin", version = "1.5.0" }
+log4j-slf4j2-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }

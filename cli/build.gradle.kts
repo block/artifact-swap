@@ -27,8 +27,9 @@ dependencies {
   implementation(libs.retrofit.converter.jackson)
   implementation(libs.retrofit.wire)
 
-  // Runtime only
-  runtimeOnly(libs.logback.classic)
+  runtimeOnly(libs.log4j.slf4j2.impl) {
+    because("JGit uses SLF4J for logging")
+  }
 
   // Test dependencies
   testImplementation(platform(libs.junit.bom))
