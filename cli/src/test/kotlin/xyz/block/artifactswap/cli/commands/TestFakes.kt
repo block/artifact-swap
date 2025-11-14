@@ -51,8 +51,6 @@ class FakeArtifactRepository(
   var getBomResult: Result<List<Artifact>> = Result.success(emptyList())
 ) : ArtifactRepository {
 
-  override val baseArtifactoryUrl = "http://fake.artifactory.url"
-
   override suspend fun getInstalledBom(bomVersion: String): Result<Project> {
     TODO("Not yet implemented")
   }

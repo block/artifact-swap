@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 interface SquareGit {
 
   /** Returns the commit hash of the youngest ancestor between HEAD and the base branch. */
-  suspend fun findRecentSharedCommits(baseBranch: String, count: Int = 50): List<ObjectId>?
+  suspend fun findRecentSharedCommits(baseRef: String, count: Int = 50): List<ObjectId>?
 
   /**
    * Returns the list of file paths (relative to the repository root) that have changed between the
@@ -33,7 +33,7 @@ interface SquareGit {
    *
    * Functionally similar to `git diff --name-only <COMMIT_HASH>`
    */
-  suspend fun findChangedFiles(baseCommit: String): Result<Set<Path>>
+  suspend fun findChangedFiles(baseRef: String): Result<Set<Path>>
 }
 
 private val LOGGER = LoggerFactory.getLogger(SquareGit::class.java)
@@ -70,8 +70,9 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
       .toSet()
   }
 
-  override suspend fun findRecentSharedCommits(baseBranch: String, count: Int): List<ObjectId>? {
-    val baseCommit = repository.resolve(baseBranch)
+  override suspend fun findRecentSharedCommits(baseRef: String, count: Int): List<ObjectId>? {
+    LOGGER.debug("Finding merge base between $baseRef and ${Constants.HEAD}")
+    val baseCommit = repository.resolve(baseRef)
     val headCommit = repository.resolve(Constants.HEAD)
     val mergeBase =
       RevWalk(repository).use { walk ->
@@ -87,7 +88,7 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
         }
       }
     if (mergeBase == null) {
-      LOGGER.warn("No merge base found between $baseBranch and HEAD")
+      LOGGER.warn("No merge base found between $baseRef and HEAD")
       return null
     }
     val commits = git.log().add(mergeBase).call().take(count).map { it.id }
@@ -103,9 +104,9 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  override suspend fun findChangedFiles(baseBranch: String): Result<Set<Path>> = runCatching {
+  override suspend fun findChangedFiles(baseRef: String): Result<Set<Path>> = runCatching {
     val baseCommit =
-      findRecentSharedCommits(baseBranch)?.first()
+      findRecentSharedCommits(baseRef)?.first()
         ?: throw IllegalStateException("No recent shared commits found")
     LOGGER.debug("Got comparison labels: {}", getComparisonLabels(baseCommit))
 

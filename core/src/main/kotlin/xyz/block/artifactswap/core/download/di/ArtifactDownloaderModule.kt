@@ -1,11 +1,13 @@
 package xyz.block.artifactswap.core.download.di
 
 import java.nio.file.Path
+import java.util.Properties
 import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.download.ArtifactDownloader
 import xyz.block.artifactswap.core.download.services.ArtifactDownloaderEventStream
 import xyz.block.artifactswap.core.download.services.ArtifactRepository
@@ -35,7 +37,6 @@ internal const val EVENT_STREAM_NAME = "analyticsModuleEventStream"
 /** Configuration options for the artifact downloader module. */
 data class ArtifactDownloaderConfig(
   val bomVersion: String = "",
-  val gradlePropertiesFile: Path,
   val settingsGradleFile: Path,
   val mavenLocalPath: Path,
 )
@@ -53,11 +54,11 @@ fun artifactDownloaderModules(
     }
     single<ArtifactRepository> {
       RealArtifactRepository(
-        baseArtifactoryUrl = get(named("artifactoryBaseUrl")),
         localMavenPath = config.mavenLocalPath,
         artifactoryService = get(),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
         objectMapper = get(),
+        config = get<ArtifactSwapConfig>(),
       )
     }
     single<SquareGit> {
@@ -75,10 +76,11 @@ fun artifactDownloaderModules(
         application.directory,
         config.settingsGradleFile.toRealPath(),
         application.ioDispatcher,
+        get<ArtifactSwapConfig>(),
       )
     }
     single<GradlePropertiesProvider> {
-      RealGradlePropertiesProvider(config.gradlePropertiesFile.toRealPath())
+      RealGradlePropertiesProvider(get<Properties>(named("gradleProperties")))
     }
     single<ArtifactDownloader> {
       ArtifactDownloader(
@@ -87,6 +89,7 @@ fun artifactDownloaderModules(
         artifactRepository = get(),
         settingsGradleProjectsProvider = get(),
         gradlePropertiesProvider = get(),
+        config = get<ArtifactSwapConfig>(),
       )
     }
   }

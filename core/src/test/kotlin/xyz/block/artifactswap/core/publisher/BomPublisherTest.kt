@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import retrofit2.Response
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.maven.Metadata
 import xyz.block.artifactswap.core.maven.Versioning
 import xyz.block.artifactswap.core.maven.Versions
@@ -42,6 +43,7 @@ class BomPublisherTest {
         projectHashReader = fakeHashReader,
         artifactoryEndpoints = fakeArtifactoryEndpoints,
         eventStream = fakeEventStream,
+        config = ArtifactSwapConfig(),
       )
   }
 
@@ -240,6 +242,7 @@ class BomPublisherTest {
         projectHashReader = fakeHashReader,
         artifactoryEndpoints = fakeArtifactoryEndpoints,
         eventStream = fakeEventStream,
+        config = ArtifactSwapConfig(),
         dryRun = true,
       )
 

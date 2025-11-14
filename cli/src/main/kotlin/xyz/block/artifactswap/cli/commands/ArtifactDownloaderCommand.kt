@@ -25,7 +25,6 @@ class ArtifactDownloaderCommand : AbstractArtifactSwapCommand() {
     val config =
       ArtifactDownloaderConfig(
         bomVersion = artifactDownloaderOptions.bomVersion,
-        gradlePropertiesFile = artifactDownloaderOptions.gradlePropertiesFile,
         settingsGradleFile = artifactDownloaderOptions.settingsGradleFile,
         mavenLocalPath = artifactDownloaderOptions.mavenLocalPath,
       )

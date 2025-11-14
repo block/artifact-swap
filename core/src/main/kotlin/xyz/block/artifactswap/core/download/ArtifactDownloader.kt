@@ -8,7 +8,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.apache.logging.log4j.kotlin.logger
-import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.download.models.Artifact
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderEvent
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult
@@ -28,18 +28,8 @@ class ArtifactDownloader(
   val artifactRepository: ArtifactRepository,
   val settingsGradleProjectsProvider: GradleProjectsProvider,
   val gradlePropertiesProvider: GradlePropertiesProvider,
+  val config: ArtifactSwapConfig,
 ) {
-
-  companion object {
-    val SQUARE_PROTOS_GENERATED_VERSION_PROPERTY: String
-      get() = ArtifactSwapConfigHolder.instance.protosGeneratedVersionProperty
-
-    val SQUARE_PROTOS_SCHEMA_VERSION_PROPERTY: String
-      get() = ArtifactSwapConfigHolder.instance.protosSchemaVersionProperty
-
-    val SQUARE_PROTOS_ARTIFACT_GROUP: String
-      get() = ArtifactSwapConfigHolder.instance.secondaryArtifactsMavenGroup
-  }
 
   /**
    * Downloads and installs Maven artifacts based on a BOM file and protos configuration.
@@ -57,9 +47,8 @@ class ArtifactDownloader(
     // Discover protos artifacts from gradle configuration
     val (protosArtifacts, protosDiscoveryDuration) =
       measureTimedValue {
-        val generatedProtosVersion =
-          gradlePropertiesProvider[SQUARE_PROTOS_GENERATED_VERSION_PROPERTY]
-        val protosSchemaVersion = gradlePropertiesProvider[SQUARE_PROTOS_SCHEMA_VERSION_PROPERTY]
+        val generatedProtosVersion = gradlePropertiesProvider[config.protosGeneratedVersionProperty]
+        val protosSchemaVersion = gradlePropertiesProvider[config.protosSchemaVersionProperty]
         val projectsResult = settingsGradleProjectsProvider.getProjectHashingInfos()
         val projects =
           projectsResult.getOrNull() ?: error("Unable to read projects from $settingsGradleFile")
@@ -69,7 +58,7 @@ class ArtifactDownloader(
         // It is consumed by the protos build and several other projects inside register using Kable
         val protosSchemaArtifact =
           Artifact(
-            groupId = SQUARE_PROTOS_ARTIFACT_GROUP,
+            groupId = config.secondaryArtifactsMavenGroup,
             artifactId = "all-protos",
             version = protosSchemaVersion,
             repo = SQUARE_PUBLIC_REPO,
@@ -78,7 +67,7 @@ class ArtifactDownloader(
         projects.map { project ->
           val artifactId = project.projectPath.removePrefix(":").split(":").first()
           Artifact(
-            groupId = SQUARE_PROTOS_ARTIFACT_GROUP,
+            groupId = config.secondaryArtifactsMavenGroup,
             artifactId = artifactId,
             version = generatedProtosVersion,
             repo = SQUARE_PUBLIC_REPO,

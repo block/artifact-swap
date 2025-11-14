@@ -29,7 +29,7 @@ import kotlinx.coroutines.withContext
 import okio.sink
 import okio.use
 import org.apache.logging.log4j.kotlin.logger
-import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.download.models.Artifact
 import xyz.block.artifactswap.core.download.models.DownloadFileType
 import xyz.block.artifactswap.core.download.models.DownloadedArtifactFileResult
@@ -40,17 +40,9 @@ import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 
 private const val BOM = "bom"
-internal val SANDBAG_REPO: String
-  get() = ArtifactSwapConfigHolder.instance.primaryRepositoryName
-internal val ARTIFACTORY_GROUP_PATH_SEGMENT =
-  ArtifactSwapConfigHolder.instance.primaryArtifactsMavenGroupArtifactoryPath
-internal val SQUARE_PUBLIC_REPO: String
-  get() = ArtifactSwapConfigHolder.instance.secondaryRepositoryName
+internal const val SQUARE_PUBLIC_REPO = "square-public-repo"
 
 interface ArtifactRepository {
-
-  val baseArtifactoryUrl: String
-
   suspend fun getInstalledBom(bomVersion: String): Result<Project>
 
   /** Determine the artifacts to , which includes a list of the most recent artifact coordinates */
@@ -70,11 +62,11 @@ interface ArtifactRepository {
 
 @OptIn(ExperimentalPathApi::class)
 class RealArtifactRepository(
-  override val baseArtifactoryUrl: String,
   private val localMavenPath: Path,
   private val artifactoryService: ArtifactoryEndpoints,
   private val ioDispatcher: CoroutineContext,
   private val objectMapper: ObjectMapper,
+  private val config: ArtifactSwapConfig,
 ) : ArtifactRepository {
 
   companion object {
@@ -103,7 +95,6 @@ class RealArtifactRepository(
     val expectedBomFileName = "bom-$bomVersion.pom"
     // determine bom location from local maven repo + primary maven group
     var currentRepoLocation = localMavenPath
-    val config = ArtifactSwapConfigHolder.instance
     config.primaryArtifactsMavenGroup.split(MAVEN_GROUP_SEPARATOR).forEach { group ->
       currentRepoLocation = currentRepoLocation.resolve(group)
     }
@@ -122,8 +113,8 @@ class RealArtifactRepository(
     return runCatching {
       val response =
         artifactoryService.getPom(
-          repo = SANDBAG_REPO,
-          groupPath = ARTIFACTORY_GROUP_PATH_SEGMENT,
+          repo = config.primaryRepositoryName,
+          groupPath = config.primaryArtifactsMavenGroupArtifactoryPath,
           artifact = BOM,
           bomVersion,
         )
@@ -146,6 +137,7 @@ class RealArtifactRepository(
           groupId = project.groupId,
           artifactId = project.artifactId,
           version = project.version,
+          repo = config.primaryRepositoryName,
         )
       if (
         getLocalArtifactState(bomArtifact, DownloadFileType.POM) == LocalArtifactState.NOT_INSTALLED
@@ -163,6 +155,7 @@ class RealArtifactRepository(
           groupId = dependency.groupId,
           artifactId = dependency.artifactId,
           version = dependency.version,
+          repo = config.primaryRepositoryName,
         )
       }
     }
@@ -204,7 +197,7 @@ class RealArtifactRepository(
                   Artifact details: $artifact, file type: $fileType.
                   Url requested: ${
             artifact.toArtifactoryUrl(
-              baseArtifactoryUrl,
+              config.artifactoryBaseUrl,
               fileType,
             )
           }. 

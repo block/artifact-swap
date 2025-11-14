@@ -3,7 +3,7 @@ package xyz.block.artifactswap.core.download
 import kotlin.time.Duration.Companion.milliseconds
 import okhttp3.ResponseBody
 import okio.ByteString.Companion.encodeUtf8
-import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.download.models.Artifact
 import xyz.block.artifactswap.core.download.models.DownloadFileType
 import xyz.block.artifactswap.core.download.models.DownloadedArtifactFileResult
@@ -21,14 +21,13 @@ internal const val FAKE_ARTIFACT_DOWNLOAD_SIZE_BYTES = 1024 * 1024 * 5L
 internal const val FAKE_ARTIFACT_DOWNLOAD_SIZE_MB =
   FAKE_ARTIFACT_DOWNLOAD_SIZE_BYTES / (1024 * 1024)
 
-internal val SQUARE_PROTOS_ARTIFACT_GROUP =
-  ArtifactSwapConfigHolder.instance.secondaryArtifactsMavenGroup
+internal val SQUARE_PROTOS_ARTIFACT_GROUP = ArtifactSwapConfig().secondaryArtifactsMavenGroup
 
 class FakeArtifactRepository(
   var getBomResult: Result<List<Artifact>> = Result.success(emptyList())
 ) : ArtifactRepository {
 
-  override val baseArtifactoryUrl = "http://fake.artifactory.url"
+  val baseArtifactoryUrl = "http://fake.artifactory.url"
 
   val requestedArtifactFilesForDownload = mutableSetOf<Pair<Artifact, DownloadFileType>>()
   val artifactsToFailDownload = mutableSetOf<Artifact>()

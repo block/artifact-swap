@@ -6,7 +6,6 @@ import picocli.CommandLine.Option
 
 class ArtifactDownloaderOptions(
   bomVersion: String = "",
-  gradlePropertiesFile: Path = Path("gradle.properties"),
   settingsGradleFile: Path = Path("settings.gradle.kts"),
   mavenLocalPath: Path = Path(System.getProperty("user.home")).resolve(".m2/repository"),
 ) {
@@ -16,13 +15,6 @@ class ArtifactDownloaderOptions(
     description = ["BOM version to check artifactory for artifacts"],
   )
   var bomVersion: String = bomVersion
-    internal set
-
-  @Option(
-    names = ["--gradle-properties-file"],
-    description = ["path to gradle.properties to extract protos version from"],
-  )
-  var gradlePropertiesFile: Path = gradlePropertiesFile
     internal set
 
   @Option(

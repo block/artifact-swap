@@ -1,12 +1,10 @@
 package xyz.block.artifactswap.core.download.models
 
-import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
-
 data class Artifact(
   val groupId: String,
   val artifactId: String,
   val version: String,
-  val repo: String = ArtifactSwapConfigHolder.instance.primaryRepositoryName,
+  val repo: String,
 )
 
 fun Artifact.toArtifactoryUrl(
