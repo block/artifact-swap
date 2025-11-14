@@ -22,10 +22,12 @@ dependencies {
   implementation(libs.kotlinxCoroutines)
   implementation(libs.moshi)
   implementation(libs.okhttp)
+  implementation(libs.okhttp.logging)
   implementation(libs.picocli.core)
   implementation(libs.retrofit.core)
   implementation(libs.retrofit.converter.jackson)
   implementation(libs.retrofit.wire)
+  implementation(libs.slf4j.api)
 
   runtimeOnly(libs.log4j.slf4j2.impl) {
     because("JGit uses SLF4J for logging")
