@@ -185,10 +185,6 @@ data class ArtifactSwapConfig(
   val primaryArtifactsMavenGroupArtifactoryPath = primaryArtifactsMavenGroup.replace('.', '/')
 }
 
-// Eventstream Gzip Header
-const val EVENTSTREAM_GZIP_HEADER = "X-Square-Gzip: true"
-const val EVENTSTREAM_LOG_EVENTS_PATH = "/demo/path"
-
 /**
  * Global singleton holder for the artifact swap configuration.
  *
