@@ -2,6 +2,7 @@ package xyz.block.artifactswap.core.artifact_checker
 
 import okhttp3.ResponseBody
 import retrofit2.Response
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.maven.Metadata
 import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
@@ -96,5 +97,5 @@ fun createFakeArtifactoryService(
     FakeArtifactoryEndpointsForArtifactChecker().apply {
       this.existingArtifacts = existingArtifacts
     }
-  return ArtifactoryService(fakeEndpoints)
+  return ArtifactoryService(fakeEndpoints, ArtifactSwapConfig())
 }

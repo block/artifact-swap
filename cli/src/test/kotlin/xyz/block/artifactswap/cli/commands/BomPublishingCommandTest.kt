@@ -16,6 +16,7 @@ import org.koin.dsl.module
 import org.mockito.kotlin.mock
 import picocli.CommandLine
 import retrofit2.Response
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
 import xyz.block.artifactswap.core.maven.Metadata
@@ -96,6 +97,7 @@ class BomPublishingCommandTest {
             Eventstream(eventstreamService = mock<EventstreamService>())
           }
           single<ArtifactoryEndpoints> { fakeArtifactoryEndpoints }
+          single<ArtifactSwapConfig> { ArtifactSwapConfig() }
         }
       )
       command.init(testApplication)
@@ -174,6 +176,7 @@ class BomPublishingCommandTest {
             Eventstream(eventstreamService = mock<EventstreamService>())
           }
           single<ArtifactoryEndpoints> { fakeArtifactoryEndpoints }
+          single<ArtifactSwapConfig> { ArtifactSwapConfig() }
         }
       )
       command.init(testApplication)

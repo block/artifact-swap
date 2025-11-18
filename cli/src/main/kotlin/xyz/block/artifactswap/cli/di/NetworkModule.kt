@@ -23,7 +23,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import retrofit2.converter.wire.WireConverterFactory
 import retrofit2.create
-import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
@@ -119,27 +119,26 @@ internal fun artifactoryNetworkModule() = module {
   }
 
   single(named("artifactoryToken")) {
+    val config = get<ArtifactSwapConfig>()
     Path(get<String>(named("artifactorySecretsPath")))
-      .resolve(ArtifactSwapConfigHolder.instance.artifactoryPublisherTokenFileName)
+      .resolve(config.artifactoryPublisherTokenFileName)
       .readLines()
       .first()
   }
 
   single<Retrofit>(named("artifactoryRetrofit")) {
     Retrofit.Builder()
-      .baseUrl(get<String>(named("artifactoryBaseUrl")))
+      .baseUrl(get<ArtifactSwapConfig>().artifactoryBaseUrl)
       .client(get<OkHttpClient>(named("artifactoryClient")))
       .addConverterFactory(JacksonConverterFactory.create(get()))
       .build()
   }
 
-  single<ArtifactoryService> { ArtifactoryService(get<ArtifactoryEndpoints>()) }
+  single<ArtifactoryService> { ArtifactoryService(get<ArtifactoryEndpoints>(), get()) }
 
   single<ArtifactoryEndpoints> {
     get<Retrofit>(named("artifactoryRetrofit")).create<ArtifactoryEndpoints>()
   }
-
-  single(named("artifactoryBaseUrl")) { ArtifactSwapConfigHolder.instance.artifactoryBaseUrl }
 
   single(named("artifactorySecretsPath")) { System.getenv("SECRETS_PATH") }
 }
@@ -148,6 +147,7 @@ const val EVENT_STREAM_NAME = "analyticsModuleEventStream"
 
 internal fun analyticsNetworkModule() = module {
   single<EventstreamService> {
+    val config = get<ArtifactSwapConfig>()
     val httpClient =
       OkHttpClient.Builder()
         .connectTimeout(5.seconds.toJavaDuration())
@@ -156,7 +156,7 @@ internal fun analyticsNetworkModule() = module {
         .build()
 
     Retrofit.Builder()
-      .baseUrl(ArtifactSwapConfigHolder.instance.eventstreamBaseUrl)
+      .baseUrl(config.eventstreamBaseUrl)
       .client(httpClient)
       .addConverterFactory(WireConverterFactory.create())
       .build()

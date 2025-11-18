@@ -9,7 +9,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.apache.logging.log4j.kotlin.logger
 import retrofit2.Response
-import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.maven.Dependencies
 import xyz.block.artifactswap.core.maven.Dependency
 import xyz.block.artifactswap.core.maven.DependencyManagement
@@ -28,14 +28,11 @@ class BomPublisher(
   private val projectHashReader: ProjectHashReader,
   private val artifactoryEndpoints: ArtifactoryEndpoints,
   private val eventStream: BomPublisherEventStream,
+  private val config: ArtifactSwapConfig,
   private val dryRun: Boolean = false,
 ) {
   companion object {
-    private val GROUP_ID = ArtifactSwapConfigHolder.instance.primaryArtifactsMavenGroup
-    private val GROUP_PATH_PART =
-      ArtifactSwapConfigHolder.instance.primaryArtifactsMavenGroupArtifactoryPath
     private const val BOM = "bom"
-    private val REPO = ArtifactSwapConfigHolder.instance.primaryRepositoryName
   }
 
   /**
@@ -115,7 +112,7 @@ class BomPublisher(
     // Prepare pom file for BOM
     val project =
       Project(
-        groupId = GROUP_ID,
+        groupId = config.primaryArtifactsMavenGroup,
         artifactId = BOM,
         version = bomVersion,
         name = BOM,
@@ -130,8 +127,8 @@ class BomPublisher(
         Response.success(Unit)
       } else {
         artifactoryEndpoints.pushPom(
-          repo = REPO,
-          groupPath = GROUP_PATH_PART,
+          repo = config.primaryRepositoryName,
+          groupPath = config.primaryArtifactsMavenGroupArtifactoryPath,
           artifact = BOM,
           version = bomVersion,
           filename = "$BOM-$bomVersion.pom",
@@ -172,8 +169,8 @@ class BomPublisher(
         async {
           val response =
             artifactoryEndpoints.getMavenMetadata(
-              repo = REPO,
-              groupPath = GROUP_PATH_PART,
+              repo = config.primaryRepositoryName,
+              groupPath = config.primaryArtifactsMavenGroupArtifactoryPath,
               artifact = artifact,
             )
           if (response.isSuccessful) {
@@ -214,8 +211,8 @@ class BomPublisher(
   ): BomPublisherResult {
     val bomMetaDataResponse =
       artifactoryEndpoints.getMavenMetadata(
-        repo = REPO,
-        groupPath = GROUP_PATH_PART,
+        repo = config.primaryRepositoryName,
+        groupPath = config.primaryArtifactsMavenGroupArtifactoryPath,
         artifact = BOM,
       )
     if (bomMetaDataResponse.isSuccessful) {
@@ -236,7 +233,7 @@ class BomPublisher(
           )
         }
           ?: Metadata(
-            groupId = GROUP_ID,
+            groupId = config.primaryArtifactsMavenGroup,
             artifactId = BOM,
             versioning =
               Versioning(
@@ -256,8 +253,8 @@ class BomPublisher(
             Response.success(Unit)
           } else {
             artifactoryEndpoints.pushMetadata(
-              repo = REPO,
-              groupPath = GROUP_PATH_PART,
+              repo = config.primaryRepositoryName,
+              groupPath = config.primaryArtifactsMavenGroupArtifactoryPath,
               artifact = BOM,
               metadata = newBomMetaData,
             )
@@ -277,12 +274,12 @@ class BomPublisher(
     } else if (bomMetaDataResponse.code() == HttpURLConnection.HTTP_NOT_FOUND) {
       val response =
         artifactoryEndpoints.pushMetadata(
-          repo = REPO,
-          groupPath = GROUP_PATH_PART,
+          repo = config.primaryRepositoryName,
+          groupPath = config.primaryArtifactsMavenGroupArtifactoryPath,
           artifact = BOM,
           metadata =
             Metadata(
-              groupId = GROUP_ID,
+              groupId = config.primaryArtifactsMavenGroup,
               artifactId = BOM,
               versioning =
                 Versioning(

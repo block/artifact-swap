@@ -19,6 +19,8 @@ import org.mockito.kotlin.mock
 import picocli.CommandLine
 import retrofit2.Response
 import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerResult
+import xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
 import xyz.block.artifactswap.core.network.ArtifactoryService
@@ -84,9 +86,7 @@ class ArtifactCheckerCommandTest {
       command.init(testApplication)
       testApplication.modules(
         module {
-          single<xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream> {
-            fakeEventStream
-          }
+          single<ArtifactCheckerEventStream> { fakeEventStream }
           single<ArtifactoryService> { fakeArtifactoryService }
         }
       )
@@ -151,9 +151,7 @@ class ArtifactCheckerCommandTest {
     command.init(testApplication)
     testApplication.modules(
       module {
-        single<xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream> {
-          fakeEventStream
-        }
+        single<ArtifactCheckerEventStream> { fakeEventStream }
         single<ArtifactoryService> { fakeArtifactoryService }
       }
     )
@@ -211,9 +209,7 @@ class ArtifactCheckerCommandTest {
       command.init(testApplication)
       testApplication.modules(
         module {
-          single<xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream> {
-            fakeEventStream
-          }
+          single<ArtifactCheckerEventStream> { fakeEventStream }
           single<ArtifactoryService> { fakeArtifactoryService }
         }
       )
@@ -268,9 +264,7 @@ class ArtifactCheckerCommandTest {
     command.init(testApplication)
     testApplication.modules(
       module {
-        single<xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream> {
-          fakeEventStream
-        }
+        single<ArtifactCheckerEventStream> { fakeEventStream }
         single<ArtifactoryService> { fakeArtifactoryService }
       }
     )
@@ -295,7 +289,7 @@ class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.Artif
     groupPath: String,
     artifact: String,
   ): Response<xyz.block.artifactswap.core.maven.Metadata> {
-    return Response.error(404, okhttp3.ResponseBody.create(null, "Not needed for these tests"))
+    return Response.error(404, ResponseBody.create(null, "Not needed for these tests"))
   }
 
   override suspend fun getPom(
@@ -320,7 +314,7 @@ class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.Artif
         )
       )
     } else {
-      Response.error(404, okhttp3.ResponseBody.create(null, "POM not found"))
+      Response.error(404, ResponseBody.create(null, "POM not found"))
     }
   }
 
@@ -334,7 +328,7 @@ class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.Artif
     return if (existingArtifacts.contains(artifact to version)) {
       Response.success(null)
     } else {
-      Response.error(404, okhttp3.ResponseBody.create(null, "Artifact not found"))
+      Response.error(404, ResponseBody.create(null, "Artifact not found"))
     }
   }
 
@@ -364,15 +358,15 @@ class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.Artif
     artifact: String,
     version: String,
     ext: String,
-  ): Response<okhttp3.ResponseBody> {
-    return Response.error(404, okhttp3.ResponseBody.create(null, "Not needed for these tests"))
+  ): Response<ResponseBody> {
+    return Response.error(404, ResponseBody.create(null, "Not needed for these tests"))
   }
 }
 
 fun createFakeArtifactoryServiceForCli(
   existingArtifacts: Set<Pair<String, String>> = emptySet()
-): xyz.block.artifactswap.core.network.ArtifactoryService {
+): ArtifactoryService {
   val fakeEndpoints =
     FakeArtifactoryEndpointsForCli().apply { this.existingArtifacts = existingArtifacts }
-  return xyz.block.artifactswap.core.network.ArtifactoryService(fakeEndpoints)
+  return ArtifactoryService(fakeEndpoints, ArtifactSwapConfig())
 }

@@ -5,6 +5,7 @@ import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.publisher.BomPublisher
@@ -38,6 +39,7 @@ fun bomPublisherModules(application: KoinApplication, config: BomPublisherConfig
         projectHashReader = get(),
         artifactoryEndpoints = get<ArtifactoryEndpoints>(),
         eventStream = get(),
+        config = get<ArtifactSwapConfig>(),
         dryRun = config.dryRun,
       )
     }

@@ -23,7 +23,7 @@ class RealArtifactSyncBomLoader(
   override suspend fun findBestBomVersion(): Result<String> = runCatching {
     val recentSharedCommits =
       squareGit.findRecentSharedCommits(
-        baseBranch = ORIGIN_GREEN_MASTER_BRANCH_NAME,
+        baseRef = ORIGIN_GREEN_MASTER_BRANCH_NAME,
         count = COUNT_SHARED_COMMITS_TO_CHECK_FOR_BOM,
       )
         ?: throw IllegalStateException(

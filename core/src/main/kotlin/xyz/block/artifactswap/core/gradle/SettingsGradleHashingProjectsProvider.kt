@@ -7,7 +7,7 @@ import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.apache.logging.log4j.kotlin.logger
-import xyz.block.artifactswap.core.config.ArtifactSwapConfigHolder
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 
 /**
  * Determines which Gradle projects should participate in the Artifact Sync run based on parsing the
@@ -17,11 +17,11 @@ class SettingsGradleHashingProjectsProvider(
   private val applicationDirectory: Path,
   private val settingsFile: Path,
   private val coroutineDispatcher: CoroutineDispatcher,
+  private val config: ArtifactSwapConfig,
 ) : GradleProjectsProvider {
 
   companion object {
     val GRADLE_INCLUDE_PROJECT = Regex("include *[( ]['\"](.+)['\"][) ]?")
-    val GRADLE_EXCLUDE_PROJECTS = ArtifactSwapConfigHolder.instance.excludeGradleProjects
   }
 
   override suspend fun getProjectHashingInfos(): Result<List<ProjectHashingInfo>> =
@@ -47,7 +47,7 @@ class SettingsGradleHashingProjectsProvider(
                     },
                 )
               }
-              .filterNot { it.projectPath in GRADLE_EXCLUDE_PROJECTS }
+              .filterNot { it.projectPath in config.excludeGradleProjects }
           }
         logger.debug {
           "Took ${duration.inWholeMilliseconds}ms to find ${result.size} project hashing infos by parsing $settingsFile"

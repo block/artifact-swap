@@ -1,6 +1,7 @@
 package xyz.block.artifactswap.cli.commands
 
 import java.io.File
+import java.util.Properties
 import kotlin.test.assertEquals
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
@@ -12,6 +13,7 @@ import org.koin.dsl.module
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.wheneverBlocking
 import picocli.CommandLine
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.download.models.Artifact
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult
 import xyz.block.artifactswap.core.download.services.ArtifactDownloaderEventStream
@@ -46,8 +48,8 @@ class ArtifactDownloaderCommandTest {
   private companion object {
     val FAKE_ARTIFACTS =
       listOf(
-        Artifact("com.squareup", "okhttp", "4.9.0"),
-        Artifact("com.squareup", "retrofit", "2.9.0"),
+        Artifact("com.squareup", "okhttp", "4.9.0", "test-repo"),
+        Artifact("com.squareup", "retrofit", "2.9.0", "test-repo"),
       )
 
     const val FAKE_BOM_VERSION = "abdcd12345"
@@ -70,6 +72,8 @@ class ArtifactDownloaderCommandTest {
       testApplication.modules(
         module {
           single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
+          single(named("gradleProperties")) { Properties() }
+          single<ArtifactSwapConfig> { ArtifactSwapConfig() }
           single<ArtifactSyncBomLoader> { mockArtifactSyncBomLoader }
           single<ArtifactRepository> { fakeArtifactRepository }
           single<ArtifactDownloaderEventStream> { fakeEventStream }
@@ -104,6 +108,8 @@ class ArtifactDownloaderCommandTest {
     testApplication.modules(
       module {
         single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
+        single(named("gradleProperties")) { Properties() }
+        single<ArtifactSwapConfig> { ArtifactSwapConfig() }
         single<ArtifactSyncBomLoader> { mockArtifactSyncBomLoader }
         single<ArtifactRepository> { fakeArtifactRepository }
         single<ArtifactDownloaderEventStream> { fakeEventStream }

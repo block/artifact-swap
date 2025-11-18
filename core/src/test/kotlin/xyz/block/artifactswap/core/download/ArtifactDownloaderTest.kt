@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.wheneverBlocking
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.download.models.Artifact
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult.FAILED_TO_DOWNLOAD_BOM
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult.FAILED_TO_FIND_VALID_BOM_VERSION
@@ -36,6 +37,7 @@ class ArtifactDownloaderTest {
   lateinit var projectsProvider: GradleProjectsProvider
   lateinit var propertiesProvider: GradlePropertiesProvider
   lateinit var downloader: ArtifactDownloader
+  val testConfig = ArtifactSwapConfig() // Use default config for tests
 
   @BeforeEach
   fun setUp() {
@@ -50,24 +52,28 @@ class ArtifactDownloaderTest {
         artifactRepository = fakeArtifactRepository,
         settingsGradleProjectsProvider = projectsProvider,
         gradlePropertiesProvider = propertiesProvider,
+        config = testConfig,
       )
   }
 
   private companion object {
     val FAKE_ARTIFACTS =
       listOf(
-        Artifact("com.squareup", "okhttp", "4.9.0"),
-        Artifact("com.squareup", "retrofit", "2.9.0"),
-        Artifact("com.squareup", "moshi", "1.9.0"),
-        Artifact("com.squareup", "picasso", "3.9.0"),
-        Artifact("com.squareup", "leakcanary", "2.9.0"),
-        Artifact("com.squareup", "sqlbrite", "1.9.0"),
+        Artifact("com.squareup", "okhttp", "4.9.0", "test-repo"),
+        Artifact("com.squareup", "retrofit", "2.9.0", "test-repo"),
+        Artifact("com.squareup", "moshi", "1.9.0", "test-repo"),
+        Artifact("com.squareup", "picasso", "3.9.0", "test-repo"),
+        Artifact("com.squareup", "leakcanary", "2.9.0", "test-repo"),
+        Artifact("com.squareup", "sqlbrite", "1.9.0", "test-repo"),
       )
 
     // the all-protos artifact is an implicit item to download
     const val ALL_PROTOS_COUNT = 1
 
     const val FAKE_BOM_VERSION = "abdcd12345"
+
+    // Use the default config's secondary artifacts group for protos
+    val SQUARE_PROTOS_ARTIFACT_GROUP = ArtifactSwapConfig().secondaryArtifactsMavenGroup
   }
 
   @Test
@@ -276,6 +282,7 @@ class ArtifactDownloaderTest {
         artifactRepository = fakeArtifactRepository,
         settingsGradleProjectsProvider = projectsProvider,
         gradlePropertiesProvider = propertiesProvider,
+        config = testConfig,
       )
 
     val result =
