@@ -6,19 +6,19 @@ import java.io.File
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.time.Clock
-import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.Path
 import kotlin.io.path.createParentDirectories
+import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.extension
 import kotlin.io.path.inputStream
 import kotlin.io.path.isDirectory
 import kotlin.io.path.moveTo
+import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.notExists
 import kotlin.time.Duration.Companion.milliseconds
@@ -258,8 +258,7 @@ class RealArtifactRepository(
             runCatching {
               installDestination.createParentDirectories()
               sucessfullyDownloadedFile.fileContents.use { body ->
-                val tempPath =
-                  Path("${installDestination.nameWithoutExtension}-${UUID.randomUUID()}.tmp")
+                val tempPath = createTempFile(prefix = installDestination.name, suffix = ".tmp")
                 tempPathsToDelete.add(tempPath)
                 tempPath.sink(StandardOpenOption.CREATE_NEW).use { sink ->
                   body.source().readAll(sink)
