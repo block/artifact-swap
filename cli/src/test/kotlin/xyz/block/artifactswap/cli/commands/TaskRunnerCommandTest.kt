@@ -17,6 +17,7 @@ import org.mockito.kotlin.mock
 import picocli.CommandLine
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
+import xyz.block.artifactswap.core.task_runner.FakeTaskRunnerEventStream
 import xyz.block.artifactswap.core.task_runner.models.TaskRunnerResult
 
 /**

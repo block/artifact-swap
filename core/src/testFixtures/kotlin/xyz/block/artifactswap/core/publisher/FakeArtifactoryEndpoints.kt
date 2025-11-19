@@ -6,6 +6,7 @@ import xyz.block.artifactswap.core.maven.Metadata
 import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 
+/** Fake implementation of ArtifactoryEndpoints for testing BOM publishing. */
 class FakeArtifactoryEndpoints : ArtifactoryEndpoints {
   var metadataResponses = mutableMapOf<String, Response<Metadata>>()
   var pomResponses = mutableMapOf<String, Response<Project>>()

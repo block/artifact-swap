@@ -8,6 +8,7 @@ import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.network.ArtifactoryService
 
+/** Fake implementation of ArtifactoryEndpoints for testing artifact checker functionality. */
 class FakeArtifactoryEndpointsForArtifactChecker : ArtifactoryEndpoints {
   var existingArtifacts = setOf<Pair<String, String>>()
 
@@ -90,6 +91,7 @@ class FakeArtifactoryEndpointsForArtifactChecker : ArtifactoryEndpoints {
   }
 }
 
+/** Creates a fake ArtifactoryService for testing with configurable existing artifacts. */
 fun createFakeArtifactoryService(
   existingArtifacts: Set<Pair<String, String>> = emptySet()
 ): ArtifactoryService {

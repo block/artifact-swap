@@ -3,6 +3,7 @@ package xyz.block.artifactswap.core.task_runner
 import xyz.block.artifactswap.core.task_runner.models.TaskRunnerServiceResult
 import xyz.block.artifactswap.core.task_runner.services.TaskRunnerEventStream
 
+/** Fake implementation of TaskRunnerEventStream for testing. */
 class FakeTaskRunnerEventStream : TaskRunnerEventStream {
   val receivedResults = mutableListOf<TaskRunnerServiceResult>()
 

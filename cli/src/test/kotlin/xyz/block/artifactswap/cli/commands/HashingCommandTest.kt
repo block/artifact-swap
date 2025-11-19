@@ -16,10 +16,12 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.mockito.kotlin.mock
 import picocli.CommandLine
+import xyz.block.artifactswap.core.download.FakeGradleProjectsProvider
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
+import xyz.block.artifactswap.core.hashing.FakeHashingEventStream
 import xyz.block.artifactswap.core.hashing.services.HashingEventStream
 
 /**

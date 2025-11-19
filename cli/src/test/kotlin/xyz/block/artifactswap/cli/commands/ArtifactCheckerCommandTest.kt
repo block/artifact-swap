@@ -18,6 +18,7 @@ import org.koin.dsl.module
 import org.mockito.kotlin.mock
 import picocli.CommandLine
 import retrofit2.Response
+import xyz.block.artifactswap.core.artifact_checker.FakeArtifactCheckerEventStream
 import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerResult
 import xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig

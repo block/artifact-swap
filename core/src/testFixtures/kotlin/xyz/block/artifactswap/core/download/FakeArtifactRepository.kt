@@ -14,20 +14,17 @@ import xyz.block.artifactswap.core.download.services.ArtifactRepository
 import xyz.block.artifactswap.core.download.services.SQUARE_PUBLIC_REPO
 import xyz.block.artifactswap.core.maven.Project
 
-internal val FAKE_SUCCESS_DURATION = 200.milliseconds
-internal val FAKE_FAILURE_DURATION = 100.milliseconds
+val FAKE_SUCCESS_DURATION = 200.milliseconds
+val FAKE_FAILURE_DURATION = 100.milliseconds
 
-internal const val FAKE_ARTIFACT_DOWNLOAD_SIZE_BYTES = 1024 * 1024 * 5L
-internal const val FAKE_ARTIFACT_DOWNLOAD_SIZE_MB =
-  FAKE_ARTIFACT_DOWNLOAD_SIZE_BYTES / (1024 * 1024)
+const val FAKE_ARTIFACT_DOWNLOAD_SIZE_BYTES = 1024 * 1024 * 5L
+const val FAKE_ARTIFACT_DOWNLOAD_SIZE_MB = FAKE_ARTIFACT_DOWNLOAD_SIZE_BYTES / (1024 * 1024)
 
 internal val SQUARE_PROTOS_ARTIFACT_GROUP = ArtifactSwapConfig().secondaryArtifactsMavenGroup
 
 class FakeArtifactRepository(
   var getBomResult: Result<List<Artifact>> = Result.success(emptyList())
 ) : ArtifactRepository {
-
-  val baseArtifactoryUrl = "http://fake.artifactory.url"
 
   val requestedArtifactFilesForDownload = mutableSetOf<Pair<Artifact, DownloadFileType>>()
   val artifactsToFailDownload = mutableSetOf<Artifact>()

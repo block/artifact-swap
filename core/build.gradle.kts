@@ -1,5 +1,6 @@
 plugins {
   id("com.google.devtools.ksp")
+  `java-test-fixtures`
 }
 
 group = "xyz.block.artifactswap"
@@ -38,7 +39,14 @@ dependencies {
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.mockito.core)
   testImplementation(libs.mockito.kotlin)
+  testImplementation(testFixtures(project(":core")))
   testRuntimeOnly(libs.junit.launcher)
 
   lintChecks(libs.androidx.lintGradle)
+
+  // Test fixtures dependencies
+  testFixturesApi(libs.retrofit.core)
+  testFixturesImplementation(libs.kotlinxCoroutines)
+  testFixturesImplementation(libs.okhttp)
+  testFixturesImplementation(libs.okio)
 }
