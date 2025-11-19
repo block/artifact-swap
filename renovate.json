@@ -12,6 +12,14 @@
         "com.android.tools.build:**",
       ],
       "enabled": false
+    },
+    {
+      // Renovate thinks versions like 0.7.1-0.6.x-compat are newer than 0.7.1
+      "matchPackageNames": [
+        "org.jetbrains.kotlinx:kotlinx-datetime"
+      ],
+      "allowedVersions": "!/-compat$/",
+      "matchCurrentVersion": ">=0.7.1"
     }
   ]
 }
