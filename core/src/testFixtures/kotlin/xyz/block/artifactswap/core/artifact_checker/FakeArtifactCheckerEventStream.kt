@@ -1,8 +1,9 @@
-package xyz.block.artifactswap.cli.commands
+package xyz.block.artifactswap.core.artifact_checker
 
 import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerServiceResult
 import xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream
 
+/** Fake implementation of ArtifactCheckerEventStream for testing. */
 class FakeArtifactCheckerEventStream : ArtifactCheckerEventStream {
   val receivedResults = mutableListOf<ArtifactCheckerServiceResult>()
 

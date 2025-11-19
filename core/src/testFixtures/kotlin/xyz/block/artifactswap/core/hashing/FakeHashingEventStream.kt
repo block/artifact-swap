@@ -3,6 +3,7 @@ package xyz.block.artifactswap.core.hashing
 import xyz.block.artifactswap.core.hashing.models.HashingServiceResult
 import xyz.block.artifactswap.core.hashing.services.HashingEventStream
 
+/** Fake implementation of HashingEventStream for testing. */
 class FakeHashingEventStream : HashingEventStream {
   val receivedResults = mutableListOf<HashingServiceResult>()
 

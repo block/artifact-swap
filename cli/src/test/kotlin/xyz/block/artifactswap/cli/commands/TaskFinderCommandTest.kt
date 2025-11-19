@@ -20,6 +20,7 @@ import org.mockito.kotlin.mock
 import picocli.CommandLine
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
+import xyz.block.artifactswap.core.task_finder.FakeTaskFinderEventStream
 
 /**
  * Integration tests for the CLI command that verify picocli argument parsing and proper wiring with

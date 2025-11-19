@@ -8,6 +8,7 @@ import xyz.block.artifactswap.core.remover.services.InstalledProject
 import xyz.block.artifactswap.core.remover.services.LocalArtifactRepository
 import xyz.block.artifactswap.core.remover.services.RepositoryStats
 
+/** Fake implementation of LocalArtifactRepository for testing. */
 class FakeLocalArtifactRepository : LocalArtifactRepository {
   var installedProjects: List<InstalledProject> = emptyList()
   var installedBoms: List<InstalledBom> = emptyList()

@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import xyz.block.artifactswap.core.download.FakeGradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
 
 class ProjectHashServiceTest {

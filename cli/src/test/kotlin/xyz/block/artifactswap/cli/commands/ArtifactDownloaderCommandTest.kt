@@ -14,6 +14,10 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.wheneverBlocking
 import picocli.CommandLine
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.download.FakeArtifactRepository
+import xyz.block.artifactswap.core.download.FakeEventStream
+import xyz.block.artifactswap.core.download.FakeGradleProjectsProvider
+import xyz.block.artifactswap.core.download.FakeGradlePropertiesProvider
 import xyz.block.artifactswap.core.download.models.Artifact
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult
 import xyz.block.artifactswap.core.download.services.ArtifactDownloaderEventStream
