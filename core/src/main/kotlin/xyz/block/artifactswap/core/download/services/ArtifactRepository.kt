@@ -232,9 +232,9 @@ class RealArtifactRepository(
   override suspend fun installDownloadedArtifactFiles(
     downloadedArtifactFiles: List<DownloadedArtifactFileResult>
   ): InstallArtifactFilesResult {
-    if (
-      downloadedArtifactFiles.filterIsInstance<DownloadedArtifactFileResult.Success>().isEmpty()
-    ) {
+    val successfulDownloads =
+      downloadedArtifactFiles.filterIsInstance<DownloadedArtifactFileResult.Success>()
+    if (successfulDownloads.isEmpty()) {
       return InstallArtifactFilesResult.NoOp
     }
     logger.debug {
@@ -245,37 +245,51 @@ class RealArtifactRepository(
     // Start a new coroutine and await for all units of work to complete
     return coroutineScope {
       val installResults =
-        downloadedArtifactFiles.filterIsInstance<DownloadedArtifactFileResult.Success>().map {
-          sucessfullyDownloadedFile ->
+        successfulDownloads.map { downloadedFile ->
           val installDestination =
-            getExpectedLocalFilePath(
-              sucessfullyDownloadedFile.artifact,
-              sucessfullyDownloadedFile.downloadFileType,
-            )
+            getExpectedLocalFilePath(downloadedFile.artifact, downloadedFile.downloadFileType)
           // Perform write operations asynchronously and on an IO dispatcher
           async(ioDispatcher) {
             // Wrap the result in a runCatching block to catch any exceptions
             runCatching {
               installDestination.createParentDirectories()
-              sucessfullyDownloadedFile.fileContents.use { body ->
+              downloadedFile.fileContents.use { body ->
                 val tempPath = createTempFile(prefix = installDestination.name, suffix = ".tmp")
                 tempPathsToDelete.add(tempPath)
-                tempPath.sink(StandardOpenOption.CREATE_NEW).use { sink ->
-                  body.source().readAll(sink)
+                try {
+                  // Write to the temp file (already created by createTempFile)
+                  tempPath
+                    .sink(StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)
+                    .use { sink -> body.source().readAll(sink) }
+                  tempPath.moveTo(installDestination, overwrite = true)
+                  // Successfully moved, remove from cleanup queue
+                  tempPathsToDelete.remove(tempPath)
+                } catch (e: Exception) {
+                  // If anything fails, ensure temp file is cleaned up
+                  tempPath.deleteIfExists()
+                  tempPathsToDelete.remove(tempPath)
+                  throw e
                 }
-                tempPath.moveTo(installDestination, overwrite = true)
               }
             }
           }
         }
-      // Throw if any of the install operations failed
-      return@coroutineScope if (installResults.awaitAll().all { result -> result.isSuccess }) {
+      // Check if any of the install operations failed
+      val completedInstallResults = installResults.awaitAll()
+      return@coroutineScope if (completedInstallResults.all { result -> result.isSuccess }) {
         InstallArtifactFilesResult.Success(
           duration = (Clock.systemUTC().millis() - installStartTimeMs).milliseconds
         )
       } else {
-        logger.error {
-          "Failed to install all files for artifact: ${downloadedArtifactFiles.first()}."
+        // Log the actual installation failures
+        successfulDownloads.zip(completedInstallResults).forEach { (downloadedFile, installResult)
+          ->
+          installResult.exceptionOrNull()?.let { exception ->
+            logger.error(exception) {
+              "Failed to install file for artifact: ${downloadedFile.artifact}, " +
+                "file type: ${downloadedFile.downloadFileType}"
+            }
+          }
         }
         InstallArtifactFilesResult.Failure(
           duration = (Clock.systemUTC().millis() - installStartTimeMs).milliseconds
