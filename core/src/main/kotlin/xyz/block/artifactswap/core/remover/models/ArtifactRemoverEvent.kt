@@ -136,7 +136,7 @@ data class ArtifactRemoverEvent(
 
   fun toEventStreamEvent(): EventstreamEvent {
     return EventstreamEvent(
-      catalogName = "artifact_sync_artifact_remover",
+      catalogName = "artifact_sync_m2_cleanup",
       appName = "artifact_sync",
       event = this,
     )
