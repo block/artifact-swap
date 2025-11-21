@@ -4,7 +4,6 @@ import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.notExists
 import kotlin.io.path.readLines
-import kotlin.system.exitProcess
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.apache.logging.log4j.kotlin.logger
@@ -39,7 +38,7 @@ class TaskRunnerCommand : AbstractArtifactSwapCommand() {
     application.modules(taskRunnerServiceModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     taskRunnerService = application.taskRunnerService
     ioDispatcher = application.koin.get(named("IO"))
 
@@ -87,6 +86,6 @@ class TaskRunnerCommand : AbstractArtifactSwapCommand() {
 
     // Log the result
     taskRunnerService.logResult(result)
-    exitProcess(result.result.exitCode)
+    return result.result.exitCode
   }
 }

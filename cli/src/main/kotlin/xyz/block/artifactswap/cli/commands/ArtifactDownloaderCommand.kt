@@ -1,6 +1,5 @@
 package xyz.block.artifactswap.cli.commands
 
-import kotlin.system.exitProcess
 import org.apache.logging.log4j.kotlin.logger
 import org.koin.core.KoinApplication
 import picocli.CommandLine
@@ -32,7 +31,7 @@ class ArtifactDownloaderCommand : AbstractArtifactSwapCommand() {
     application.modules(artifactDownloaderModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     downloader = application.artifactDownloader
 
     logger.info { "Starting artifact downloader" }
@@ -45,6 +44,6 @@ class ArtifactDownloaderCommand : AbstractArtifactSwapCommand() {
       )
 
     logger.info { "Artifact downloader completed with result: ${result.result}" }
-    exitProcess(result.result.exitCode)
+    return result.result.exitCode
   }
 }

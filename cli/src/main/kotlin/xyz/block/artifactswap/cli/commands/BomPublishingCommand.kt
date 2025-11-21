@@ -1,6 +1,5 @@
 package xyz.block.artifactswap.cli.commands
 
-import kotlin.system.exitProcess
 import org.apache.logging.log4j.kotlin.logger
 import org.koin.core.KoinApplication
 import picocli.CommandLine
@@ -32,7 +31,7 @@ class BomPublishingCommand : AbstractArtifactSwapCommand() {
     application.modules(bomPublisherModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     bomPublisher = application.bomPublisher
 
     logger.info { "Starting BOM publisher" }
@@ -55,6 +54,6 @@ class BomPublishingCommand : AbstractArtifactSwapCommand() {
     logger.info { "BOM publisher completed with result: ${result.result}" }
 
     bomPublisher.logResult(result)
-    exitProcess(result.result.exitCode)
+    return result.result.exitCode
   }
 }

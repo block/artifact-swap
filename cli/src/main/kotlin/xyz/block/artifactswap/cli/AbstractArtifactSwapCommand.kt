@@ -42,11 +42,11 @@ abstract class AbstractArtifactSwapCommand : Callable<Int> {
   /** This should not be overridden by subclasses. */
   final override fun call(): Int {
     try {
-      runBlocking {
+      val exitCode = runBlocking {
         init(application)
         executeCommand(application)
       }
-      return spec.exitCodeOnSuccess()
+      return exitCode
     } catch (e: Throwable) {
       logger.error(e)
       return spec.exitCodeOnExecutionException()
@@ -64,6 +64,7 @@ abstract class AbstractArtifactSwapCommand : Callable<Int> {
    * Entry for command.
    *
    * @param application [KoinApplication] loaded for this command
+   * @return exit code for the command
    */
-  abstract suspend fun executeCommand(application: KoinApplication)
+  abstract suspend fun executeCommand(application: KoinApplication): Int
 }

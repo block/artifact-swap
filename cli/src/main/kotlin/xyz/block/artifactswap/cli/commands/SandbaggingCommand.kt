@@ -19,7 +19,7 @@ internal class SandbaggingCommand : AbstractArtifactSwapCommand() {
     // does nothing for now
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     error("Sandbagging tool requires sub-command")
   }
 }

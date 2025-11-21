@@ -1,6 +1,5 @@
 package xyz.block.artifactswap.cli.commands
 
-import kotlin.system.exitProcess
 import org.koin.core.KoinApplication
 import picocli.CommandLine
 import picocli.CommandLine.Mixin
@@ -25,10 +24,10 @@ class ArtifactRemoverCommand : AbstractArtifactSwapCommand() {
     application.modules(artifactRemoverModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     artifactRemover = application.artifactRemover
     val result = artifactRemover.removeArtifacts()
     artifactRemover.logResult(result)
-    exitProcess(result.result.exitCode)
+    return result.result.exitCode
   }
 }

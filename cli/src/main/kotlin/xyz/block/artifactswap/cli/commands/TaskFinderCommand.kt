@@ -7,7 +7,6 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
 import kotlin.io.path.notExists
 import kotlin.io.path.outputStream
-import kotlin.system.exitProcess
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.koin.core.KoinApplication
@@ -41,7 +40,7 @@ class TaskFinderCommand : AbstractArtifactSwapCommand() {
     application.modules(taskFinderServiceModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     taskFinderService = application.taskFinderService
     ioDispatcher = application.koin.get(named("IO"))
 
@@ -82,7 +81,7 @@ class TaskFinderCommand : AbstractArtifactSwapCommand() {
 
       // Log the result
       taskFinderService.logResult(updatedResult)
-      exitProcess(updatedResult.result.exitCode)
+      return updatedResult.result.exitCode
     } catch (e: Exception) {
       // Log failure result if we have it
       result?.let { taskFinderService.logResult(it.copy(result = TaskFinderResult.FAILURE)) }

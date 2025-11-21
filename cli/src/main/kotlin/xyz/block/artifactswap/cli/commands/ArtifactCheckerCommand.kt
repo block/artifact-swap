@@ -6,7 +6,6 @@ import kotlin.io.path.createFile
 import kotlin.io.path.notExists
 import kotlin.io.path.useLines
 import kotlin.io.path.writeLines
-import kotlin.system.exitProcess
 import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -44,7 +43,7 @@ class ArtifactCheckerCommand : AbstractArtifactSwapCommand() {
     application.modules(artifactCheckerServiceModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     artifactCheckerService = application.artifactCheckerService
     ioDispatcher = application.koin.get(named("IO"))
 
@@ -59,7 +58,7 @@ class ArtifactCheckerCommand : AbstractArtifactSwapCommand() {
           totalDurationMs = Clock.systemUTC().millis() - startTime,
         )
       artifactCheckerService.logResult(result)
-      exitProcess(result.result.exitCode)
+      return result.result.exitCode
     }
 
     // Read hash file and input file
@@ -95,7 +94,7 @@ class ArtifactCheckerCommand : AbstractArtifactSwapCommand() {
               totalDurationMs = Clock.systemUTC().millis() - startTime,
             )
           artifactCheckerService.logResult(result)
-          exitProcess(result.result.exitCode)
+          return result.result.exitCode
         }
       }
 
@@ -138,6 +137,6 @@ class ArtifactCheckerCommand : AbstractArtifactSwapCommand() {
 
     // Log the result
     artifactCheckerService.logResult(result)
-    exitProcess(result.result.exitCode)
+    return result.result.exitCode
   }
 }

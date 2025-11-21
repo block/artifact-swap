@@ -216,7 +216,7 @@ class ArtifactCheckerCommandTest {
       )
 
       command.executeCommand(testApplication)
-
+      println("YOOO")
       // Verify FAILED_NO_INPUT_FILE result
       assertEquals(1, fakeEventStream.receivedResults.size)
       val result = fakeEventStream.receivedResults.first()
