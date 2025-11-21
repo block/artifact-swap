@@ -31,7 +31,7 @@ class ArtifactDownloaderCommand : AbstractArtifactSwapCommand() {
     application.modules(artifactDownloaderModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     downloader = application.artifactDownloader
 
     logger.info { "Starting artifact downloader" }
@@ -44,5 +44,6 @@ class ArtifactDownloaderCommand : AbstractArtifactSwapCommand() {
       )
 
     logger.info { "Artifact downloader completed with result: ${result.result}" }
+    return result.result.exitCode
   }
 }

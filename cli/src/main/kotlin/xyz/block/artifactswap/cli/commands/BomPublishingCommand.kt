@@ -31,7 +31,7 @@ class BomPublishingCommand : AbstractArtifactSwapCommand() {
     application.modules(bomPublisherModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     bomPublisher = application.bomPublisher
 
     logger.info { "Starting BOM publisher" }
@@ -54,5 +54,6 @@ class BomPublishingCommand : AbstractArtifactSwapCommand() {
     logger.info { "BOM publisher completed with result: ${result.result}" }
 
     bomPublisher.logResult(result)
+    return result.result.exitCode
   }
 }

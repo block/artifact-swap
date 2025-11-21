@@ -9,10 +9,10 @@ import xyz.block.artifactswap.core.remover.services.InstalledProject
 import xyz.block.artifactswap.core.remover.services.RepositoryStats
 import xyz.block.artifactswap.core.utils.inWholeMillisecondsIfFinite
 
-enum class ArtifactRemoverEventResult {
-  SUCCESS,
-  FAILURE,
-  UNKNOWN,
+enum class ArtifactRemoverEventResult(val exitCode: Int) {
+  SUCCESS(0),
+  FAILURE(102),
+  UNKNOWN(1),
 }
 
 data class ArtifactRemoverResult(

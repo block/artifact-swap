@@ -24,9 +24,10 @@ class ArtifactRemoverCommand : AbstractArtifactSwapCommand() {
     application.modules(artifactRemoverModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     artifactRemover = application.artifactRemover
     val result = artifactRemover.removeArtifacts()
     artifactRemover.logResult(result)
+    return result.result.exitCode
   }
 }

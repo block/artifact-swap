@@ -43,7 +43,7 @@ class ArtifactCheckerCommand : AbstractArtifactSwapCommand() {
     application.modules(artifactCheckerServiceModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     artifactCheckerService = application.artifactCheckerService
     ioDispatcher = application.koin.get(named("IO"))
 
@@ -58,7 +58,7 @@ class ArtifactCheckerCommand : AbstractArtifactSwapCommand() {
           totalDurationMs = Clock.systemUTC().millis() - startTime,
         )
       artifactCheckerService.logResult(result)
-      return
+      return result.result.exitCode
     }
 
     // Read hash file and input file
@@ -94,7 +94,7 @@ class ArtifactCheckerCommand : AbstractArtifactSwapCommand() {
               totalDurationMs = Clock.systemUTC().millis() - startTime,
             )
           artifactCheckerService.logResult(result)
-          return
+          return result.result.exitCode
         }
       }
 
@@ -137,5 +137,6 @@ class ArtifactCheckerCommand : AbstractArtifactSwapCommand() {
 
     // Log the result
     artifactCheckerService.logResult(result)
+    return result.result.exitCode
   }
 }

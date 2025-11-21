@@ -38,7 +38,7 @@ class TaskRunnerCommand : AbstractArtifactSwapCommand() {
     application.modules(taskRunnerServiceModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     taskRunnerService = application.taskRunnerService
     ioDispatcher = application.koin.get(named("IO"))
 
@@ -86,5 +86,6 @@ class TaskRunnerCommand : AbstractArtifactSwapCommand() {
 
     // Log the result
     taskRunnerService.logResult(result)
+    return result.result.exitCode
   }
 }

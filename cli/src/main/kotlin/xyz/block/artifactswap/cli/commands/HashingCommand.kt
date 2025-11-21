@@ -37,7 +37,7 @@ class HashingCommand : AbstractArtifactSwapCommand() {
     application.modules(projectHashServiceModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     projectHashService = application.projectHashService
 
     val applicationDirectory =
@@ -102,5 +102,6 @@ class HashingCommand : AbstractArtifactSwapCommand() {
     projectHashService.logResult(result)
 
     println("Done!")
+    return 0
   }
 }

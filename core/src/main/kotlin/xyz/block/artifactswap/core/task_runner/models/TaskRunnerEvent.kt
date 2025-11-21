@@ -4,18 +4,18 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 /** Result of task runner operation. */
-enum class TaskRunnerResult {
+enum class TaskRunnerResult(val exitCode: Int) {
   /** All tasks were run to completion (note: not all necessarily succeeded). */
-  SUCCESS,
+  SUCCESS(0),
 
   /** Unable to complete execution of all tasks. */
-  FAILURE,
+  FAILURE(100),
 
   /** No tasks found in input. */
-  NO_OP,
+  NO_OP(0),
 
   /** Default value, used before we know final result. */
-  NONE,
+  NONE(1),
 }
 
 /** Result of a task running operation. */

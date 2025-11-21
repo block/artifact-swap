@@ -4,10 +4,10 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 /** Result of task finder operation. */
-enum class TaskFinderResult {
-  SUCCESS,
-  FAILURE,
-  NONE,
+enum class TaskFinderResult(val exitCode: Int) {
+  SUCCESS(0),
+  FAILURE(100),
+  NONE(1),
 }
 
 /** Result of a task finding operation. */

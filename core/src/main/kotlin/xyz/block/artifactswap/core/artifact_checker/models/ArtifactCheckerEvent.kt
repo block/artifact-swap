@@ -4,12 +4,12 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 /** Result of artifact checker operation. */
-enum class ArtifactCheckerResult {
-  SUCCESS,
-  FAILED_NO_INPUT_FILE,
-  FAILED_READING_INPUT_FILES,
-  FAILED_WRITING_OUTPUT,
-  UNKNOWN,
+enum class ArtifactCheckerResult(val exitCode: Int) {
+  SUCCESS(0),
+  FAILED_NO_INPUT_FILE(82),
+  FAILED_READING_INPUT_FILES(100),
+  FAILED_WRITING_OUTPUT(101),
+  UNKNOWN(1),
 }
 
 /** Result of an artifact checking operation. */

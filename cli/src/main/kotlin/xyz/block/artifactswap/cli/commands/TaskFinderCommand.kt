@@ -40,7 +40,7 @@ class TaskFinderCommand : AbstractArtifactSwapCommand() {
     application.modules(taskFinderServiceModules(application, config))
   }
 
-  override suspend fun executeCommand(application: KoinApplication) {
+  override suspend fun executeCommand(application: KoinApplication): Int {
     taskFinderService = application.taskFinderService
     ioDispatcher = application.koin.get(named("IO"))
 
@@ -81,6 +81,7 @@ class TaskFinderCommand : AbstractArtifactSwapCommand() {
 
       // Log the result
       taskFinderService.logResult(updatedResult)
+      return updatedResult.result.exitCode
     } catch (e: Exception) {
       // Log failure result if we have it
       result?.let { taskFinderService.logResult(it.copy(result = TaskFinderResult.FAILURE)) }
