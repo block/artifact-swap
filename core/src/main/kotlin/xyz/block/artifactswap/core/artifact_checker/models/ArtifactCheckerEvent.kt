@@ -8,7 +8,7 @@ enum class ArtifactCheckerResult(val exitCode: Int) {
   SUCCESS(0),
   FAILED_NO_INPUT_FILE(82),
   FAILED_READING_INPUT_FILES(100),
-  FAILED_WRITING_OUTPUT(100),
+  FAILED_WRITING_OUTPUT(101),
   UNKNOWN(1),
 }
 
