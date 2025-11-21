@@ -9,14 +9,14 @@ import xyz.block.artifactswap.core.eventstream.EventstreamEvent
  *
  * Failures also denote the general stages of execution for the task.
  */
-enum class BomPublishingResult {
-  SUCCESS_BOM_AND_METADATA_PUBLISHED, // new bom and metadata published successfully
-  SUCCESS_BOM_PUBLISHED_METADATA_NO_UPDATE, // pom published, but metadata was same as before
-  SUCCESS_BOM_PUBLISHED_METADATA_FAILED, // bom published, tried to publish metadata but failed
-  FAILED_READING_PROJECT_HASHES,
-  FAILED_FETCHING_PUBLISHED_PROJECT_DATA,
-  FAILED_PUBLISHING_UPDATED_POM,
-  UNKNOWN,
+enum class BomPublishingResult(val exitCode: Int) {
+  SUCCESS_BOM_AND_METADATA_PUBLISHED(0), // new bom and metadata published successfully
+  SUCCESS_BOM_PUBLISHED_METADATA_NO_UPDATE(0), // pom published, but metadata was same as before
+  SUCCESS_BOM_PUBLISHED_METADATA_FAILED(103), // bom published, tried to publish metadata but failed
+  FAILED_READING_PROJECT_HASHES(104),
+  FAILED_FETCHING_PUBLISHED_PROJECT_DATA(105),
+  FAILED_PUBLISHING_UPDATED_POM(106),
+  UNKNOWN(1),
 }
 
 /** Result of a BOM publishing operation. */
