@@ -10,6 +10,7 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import xyz.block.gradle.LOCAL_PROTOS_ARTIFACTS
 import xyz.block.gradle.bomVersion
+import xyz.block.gradle.hasPublishableComponent
 import xyz.block.gradle.isArtifactPublishingEnabled
 import xyz.block.gradle.services.services
 import xyz.block.gradle.useArtifactSync
@@ -132,8 +133,11 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
   /** Applies the publish plugin to all projects when sandbag publishing is enabled. */
   private fun Settings.maybeApplyPublishPlugin() {
     if (isArtifactPublishingEnabled) {
-      gradle.lifecycle.beforeProject { project ->
-        project.plugins.apply(ArtifactSwapProjectPublishPlugin::class.java)
+      gradle.lifecycle.beforeProject { project -> project.plugins.apply("maven-publish") }
+      gradle.lifecycle.afterProject { project ->
+        if (project.hasPublishableComponent) {
+          project.plugins.apply(ArtifactSwapProjectPublishPlugin::class.java)
+        }
       }
     }
   }

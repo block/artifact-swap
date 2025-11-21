@@ -2,6 +2,7 @@
 
 package xyz.block.artifactswap
 
+import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
@@ -13,10 +14,10 @@ import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.bundling.Jar
-import xyz.block.gradle.isAndroid
+import xyz.block.gradle.artifactSwapCoordinates
+import xyz.block.gradle.isAndroidLibrary
 import xyz.block.gradle.isKotlin
 import xyz.block.gradle.sandbagVersion
-import xyz.block.gradle.toSandbagArtifact
 
 /**
  * Artifact Swap project publish plugin for sandbags. This plugin is responsible for configuring
@@ -29,20 +30,25 @@ import xyz.block.gradle.toSandbagArtifact
  */
 @Suppress("unused")
 class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
-
   override fun apply(target: Project): Unit =
     target.run {
       val version = sandbagVersion ?: return@run
 
       pluginManager.apply("maven-publish")
+
+      // Configure android projects to publish a single debug variant library
+      pluginManager.withPlugin("com.android.library") {
+        val agpLibraries = extensions.getByType(LibraryExtension::class.java)
+        agpLibraries.publishing { singleVariant("debug") { withSourcesJar() } }
+      }
+
       extensions.getByType(PublishingExtension::class.java).also { mavenPublishing ->
-        val repo = configureSandbagRepository(mavenPublishing)
+        val repo = configureArtifactSwapRepository(mavenPublishing)
 
         // Other plugins configure the components to be published, so we have to configure them
-        // after
-        // those plugins run
+        // after those plugins run
         afterEvaluate {
-          val publication = configureSandbagPublication(mavenPublishing, version)
+          val publication = configureArtifactSwapPublication(mavenPublishing, version)
           createPublishAliasTask(repo, publication)
         }
       }
@@ -52,7 +58,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
       }
     }
 
-  private fun Project.configureSandbagRepository(
+  private fun Project.configureArtifactSwapRepository(
     mavenPublishing: PublishingExtension
   ): MavenArtifactRepository =
     with(mavenPublishing) {
@@ -70,7 +76,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
       }
     }
 
-  private fun Project.configureSandbagPublication(
+  private fun Project.configureArtifactSwapPublication(
     mavenPublishing: PublishingExtension,
     version: String,
   ): MavenPublication {
@@ -79,13 +85,12 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
 
     // Automatically configure maven coordinates for sandbag
     publication.groupId = ARTIFACT_SWAP_MAVEN_GROUP
-    publication.artifactId = path.toSandbagArtifact
+    publication.artifactId = artifactSwapCoordinates
     publication.version = version
 
-    // For non-Android projects, automatically configure the java component and sources
-    if (!isAndroid) {
-      publication.from(components.getByName("java"))
-      addSourcesArtifact(publication)
+    when {
+      isAndroidLibrary -> publishAndroidLibrary(publication)
+      else -> publishJvmLibrary(publication)
     }
 
     configureSandbagPom(publication.pom)
@@ -93,10 +98,13 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     return publication
   }
 
-  private fun Project.addSourcesArtifact(publication: MavenPublication) {
+  private fun Project.publishAndroidLibrary(publication: MavenPublication) {
+    publication.from(components.getByName("debug"))
+  }
+
+  private fun Project.publishJvmLibrary(publication: MavenPublication) {
+    publication.from(components.getByName("java"))
     when {
-      // Android sources should be handled by the `publishing` lambda provided by AGP
-      isAndroid -> Unit
       isKotlin -> {
         // KGP provides the `kotlinSourcesJar` task with the "sources" classifier.
         // It is not added to the java component automatically,
