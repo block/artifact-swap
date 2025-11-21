@@ -3,9 +3,6 @@ plugins {
   `java-test-fixtures`
 }
 
-group = "xyz.block.artifactswap"
-version = "0.1.0-SNAPSHOT"
-
 dependencies {
   // API - exposed to consumers
   api(libs.gradle.tooling.api)

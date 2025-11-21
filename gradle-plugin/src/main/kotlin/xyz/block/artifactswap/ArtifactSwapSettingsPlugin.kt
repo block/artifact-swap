@@ -2,6 +2,7 @@
 
 package xyz.block.artifactswap
 
+import java.io.File
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
@@ -16,7 +17,6 @@ import xyz.block.gradle.useArtifactSync
 import xyz.block.gradle.useLocalProtos
 import xyz.block.ide.forceSettingsModulesOverride
 import xyz.block.ide.isIdeSync
-import java.io.File
 
 /**
  * Main Artifact Sync settings plugin. This plugin is responsible for:
@@ -133,9 +133,7 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
   /** Applies the publish plugin to all projects when sandbag publishing is enabled. */
   private fun Settings.maybeApplyPublishPlugin() {
     if (isArtifactPublishingEnabled) {
-      gradle.lifecycle.beforeProject { project ->
-        project.plugins.apply("maven-publish")
-      }
+      gradle.lifecycle.beforeProject { project -> project.plugins.apply("maven-publish") }
       gradle.lifecycle.afterProject { project ->
         if (project.hasPublishableComponent) {
           project.plugins.apply(ArtifactSwapProjectPublishPlugin::class.java)

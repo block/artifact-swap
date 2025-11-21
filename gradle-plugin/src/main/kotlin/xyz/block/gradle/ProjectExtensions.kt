@@ -13,10 +13,11 @@ val Project.isKotlin: Boolean
       pluginManager.hasPlugin("org.jetbrains.kotlin.jvm")
 
 val Project.hasPublishableComponent: Boolean
-  get() = pluginManager.hasPlugin("com.android.library") ||
-    pluginManager.hasPlugin("org.jetbrains.kotlin.jvm") ||
-    pluginManager.hasPlugin("java") ||
-    pluginManager.hasPlugin("java-library")
+  get() =
+    pluginManager.hasPlugin("com.android.library") ||
+      pluginManager.hasPlugin("org.jetbrains.kotlin.jvm") ||
+      pluginManager.hasPlugin("java") ||
+      pluginManager.hasPlugin("java-library")
 
 /**
  * Converts a project path to a sandbag artifact name. Example: ":hobbits:frodo" -> "hobbits_frodo"

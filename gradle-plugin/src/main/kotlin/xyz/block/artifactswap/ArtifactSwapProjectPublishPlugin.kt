@@ -3,8 +3,6 @@
 package xyz.block.artifactswap
 
 import com.android.build.api.dsl.LibraryExtension
-import com.android.build.api.dsl.LibrarySingleVariant
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
@@ -41,11 +39,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
       // Configure android projects to publish a single debug variant library
       pluginManager.withPlugin("com.android.library") {
         val agpLibraries = extensions.getByType(LibraryExtension::class.java)
-        agpLibraries.publishing {
-          singleVariant("debug") {
-            withSourcesJar()
-          }
-        }
+        agpLibraries.publishing { singleVariant("debug") { withSourcesJar() } }
       }
 
       extensions.getByType(PublishingExtension::class.java).also { mavenPublishing ->
