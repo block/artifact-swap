@@ -23,7 +23,6 @@ import xyz.block.artifactswap.core.download.models.DownloadFileType
 import xyz.block.artifactswap.core.download.models.InstallArtifactFilesResult
 import xyz.block.artifactswap.core.download.models.LocalArtifactState
 import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
-import xyz.block.artifactswap.core.download.services.SQUARE_PUBLIC_REPO
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
 import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
@@ -151,16 +150,22 @@ class ArtifactDownloaderTest {
 
       assertEquals(SUCCESS, result.result)
       assertEquals(FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT, result.countArtifactsToDownload)
+      // All artifacts plus the all-protos artifact are downloaded
       assertEquals(
-        FAKE_ARTIFACTS.size * DownloadFileType.entries.size,
+        (FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT) * DownloadFileType.entries.size,
         result.countSuccessfulDownloadedArtifactFiles.toInt(),
       )
       assertEquals(0, result.countFailedDownloadedArtifactFiles.toInt())
       assertEquals(
-        FAKE_ARTIFACT_DOWNLOAD_SIZE_MB * FAKE_ARTIFACTS.size * DownloadFileType.entries.size,
+        FAKE_ARTIFACT_DOWNLOAD_SIZE_MB *
+          (FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT) *
+          DownloadFileType.entries.size,
         result.totalDownloadSizeMb,
       )
-      assertEquals(FAKE_ARTIFACTS.size, result.countSuccessfulInstalledArtifacts.toInt())
+      assertEquals(
+        FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT,
+        result.countSuccessfulInstalledArtifacts.toInt(),
+      )
       assertEquals(0, result.countFailedInstalledArtifacts.toInt())
 
       // validate all durations are set to a non-negative value
@@ -196,11 +201,15 @@ class ArtifactDownloaderTest {
 
     assertEquals(MANY_DOWNLOADS_FAILED, result.result)
     assertEquals(FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT, result.countArtifactsToDownload)
+    // Half of FAKE_ARTIFACTS fail, plus the all-protos artifact succeeds
     assertEquals(
-      (FAKE_ARTIFACTS.size / 2) * DownloadFileType.entries.size,
+      ((FAKE_ARTIFACTS.size / 2) + ALL_PROTOS_COUNT) * DownloadFileType.entries.size,
       result.countSuccessfulDownloadedArtifactFiles.toInt(),
     )
-    assertEquals(FAKE_ARTIFACTS.size / 2, result.countSuccessfulInstalledArtifacts.toInt())
+    assertEquals(
+      FAKE_ARTIFACTS.size / 2 + ALL_PROTOS_COUNT,
+      result.countSuccessfulInstalledArtifacts.toInt(),
+    )
     assertEquals(1, fakeEventStream.receivedEvents.size)
   }
 
@@ -223,11 +232,15 @@ class ArtifactDownloaderTest {
 
     assertEquals(MANY_INSTALLS_FAILED, result.result)
     assertEquals(FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT, result.countArtifactsToDownload)
+    // All artifacts plus the all-protos artifact are downloaded
     assertEquals(
-      FAKE_ARTIFACTS.size * DownloadFileType.entries.size,
+      (FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT) * DownloadFileType.entries.size,
       result.countSuccessfulDownloadedArtifactFiles.toInt(),
     )
-    assertEquals(FAKE_ARTIFACTS.size / 2, result.countSuccessfulInstalledArtifacts.toInt())
+    assertEquals(
+      FAKE_ARTIFACTS.size / 2 + ALL_PROTOS_COUNT,
+      result.countSuccessfulInstalledArtifacts.toInt(),
+    )
     assertEquals(1, fakeEventStream.receivedEvents.size)
   }
 
@@ -297,9 +310,14 @@ class ArtifactDownloaderTest {
         .distinct()
     assertEquals(
       listOf(
-        Artifact(SQUARE_PROTOS_ARTIFACT_GROUP, "foo", "1.2.3", SQUARE_PUBLIC_REPO),
-        Artifact(SQUARE_PROTOS_ARTIFACT_GROUP, "bar", "1.2.3", SQUARE_PUBLIC_REPO),
-        Artifact(SQUARE_PROTOS_ARTIFACT_GROUP, "all-protos", "1.2.3", SQUARE_PUBLIC_REPO),
+        Artifact(SQUARE_PROTOS_ARTIFACT_GROUP, "foo", "1.2.3", testConfig.secondaryRepositoryName),
+        Artifact(SQUARE_PROTOS_ARTIFACT_GROUP, "bar", "1.2.3", testConfig.secondaryRepositoryName),
+        Artifact(
+          SQUARE_PROTOS_ARTIFACT_GROUP,
+          "all-protos",
+          "1.2.3",
+          testConfig.secondaryRepositoryName,
+        ),
       ),
       downloadedArtifacts,
     )

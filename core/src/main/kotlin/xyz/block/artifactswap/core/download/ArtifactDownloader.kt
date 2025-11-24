@@ -17,7 +17,6 @@ import xyz.block.artifactswap.core.download.models.LocalArtifactState.NOT_INSTAL
 import xyz.block.artifactswap.core.download.services.ArtifactDownloaderEventStream
 import xyz.block.artifactswap.core.download.services.ArtifactRepository
 import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
-import xyz.block.artifactswap.core.download.services.SQUARE_PUBLIC_REPO
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
 import xyz.block.artifactswap.core.utils.inWholeMillisecondsIfFinite
@@ -61,7 +60,7 @@ class ArtifactDownloader(
             groupId = config.secondaryArtifactsMavenGroup,
             artifactId = "all-protos",
             version = protosSchemaVersion,
-            repo = SQUARE_PUBLIC_REPO,
+            repo = config.secondaryRepositoryName,
           )
 
         projects.map { project ->
@@ -70,7 +69,7 @@ class ArtifactDownloader(
             groupId = config.secondaryArtifactsMavenGroup,
             artifactId = artifactId,
             version = generatedProtosVersion,
-            repo = SQUARE_PUBLIC_REPO,
+            repo = config.secondaryRepositoryName,
           )
         } + listOf(protosSchemaArtifact)
       }
