@@ -46,12 +46,6 @@ val shadowJar = tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.Sha
   // We set the Shadow Jar to have NO classifier, making it the "Main" artifact
   archiveClassifier.set("")
   mergeServiceFiles()
-  minimize {
-    exclude(dependency("org.slf4j:.*:.*"))
-  }
-  exclude("**/*.kotlin_metadata")
-  exclude("**/*.kotlin_module")
-  exclude("META-INF/maven/**")
 
   manifest {
     attributes(
