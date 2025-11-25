@@ -14,8 +14,8 @@ class PublishPlugin : Plugin<Project> {
       signAllPublications()
 
       pom { pom ->
-        pom.name.set("Artifact Swap Gradle Plugin")
-        pom.description.set("A plugin that helps manage large Gradle builds")
+        pom.name.set("Artifact Swap ${project.name}")
+        pom.description.set("Gradle tooling that helps manage large builds")
         pom.inceptionYear.set("2025")
         pom.url.set("https://github.com/block/artifact-swap/")
         pom.licenses { licenses ->
