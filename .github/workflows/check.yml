@@ -44,3 +44,15 @@ jobs:
       - name: Lint
         run: ./gradlew lint
 
+      - name: Check CLI Publication
+        run: |
+          # Publish to Maven local
+          ./gradlew :cli:publishToMavenLocal
+          # Extract version dynamically from gradle.properties
+          VERSION=$(grep "^version=" gradle.properties | cut -d'=' -f2)
+          # Extract the published zip
+          cd ~/.m2/repository/xyz/block/artifactswap/cli/${VERSION}
+          unzip -q cli-${VERSION}.zip
+          # Test the CLI from the extracted distribution (end-to-end test)
+          ./artifactswap-shadow-${VERSION}/bin/artifactswap --help
+
