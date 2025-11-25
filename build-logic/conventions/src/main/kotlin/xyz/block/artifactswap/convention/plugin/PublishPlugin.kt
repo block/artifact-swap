@@ -11,7 +11,12 @@ class PublishPlugin : Plugin<Project> {
     plugins.apply(MavenPublishPlugin::class.java)
     extensions.getByType(MavenPublishBaseExtension::class.java).run {
       publishToMavenCentral(automaticRelease = true)
-      signAllPublications()
+
+      val hasSigningKey = providers.gradleProperty("signingInMemoryKey")
+        .isPresent
+      if (hasSigningKey) {
+        signAllPublications()
+      }
 
       pom { pom ->
         pom.name.set("Artifact Swap ${project.name}")
