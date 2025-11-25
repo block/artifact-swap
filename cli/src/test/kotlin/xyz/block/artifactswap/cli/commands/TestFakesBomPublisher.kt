@@ -2,6 +2,7 @@ package xyz.block.artifactswap.cli.commands
 
 import java.nio.file.Path
 import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.Response
 import xyz.block.artifactswap.core.maven.Metadata
 import xyz.block.artifactswap.core.maven.Project
@@ -42,8 +43,7 @@ internal class FakeArtifactoryEndpoints : ArtifactoryEndpoints {
     groupPath: String,
     artifact: String,
   ): Response<Metadata> {
-    return metadataResponses[artifact]
-      ?: Response.error(404, ResponseBody.create(null, "Not found"))
+    return metadataResponses[artifact] ?: Response.error(404, "Not found".toResponseBody(null))
   }
 
   override suspend fun getPom(
@@ -53,7 +53,7 @@ internal class FakeArtifactoryEndpoints : ArtifactoryEndpoints {
     version: String,
   ): Response<Project> {
     return pomResponses["$artifact:$version"]
-      ?: Response.error(404, ResponseBody.create(null, "Not found"))
+      ?: Response.error(404, "Not found".toResponseBody(null))
   }
 
   override suspend fun headArtifact(
@@ -95,6 +95,6 @@ internal class FakeArtifactoryEndpoints : ArtifactoryEndpoints {
     version: String,
     ext: String,
   ): Response<ResponseBody> {
-    return Response.error(404, ResponseBody.create(null, "Not found"))
+    return Response.error(404, "Not found".toResponseBody(null))
   }
 }

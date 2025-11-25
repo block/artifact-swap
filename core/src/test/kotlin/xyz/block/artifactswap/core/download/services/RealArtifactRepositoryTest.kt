@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
-import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okio.ByteString.Companion.encodeUtf8
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -322,7 +322,8 @@ class RealArtifactRepositoryTest {
     fileType: DownloadFileType,
     content: String,
   ): DownloadedArtifactFileResult.Success {
-    val responseBody = ResponseBody.create(null, content.encodeUtf8())
+    // Use extension function format (content first) to avoid deprecation warning
+    val responseBody = content.encodeUtf8().toResponseBody(null)
     return DownloadedArtifactFileResult.Success(
       artifact = artifact,
       downloadFileType = fileType,
