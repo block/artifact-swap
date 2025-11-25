@@ -7,7 +7,7 @@ import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
 import xyz.block.artifactswap.cli.utils.VersionProvider
 
 @Command(
-  name = "artifactswap-cli",
+  name = "artifactswap",
   mixinStandardHelpOptions = true,
   versionProvider = VersionProvider::class,
   description = ["Performs the requested artifact swap task"],
