@@ -42,7 +42,7 @@ dependencies {
   testRuntimeOnly(libs.junit.launcher)
 }
 
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+val shadowJar = tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
   // We set the Shadow Jar to have NO classifier, making it the "Main" artifact
   archiveClassifier.set("")
   mergeServiceFiles()
@@ -60,6 +60,10 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
       "Main-Class" to application.mainClass.get()
     )
   }
+}
+
+tasks.withType<CreateStartScripts>().configureEach {
+  dependsOn(shadowJar)
 }
 
 // GMM is not useful in this case and trying to generate it throws errors
