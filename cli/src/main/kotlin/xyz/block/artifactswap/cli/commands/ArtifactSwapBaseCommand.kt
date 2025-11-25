@@ -7,19 +7,19 @@ import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
 import xyz.block.artifactswap.cli.utils.VersionProvider
 
 @Command(
-  name = "sandbagging-tool",
+  name = "artifactswap-cli",
   mixinStandardHelpOptions = true,
   versionProvider = VersionProvider::class,
-  description = ["Performs the requested sandbagging task"],
+  description = ["Performs the requested artifact swap task"],
   scope = INHERIT,
 )
-internal class SandbaggingCommand : AbstractArtifactSwapCommand() {
+internal class ArtifactSwapBaseCommand : AbstractArtifactSwapCommand() {
 
   override fun init(application: KoinApplication) {
     // does nothing for now
   }
 
   override suspend fun executeCommand(application: KoinApplication): Int {
-    error("Sandbagging tool requires sub-command")
+    error("Artifact Swap CLI requires sub-command")
   }
 }

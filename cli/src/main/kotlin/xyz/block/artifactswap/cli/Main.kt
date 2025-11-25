@@ -9,7 +9,7 @@ import xyz.block.artifactswap.cli.commands.ArtifactDownloaderCommand
 import xyz.block.artifactswap.cli.commands.ArtifactRemoverCommand
 import xyz.block.artifactswap.cli.commands.BomPublishingCommand
 import xyz.block.artifactswap.cli.commands.HashingCommand
-import xyz.block.artifactswap.cli.commands.SandbaggingCommand
+import xyz.block.artifactswap.cli.commands.ArtifactSwapBaseCommand
 import xyz.block.artifactswap.cli.commands.TaskFinderCommand
 import xyz.block.artifactswap.cli.commands.TaskRunnerCommand
 
@@ -19,7 +19,7 @@ fun main(vararg args: String) {
   val (exitCode, duration) =
     measureTimedValue {
       val commandLine =
-        CommandLine(SandbaggingCommand())
+        CommandLine(ArtifactSwapBaseCommand())
           .addSubcommand(HashingCommand())
           .addSubcommand(TaskFinderCommand())
           .addSubcommand(TaskRunnerCommand())
