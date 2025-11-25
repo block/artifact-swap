@@ -1,6 +1,7 @@
 plugins {
     application
     id("com.gradleup.shadow")
+    id("conventions.publish")
 }
 
 application {
@@ -39,4 +40,41 @@ dependencies {
   testImplementation(libs.mockito.kotlin)
   testImplementation(testFixtures(project(":core")))
   testRuntimeOnly(libs.junit.launcher)
+}
+
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+  // We set the Shadow Jar to have NO classifier, making it the "Main" artifact
+  archiveClassifier.set("")
+  mergeServiceFiles()
+  minimize {
+    exclude(dependency("org.slf4j:.*:.*"))
+  }
+  exclude("**/*.kotlin_metadata")
+  exclude("**/*.kotlin_module")
+  exclude("META-INF/maven/**")
+
+  manifest {
+    attributes(
+      "Implementation-Title" to "Artifact Swap CLI",
+      "Implementation-Version" to project.version,
+      "Main-Class" to application.mainClass.get()
+    )
+  }
+}
+
+// GMM is not useful in this case and trying to generate it throws errors
+// because the publication component was changed to a zip file.
+tasks.withType<GenerateModuleMetadata>().configureEach {
+  enabled = false
+}
+
+// publish cli as a zip of the shadow jar outputs
+publishing {
+  publications.withType<MavenPublication>().configureEach {
+    artifacts.clear()
+    artifact(tasks.named("shadowDistZip")) {
+      classifier = null
+      extension = "zip"
+    }
+  }
 }
