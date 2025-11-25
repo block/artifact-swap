@@ -1,7 +1,7 @@
 package xyz.block.artifactswap.core.download
 
 import kotlin.time.Duration.Companion.milliseconds
-import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okio.ByteString.Companion.encodeUtf8
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.download.models.Artifact
@@ -55,11 +55,9 @@ class FakeArtifactRepository(
       )
     }
     val body =
-      ResponseBody.create(
-        null,
-        "Fake content for ${artifact.artifactId}-${artifact.version}${fileType.pathSuffix}"
-          .encodeUtf8(),
-      )
+      "Fake content for ${artifact.artifactId}-${artifact.version}${fileType.pathSuffix}"
+        .encodeUtf8()
+        .toResponseBody(null)
     return DownloadedArtifactFileResult.Success(
       artifact = artifact,
       downloadFileType = fileType,

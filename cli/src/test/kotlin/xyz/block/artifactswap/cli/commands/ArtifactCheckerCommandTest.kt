@@ -9,6 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -290,7 +291,7 @@ class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.Artif
     groupPath: String,
     artifact: String,
   ): Response<xyz.block.artifactswap.core.maven.Metadata> {
-    return Response.error(404, ResponseBody.create(null, "Not needed for these tests"))
+    return Response.error(404, "Not needed for these tests".toResponseBody(null))
   }
 
   override suspend fun getPom(
@@ -315,7 +316,7 @@ class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.Artif
         )
       )
     } else {
-      Response.error(404, ResponseBody.create(null, "POM not found"))
+      Response.error(404, "POM not found".toResponseBody(null))
     }
   }
 
@@ -329,7 +330,7 @@ class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.Artif
     return if (existingArtifacts.contains(artifact to version)) {
       Response.success(null)
     } else {
-      Response.error(404, ResponseBody.create(null, "Artifact not found"))
+      Response.error(404, "Artifact not found".toResponseBody(null))
     }
   }
 
@@ -360,7 +361,7 @@ class FakeArtifactoryEndpointsForCli : xyz.block.artifactswap.core.network.Artif
     version: String,
     ext: String,
   ): Response<ResponseBody> {
-    return Response.error(404, ResponseBody.create(null, "Not needed for these tests"))
+    return Response.error(404, "Not needed for these tests".toResponseBody(null))
   }
 }
 

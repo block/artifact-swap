@@ -1,6 +1,7 @@
 package xyz.block.artifactswap.core.artifact_checker
 
 import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.Response
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.maven.Metadata
@@ -17,7 +18,7 @@ class FakeArtifactoryEndpointsForArtifactChecker : ArtifactoryEndpoints {
     groupPath: String,
     artifact: String,
   ): Response<Metadata> {
-    return Response.error(404, ResponseBody.create(null, "Not needed for these tests"))
+    return Response.error(404, "Not needed for these tests".toResponseBody(null))
   }
 
   override suspend fun getPom(
@@ -42,7 +43,7 @@ class FakeArtifactoryEndpointsForArtifactChecker : ArtifactoryEndpoints {
         )
       )
     } else {
-      Response.error(404, ResponseBody.create(null, "POM not found"))
+      Response.error(404, "POM not found".toResponseBody(null))
     }
   }
 
@@ -56,7 +57,7 @@ class FakeArtifactoryEndpointsForArtifactChecker : ArtifactoryEndpoints {
     return if (existingArtifacts.contains(artifact to version)) {
       Response.success(null)
     } else {
-      Response.error(404, ResponseBody.create(null, "Artifact not found"))
+      Response.error(404, "Artifact not found".toResponseBody(null))
     }
   }
 
@@ -87,7 +88,7 @@ class FakeArtifactoryEndpointsForArtifactChecker : ArtifactoryEndpoints {
     version: String,
     ext: String,
   ): Response<ResponseBody> {
-    return Response.error(404, ResponseBody.create(null, "Not needed for these tests"))
+    return Response.error(404, "Not needed for these tests".toResponseBody(null))
   }
 }
 

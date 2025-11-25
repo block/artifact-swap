@@ -15,6 +15,7 @@ class BasePlugin : Plugin<Project> {
     tasks.withType(KotlinCompile::class.java).configureEach { task ->
       task.compilerOptions {
         jvmTarget.set(JVM_TARGET)
+        allWarningsAsErrors.set(true)
         freeCompilerArgs.addAll(
           "-Xannotation-default-target=param-property",
         )
