@@ -19,7 +19,6 @@
         "org.jetbrains.kotlinx:kotlinx-datetime"
       ],
       "allowedVersions": "!/-compat$/",
-      "matchCurrentVersion": ">=0.7.1"
     }
   ]
 }
