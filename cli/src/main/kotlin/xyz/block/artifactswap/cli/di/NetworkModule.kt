@@ -82,9 +82,9 @@ internal fun artifactoryNetworkModule() = module {
     OkHttpClient.Builder()
       .cache(get<Cache>())
       .retryOnConnectionFailure(true)
-      .connectTimeout(5.seconds.toJavaDuration())
-      .readTimeout(10.seconds.toJavaDuration())
-      .callTimeout(10.seconds.toJavaDuration())
+      .connectTimeout(15.seconds.toJavaDuration())
+      .readTimeout(30.seconds.toJavaDuration())
+      .callTimeout(30.seconds.toJavaDuration())
       .dispatcher(
         Dispatcher().apply {
           maxRequestsPerHost = 128
