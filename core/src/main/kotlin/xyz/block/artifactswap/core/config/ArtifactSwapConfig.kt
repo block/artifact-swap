@@ -104,13 +104,12 @@ data class ArtifactSwapConfig(
   // ============================================================================
 
   /**
-   * Git branch name used to mark hashes that have published BOM versions. 
-   * This is used by the publishing code, downloading code, and swapping code.
-   * The publishing code keeps this branch up-to-date with the latest successful 
-   * builds/bom publishing steps. The downloading portion uses this branch to 
-   * identify the most recent published bom to use for downloading artifacts. And
-   * the swapping code uses this branch to identify the most recent bom that is
-   * safe/valid for swapping artifacts
+   * Git branch name used to mark hashes that have published BOM versions. This is used by the
+   * publishing code, downloading code, and swapping code. The publishing code keeps this branch
+   * up-to-date with the latest successful builds/bom publishing steps. The downloading portion uses
+   * this branch to identify the most recent published bom to use for downloading artifacts. And the
+   * swapping code uses this branch to identify the most recent bom that is safe/valid for swapping
+   * artifacts
    *
    * Example: "origin/main" or "origin/artifact-sync-green-main"
    */
