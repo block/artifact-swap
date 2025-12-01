@@ -1,0 +1,27 @@
+dependency-update:
+  - changed-files:
+      - any-glob-to-any-file: 'gradle/libs.versions.toml'
+
+code-change:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.kt'
+
+build:
+  - changed-files:
+      - any-glob-to-any-file: '**/*.gradle'
+      - any-glob-to-any-file: '**/*.gradle.kts'
+      - any-glob-to-any-file: 'build-logic/**'
+      - any-glob-to-any-file: 'gradle.properties'
+      - any-glob-to-any-file: 'gradle/wrapper/**'
+
+core:
+  - changed-files:
+      - any-glob-to-any-file: 'core/**'
+
+cli:
+  - changed-files:
+      - any-glob-to-any-file: 'cli/**'
+
+gradle-plugin:
+  - changed-files:
+      - any-glob-to-any-file: 'gradle-plugin/**'
