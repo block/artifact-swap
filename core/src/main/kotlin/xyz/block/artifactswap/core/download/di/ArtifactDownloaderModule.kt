@@ -20,6 +20,7 @@ import xyz.block.artifactswap.core.download.services.SquareGit
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
+import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
 import xyz.block.artifactswap.core.gradle.RealGradlePropertiesProvider
 import xyz.block.artifactswap.core.gradle.SettingsGradleHashingProjectsProvider
 import xyz.block.artifactswap.core.network.ArtifactoryService
@@ -82,8 +83,7 @@ fun artifactDownloaderModules(
       } else {
         // No-op provider when settings file not available
         object : GradleProjectsProvider {
-          override suspend fun getProjectHashingInfos():
-            Result<List<xyz.block.artifactswap.core.gradle.ProjectHashingInfo>> =
+          override suspend fun getProjectHashingInfos(): Result<List<ProjectHashingInfo>> =
             Result.success(emptyList())
 
           override suspend fun cleanup() {}
