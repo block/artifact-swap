@@ -48,6 +48,13 @@ val shadowJar = tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.Sha
   mergeServiceFiles()
   minimize {
     exclude(dependency("org.slf4j:.*:.*"))
+
+    exclude(dependency("org.apache.logging.log4j:.*:.*"))
+
+    exclude(dependency("com.fasterxml.jackson.*:.*:.*"))
+    exclude(dependency("org.codehaus.woodstox:.*:.*"))
+    exclude(dependency("com.fasterxml.woodstox:.*:.*"))
+    exclude(project(":core"))
   }
   exclude("**/*.kotlin_metadata")
   exclude("**/*.kotlin_module")
