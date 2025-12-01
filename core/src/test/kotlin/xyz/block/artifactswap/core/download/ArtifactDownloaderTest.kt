@@ -352,4 +352,183 @@ class ArtifactDownloaderTest {
       .forEach { assertNotEquals(-1, it) }
     assertEquals(1, fakeEventStream.receivedEvents.size)
   }
+
+  @Test
+  fun `GIVEN missing both protos properties WHEN executing THEN skips protos and downloads BOM only`() =
+    runTest {
+      // Clear properties to simulate missing configuration
+      (propertiesProvider as FakeGradlePropertiesProvider).clearAllProperties()
+      fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
+
+      val result =
+        downloader.downloadAndInstallArtifacts(
+          bomVersion = FAKE_BOM_VERSION,
+          settingsGradleFile = null,
+        )
+
+      assertEquals(SUCCESS, result.result)
+      // Should only download BOM artifacts (no protos)
+      assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
+      assertEquals(1, fakeEventStream.receivedEvents.size)
+    }
+
+  @Test
+  fun `GIVEN missing protosGeneratedVersion WHEN executing THEN skips protos`() = runTest {
+    // Set up properties provider with only schema version
+    val customPropertiesProvider =
+      object : GradlePropertiesProvider {
+        override fun get(key: String): String =
+          if (key == testConfig.protosSchemaVersionProperty) "1.0.0" else error("Property not set")
+
+        override fun getOrNull(key: String): String? =
+          if (key == testConfig.protosSchemaVersionProperty) "1.0.0" else null
+      }
+
+    downloader =
+      ArtifactDownloader(
+        bomLoader = mockArtifactSyncBomLoader,
+        artifactEventStream = fakeEventStream,
+        artifactRepository = fakeArtifactRepository,
+        settingsGradleProjectsProvider = projectsProvider,
+        gradlePropertiesProvider = customPropertiesProvider,
+        config = testConfig,
+      )
+
+    fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
+
+    val result =
+      downloader.downloadAndInstallArtifacts(
+        bomVersion = FAKE_BOM_VERSION,
+        settingsGradleFile = Path(tempDir.absolutePath),
+      )
+
+    assertEquals(SUCCESS, result.result)
+    assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
+  }
+
+  @Test
+  fun `GIVEN missing protosSchemaVersion WHEN executing THEN skips protos`() = runTest {
+    // Set up properties provider with only generated version
+    val customPropertiesProvider =
+      object : GradlePropertiesProvider {
+        override fun get(key: String): String =
+          if (key == testConfig.protosGeneratedVersionProperty) "1.0.0"
+          else error("Property not set")
+
+        override fun getOrNull(key: String): String? =
+          if (key == testConfig.protosGeneratedVersionProperty) "1.0.0" else null
+      }
+
+    downloader =
+      ArtifactDownloader(
+        bomLoader = mockArtifactSyncBomLoader,
+        artifactEventStream = fakeEventStream,
+        artifactRepository = fakeArtifactRepository,
+        settingsGradleProjectsProvider = projectsProvider,
+        gradlePropertiesProvider = customPropertiesProvider,
+        config = testConfig,
+      )
+
+    fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
+
+    val result =
+      downloader.downloadAndInstallArtifacts(
+        bomVersion = FAKE_BOM_VERSION,
+        settingsGradleFile = Path(tempDir.absolutePath),
+      )
+
+    assertEquals(SUCCESS, result.result)
+    assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
+  }
+
+  @Test
+  fun `GIVEN settings file not provided WHEN executing THEN skips protos`() = runTest {
+    fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
+
+    val result =
+      downloader.downloadAndInstallArtifacts(
+        bomVersion = FAKE_BOM_VERSION,
+        settingsGradleFile = null,
+      )
+
+    assertEquals(SUCCESS, result.result)
+    assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
+  }
+
+  @Test
+  fun `GIVEN settings file parse failure WHEN executing THEN skips protos and continues with BOM`() =
+    runTest {
+      // Set up properties provider with both properties
+      val customPropertiesProvider =
+        object : GradlePropertiesProvider {
+          override fun get(key: String): String = "1.0.0"
+
+          override fun getOrNull(key: String): String? = "1.0.0"
+        }
+
+      // Set up projects provider that returns a failure
+      val failingProjectsProvider =
+        object : GradleProjectsProvider {
+          override suspend fun getProjectHashingInfos(): Result<List<ProjectHashingInfo>> =
+            Result.failure(Exception("Failed to parse settings.gradle"))
+
+          override suspend fun cleanup() {}
+        }
+
+      downloader =
+        ArtifactDownloader(
+          bomLoader = mockArtifactSyncBomLoader,
+          artifactEventStream = fakeEventStream,
+          artifactRepository = fakeArtifactRepository,
+          settingsGradleProjectsProvider = failingProjectsProvider,
+          gradlePropertiesProvider = customPropertiesProvider,
+          config = testConfig,
+        )
+
+      fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
+
+      val result =
+        downloader.downloadAndInstallArtifacts(
+          bomVersion = FAKE_BOM_VERSION,
+          settingsGradleFile = Path(tempDir.absolutePath),
+        )
+
+      // Should succeed with just BOM artifacts
+      assertEquals(SUCCESS, result.result)
+      assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
+    }
+
+  @Test
+  fun `GIVEN empty string property values WHEN executing THEN treated as missing and skips protos`() =
+    runTest {
+      // Set up properties provider that returns empty strings
+      val customPropertiesProvider =
+        object : GradlePropertiesProvider {
+          override fun get(key: String): String = ""
+
+          override fun getOrNull(key: String): String? = ""
+        }
+
+      downloader =
+        ArtifactDownloader(
+          bomLoader = mockArtifactSyncBomLoader,
+          artifactEventStream = fakeEventStream,
+          artifactRepository = fakeArtifactRepository,
+          settingsGradleProjectsProvider = projectsProvider,
+          gradlePropertiesProvider = customPropertiesProvider,
+          config = testConfig,
+        )
+
+      fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
+
+      val result =
+        downloader.downloadAndInstallArtifacts(
+          bomVersion = FAKE_BOM_VERSION,
+          settingsGradleFile = Path(tempDir.absolutePath),
+        )
+
+      assertEquals(SUCCESS, result.result)
+      // Should skip protos due to blank properties
+      assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
+    }
 }

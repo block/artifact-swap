@@ -37,7 +37,7 @@ internal const val EVENT_STREAM_NAME = "analyticsModuleEventStream"
 /** Configuration options for the artifact downloader module. */
 data class ArtifactDownloaderConfig(
   val bomVersion: String = "",
-  val settingsGradleFile: Path,
+  val settingsGradleFile: Path?,
   val mavenLocalPath: Path,
 )
 
@@ -72,12 +72,23 @@ fun artifactDownloaderModules(
       )
     }
     single<GradleProjectsProvider> {
-      SettingsGradleHashingProjectsProvider(
-        application.directory,
-        config.settingsGradleFile.toRealPath(),
-        application.ioDispatcher,
-        get<ArtifactSwapConfig>(),
-      )
+      if (config.settingsGradleFile != null && config.settingsGradleFile.toFile().exists()) {
+        SettingsGradleHashingProjectsProvider(
+          application.directory,
+          config.settingsGradleFile.toRealPath(),
+          application.ioDispatcher,
+          get<ArtifactSwapConfig>(),
+        )
+      } else {
+        // No-op provider when settings file not available
+        object : GradleProjectsProvider {
+          override suspend fun getProjectHashingInfos():
+            Result<List<xyz.block.artifactswap.core.gradle.ProjectHashingInfo>> =
+            Result.success(emptyList())
+
+          override suspend fun cleanup() {}
+        }
+      }
     }
     single<GradlePropertiesProvider> {
       RealGradlePropertiesProvider(get<Properties>(named("gradleProperties")))

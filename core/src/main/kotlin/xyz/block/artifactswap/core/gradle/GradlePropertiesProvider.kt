@@ -4,9 +4,13 @@ import java.util.Properties
 
 interface GradlePropertiesProvider {
   operator fun get(key: String): String
+
+  fun getOrNull(key: String): String?
 }
 
 class RealGradlePropertiesProvider(private val properties: Properties) : GradlePropertiesProvider {
   override fun get(key: String): String =
     properties[key]?.toString() ?: error("$key must be set in gradle properties")
+
+  override fun getOrNull(key: String): String? = properties[key]?.toString()
 }

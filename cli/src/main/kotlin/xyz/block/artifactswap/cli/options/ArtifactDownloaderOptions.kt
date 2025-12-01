@@ -6,7 +6,7 @@ import picocli.CommandLine.Option
 
 class ArtifactDownloaderOptions(
   bomVersion: String = "",
-  settingsGradleFile: Path = Path("settings.gradle.kts"),
+  settingsGradleFile: Path? = null,
   mavenLocalPath: Path = Path(System.getProperty("user.home")).resolve(".m2/repository"),
 ) {
 
@@ -19,9 +19,9 @@ class ArtifactDownloaderOptions(
 
   @Option(
     names = ["--settings-gradle-file"],
-    description = ["path to settings.gradle to extract protos projects from"],
+    description = ["(Optional) Path to settings.gradle to extract protos projects from"],
   )
-  var settingsGradleFile: Path = settingsGradleFile
+  var settingsGradleFile: Path? = settingsGradleFile
     internal set
 
   @Option(
