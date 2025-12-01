@@ -54,6 +54,7 @@ val shadowJar = tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.Sha
     exclude(dependency("com.fasterxml.jackson.*:.*:.*"))
     exclude(dependency("org.codehaus.woodstox:.*:.*"))
     exclude(dependency("com.fasterxml.woodstox:.*:.*"))
+    exclude(project(":core"))
   }
   exclude("**/*.kotlin_metadata")
   exclude("**/*.kotlin_module")
