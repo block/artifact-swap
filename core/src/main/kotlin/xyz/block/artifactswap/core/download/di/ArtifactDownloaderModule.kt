@@ -20,6 +20,7 @@ import xyz.block.artifactswap.core.download.services.SquareGit
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
+import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
 import xyz.block.artifactswap.core.gradle.RealGradlePropertiesProvider
 import xyz.block.artifactswap.core.gradle.SettingsGradleHashingProjectsProvider
 import xyz.block.artifactswap.core.network.ArtifactoryService
@@ -37,7 +38,7 @@ internal const val EVENT_STREAM_NAME = "analyticsModuleEventStream"
 /** Configuration options for the artifact downloader module. */
 data class ArtifactDownloaderConfig(
   val bomVersion: String = "",
-  val settingsGradleFile: Path,
+  val settingsGradleFile: Path?,
   val mavenLocalPath: Path,
 )
 
@@ -72,12 +73,22 @@ fun artifactDownloaderModules(
       )
     }
     single<GradleProjectsProvider> {
-      SettingsGradleHashingProjectsProvider(
-        application.directory,
-        config.settingsGradleFile.toRealPath(),
-        application.ioDispatcher,
-        get<ArtifactSwapConfig>(),
-      )
+      if (config.settingsGradleFile != null && config.settingsGradleFile.toFile().exists()) {
+        SettingsGradleHashingProjectsProvider(
+          application.directory,
+          config.settingsGradleFile.toRealPath(),
+          application.ioDispatcher,
+          get<ArtifactSwapConfig>(),
+        )
+      } else {
+        // No-op provider when settings file not available
+        object : GradleProjectsProvider {
+          override suspend fun getProjectHashingInfos(): Result<List<ProjectHashingInfo>> =
+            Result.success(emptyList())
+
+          override suspend fun cleanup() {}
+        }
+      }
     }
     single<GradlePropertiesProvider> {
       RealGradlePropertiesProvider(get<Properties>(named("gradleProperties")))
