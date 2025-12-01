@@ -70,6 +70,7 @@ fun artifactDownloaderModules(
         squareGit = get<SquareGit>(),
         localArtifactRepository = get<ArtifactRepository>(),
         artifactoryService = get<ArtifactoryService>(),
+        config = get<ArtifactSwapConfig>(),
       )
     }
     single<GradleProjectsProvider> {

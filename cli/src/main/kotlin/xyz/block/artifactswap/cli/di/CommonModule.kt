@@ -53,7 +53,10 @@ private fun createArtifactSwapConfig(properties: Properties): ArtifactSwapConfig
       ),
     protosSchemaVersionProperty =
       getProperty("artifactswap.protosSchemaVersionProperty", defaults.protosSchemaVersionProperty),
-    artifactoryBaseUrl = getProperty("artifactswap.artifactoryBaseUrl", defaults.artifactoryBaseUrl),
+    artifactoryBaseUrl =
+      getProperty("artifactswap.artifactoryBaseUrl", defaults.artifactoryBaseUrl),
+    bomPublisherBranchName =
+      getProperty("artifactswap.bomPublisherBranchName", defaults.bomPublisherBranchName),
   )
 }
 
