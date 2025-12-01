@@ -16,6 +16,7 @@ import xyz.block.artifactswap.cli.commands.TaskRunnerCommand
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 fun main(vararg args: String) {
+  val logger = logger("xyz.block.artifactswap.cli.Main")
   val (exitCode, duration) =
     measureTimedValue {
       val commandLine =
@@ -33,7 +34,7 @@ fun main(vararg args: String) {
       return@measureTimedValue result
     }
   // Logger is set up in the ConfigurationsModule, which is done after the commandline has finished
-  logger("xyz.block.artifactswap.cli.Main").debug { "Process ran for $duration" }
+  logger.debug { "Process ran for $duration" }
   exitProcess(exitCode)
 }
 

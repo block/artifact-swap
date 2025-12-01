@@ -48,7 +48,7 @@ abstract class AbstractArtifactSwapCommand : Callable<Int> {
       }
       return exitCode
     } catch (e: Throwable) {
-      logger.error(e)
+      logger.error(e) { "Error executing command: ${spec.name()}" }
       return spec.exitCodeOnExecutionException()
     }
   }

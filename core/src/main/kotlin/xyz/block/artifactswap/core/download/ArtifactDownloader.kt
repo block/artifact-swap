@@ -85,7 +85,7 @@ class ArtifactDownloader(
         }
       }
 
-    println("Using BOM version: $resolvedBomVersion")
+    logger.warn("Using BOM version: $resolvedBomVersion")
 
     // Get artifacts listed in BOM
     val (artifactsListedInBom, bomArtifactsDiscoveryDuration) =

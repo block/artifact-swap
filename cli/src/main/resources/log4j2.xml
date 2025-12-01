@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Appenders>
-        <!-- Console appender - plain message only -->
+        <!-- Console appender - includes exception stack traces -->
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%msg%n" />
+            <PatternLayout pattern="%msg%n%throwable" />
         </Console>
     </Appenders>
 

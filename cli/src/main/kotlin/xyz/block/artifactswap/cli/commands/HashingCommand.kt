@@ -101,7 +101,7 @@ class HashingCommand : AbstractArtifactSwapCommand() {
 
     projectHashService.logResult(result)
 
-    println("Done!")
+    logger.info("Done!")
     return 0
   }
 }
