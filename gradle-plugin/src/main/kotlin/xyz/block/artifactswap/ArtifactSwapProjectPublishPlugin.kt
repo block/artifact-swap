@@ -40,9 +40,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
       pluginManager.withPlugin("com.android.library") {
         val publishedVariantName = getPublishedVariantName()
         val agpLibraries = extensions.getByType(LibraryExtension::class.java)
-        agpLibraries.publishing {
-          singleVariant(publishedVariantName) { withSourcesJar() }
-        }
+        agpLibraries.publishing { singleVariant(publishedVariantName) { withSourcesJar() } }
       }
 
       extensions.getByType(PublishingExtension::class.java).also { mavenPublishing ->
@@ -128,9 +126,8 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
 
   private fun Project.getPublishedVariantName(): String {
     val agpLibraries = extensions.getByType(LibraryExtension::class.java)
-    return agpLibraries.productFlavors.firstOrNull { it.isDefault }?.let {
-      it.name + "Debug"
-    } ?: "debug"
+    return agpLibraries.productFlavors.firstOrNull { it.isDefault }?.let { it.name + "Debug" }
+      ?: "debug"
   }
 
   private fun Project.configureSandbagPom(pom: MavenPom) {
