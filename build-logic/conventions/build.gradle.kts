@@ -26,11 +26,10 @@ gradlePlugin {
 
 dependencies {
   implementation(gradleApi())
-
   implementation(libs.android.gradle)
-  implementation(libs.ktfmt.gradle)
-  implementation(libs.vanniktech.gradle)
-  implementation(libs.kotlin.gradle)
   implementation(libs.dagp.gradle)
   implementation(libs.develocity.gradle)
+  implementation(libs.kotlin.gradle)
+  implementation(libs.ktfmt.gradle)
+  implementation(libs.vanniktech.gradle)
 }

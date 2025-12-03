@@ -11,8 +11,6 @@ import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 internal fun commonModule(commonOptions: CommonOptions) = module {
   single(named("directory")) { commonOptions.directory }
 
-  single(named("loggingEnvironment")) { commonOptions.loggingEnvironment }
-
   single(named("dryRun")) { commonOptions.dryRun }
 
   // Create ArtifactSwapConfig from gradle properties loaded in GradleModule

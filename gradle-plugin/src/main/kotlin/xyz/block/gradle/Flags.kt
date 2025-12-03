@@ -25,9 +25,6 @@ val Project.useArtifactSync: Boolean
 val Settings.useArtifactSync: Boolean
   get() = providers.gradleProperty(USE_ARTIFACT_SYNC).getOrElse("false").toBoolean()
 
-val Settings.bomVersion: String
-  get() = extensions.extraProperties.properties["sandbagVersion"]!!.toString()
-
 internal val Settings.useLocalProtos: Boolean
   get() = providers.gradleProperty(LOCAL_PROTOS_ARTIFACTS).getOrElse("false").toBoolean()
 

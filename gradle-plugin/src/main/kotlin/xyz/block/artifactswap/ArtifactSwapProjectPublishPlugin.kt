@@ -36,10 +36,15 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
 
       pluginManager.apply("maven-publish")
 
-      // Configure android projects to publish a single debug variant library
+      // Configure android projects to publish all debug variants (supports product flavors)
       pluginManager.withPlugin("com.android.library") {
         val agpLibraries = extensions.getByType(LibraryExtension::class.java)
-        agpLibraries.publishing { singleVariant("debug") { withSourcesJar() } }
+        agpLibraries.publishing {
+          multipleVariants("debug") {
+            includeBuildTypeValues("debug")
+            withSourcesJar()
+          }
+        }
       }
 
       extensions.getByType(PublishingExtension::class.java).also { mavenPublishing ->

@@ -150,11 +150,12 @@ class RealArtifactRepository(
           objectMapper.writeValue(bomFile.toFile(), project)
         }
       }
-      project.dependencyManagement.dependencies.dependency.map { dependency ->
+      project.dependencyManagement.dependencies.dependency.mapNotNull { dependency ->
+        val version = dependency.version ?: return@mapNotNull null
         Artifact(
           groupId = dependency.groupId,
           artifactId = dependency.artifactId,
-          version = dependency.version,
+          version = version,
           repo = config.primaryRepositoryName,
         )
       }

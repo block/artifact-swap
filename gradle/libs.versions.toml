@@ -22,11 +22,12 @@ picocli = "4.7.7"
 okhttp = "5.3.2"
 okio = "3.16.4"
 retrofit = "3.0.0"
+spotlight = "1.3.4"
 wire = "5.4.0"
 ktfmt = "0.59"
 ktfmt-gradle = "0.25.0"
 vanniktech = "0.35.0"
-dagp = "3.4.1"
+dagp = "3.5.1"
 develocity = "4.2.2"
 
 [libraries]
@@ -42,6 +43,7 @@ jackson-dataformat-xml = { module = "com.fasterxml.jackson.dataformat:jackson-da
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 jgit-core = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
@@ -70,6 +72,8 @@ okhttp-logging = { module = "com.squareup.okhttp3:logging-interceptor", version.
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 picocli-core = { module = "info.picocli:picocli", version.ref = "picocli" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "1.7.36" }
+spotlight-gradle = { module = "com.fueledbycaffeine.spotlight:spotlight-gradle-plugin", version.ref = "spotlight" }
+spotlight-buildscriptUtils = { module = "com.fueledbycaffeine.spotlight:buildscript-utils", version.ref = "spotlight" }
 retrofit-core = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-converter-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref = "retrofit" }
 retrofit-wire = { module = "com.squareup.retrofit2:converter-wire", version.ref = "retrofit" }

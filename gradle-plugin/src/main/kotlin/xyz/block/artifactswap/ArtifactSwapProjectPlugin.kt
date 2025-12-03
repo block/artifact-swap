@@ -15,7 +15,7 @@ import xyz.block.gradle.services.services
  * Artifact Sync project sub-plugin. This plugin is responsible for performing dependency
  * substitution
  *
- * Do not apply this plugin directly! It is auto-applied by [ArtifactSwapSettingsPlugin]. For
+ * Do not apply this plugin directly! It is auto-applied by [ArtifactSwapOldSettingsPlugin]. For
  * reference and searchability, the ID of this plugin is `xyz.block.artifactsync`.
  */
 @Suppress("unused")
@@ -94,7 +94,7 @@ private fun Project.substituteAllDependencies(substitution: DependencySubstituti
 
 /**
  * This reverses the project -> maven dependency notation rewriting performed by
- * [ArtifactSwapSettingsPlugin].
+ * [ArtifactSwapOldSettingsPlugin].
  */
 private val ModuleComponentSelector.asProjectPath: String
   get() = module.replace("_", ":").prefixIfNot(":")

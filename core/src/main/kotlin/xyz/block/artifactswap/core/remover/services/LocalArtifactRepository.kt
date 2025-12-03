@@ -321,12 +321,13 @@ class RealLocalArtifactRepository(
 }
 
 private fun Project.toInstalledProjects(baseGroupDir: Path): List<InstalledProject> {
-  return dependencyManagement.dependencies.dependency.map {
+  return dependencyManagement.dependencies.dependency.mapNotNull {
+    val version = it.version ?: return@mapNotNull null
     val projectRepositoryPath = baseGroupDir.resolve(artifactId)
     InstalledProject(
       projectPath = it.artifactId.artifactIdToProjectPath(),
       repositoryPath = projectRepositoryPath,
-      versions = setOf(it.version),
+      versions = setOf(version),
     )
   }
 }

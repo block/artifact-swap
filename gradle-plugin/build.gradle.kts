@@ -8,6 +8,10 @@ gradlePlugin {
   vcsUrl = "https://github.com/block/artifact-swap"
   website = "https://github.com/block/artifact-swap"
   plugins {
+    create("artifactSwapSettingsPluginOld") {
+      id = "xyz.block.artifactswap.settings.old"
+      implementationClass = "xyz.block.artifactswap.ArtifactSwapOldSettingsPlugin"
+    }
     create("artifactSwapSettingsPlugin") {
       id = "xyz.block.artifactswap.settings"
       implementationClass = "xyz.block.artifactswap.ArtifactSwapSettingsPlugin"
@@ -28,10 +32,16 @@ gradlePlugin {
 }
 
 dependencies {
+  implementation(project(":core"))
   implementation(gradleApi())
+  implementation(libs.gradle.tooling.api)
   implementation(libs.kotlin.utilio)
+  implementation(libs.spotlight.buildscriptUtils)
+  implementation(libs.spotlight.gradle)
 
   compileOnly(libs.android.gradle.api)
+
+  runtimeOnly(libs.jackson.module.kotlin)
 
   lintChecks(libs.androidx.lintGradle)
 }
