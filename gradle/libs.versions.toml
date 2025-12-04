@@ -26,7 +26,7 @@ wire = "5.4.0"
 ktfmt = "0.59"
 ktfmt-gradle = "0.25.0"
 vanniktech = "0.35.0"
-dagp = "3.4.1"
+dagp = "3.5.1"
 develocity = "4.2.2"
 
 [libraries]
