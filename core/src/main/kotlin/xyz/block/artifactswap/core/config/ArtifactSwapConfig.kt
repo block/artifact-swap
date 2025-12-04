@@ -100,6 +100,18 @@ data class ArtifactSwapConfig(
   val excludeGradleProjects: List<String> = emptyList(),
 
   // ============================================================================
+  // BOM Configuration
+  // ============================================================================
+
+  /**
+   * Git branch name where BOM versions are available. The BOM loader searches for commits shared
+   * between the current branch and this branch to find the most recent available BOM.
+   *
+   * Example: "origin/main" or "origin/artifact-sync-green-main"
+   */
+  val bomSourceBranchName: String = "origin/artifact-sync-green-main",
+
+  // ============================================================================
   // Artifactory
   // ============================================================================
   val artifactoryBaseUrl: String = "https://artifactory.example.com",

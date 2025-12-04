@@ -1,5 +1,6 @@
 package xyz.block.artifactswap.core.download.services
 
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.network.ArtifactoryService
 
 interface ArtifactSyncBomLoader {
@@ -12,10 +13,10 @@ class RealArtifactSyncBomLoader(
   private val squareGit: SquareGit,
   private val localArtifactRepository: ArtifactRepository,
   private val artifactoryService: ArtifactoryService,
+  private val config: ArtifactSwapConfig,
 ) : ArtifactSyncBomLoader {
 
   companion object {
-    private const val ORIGIN_GREEN_MASTER_BRANCH_NAME = "origin/artifact-sync-green-main"
     private const val BOM_ARTIFACT_NAME = "bom"
     private const val COUNT_SHARED_COMMITS_TO_CHECK_FOR_BOM = 5000
   }
@@ -23,7 +24,7 @@ class RealArtifactSyncBomLoader(
   override suspend fun findBestBomVersion(): Result<String> = runCatching {
     val recentSharedCommits =
       squareGit.findRecentSharedCommits(
-        baseRef = ORIGIN_GREEN_MASTER_BRANCH_NAME,
+        baseRef = config.bomSourceBranchName,
         count = COUNT_SHARED_COMMITS_TO_CHECK_FOR_BOM,
       )
         ?: throw IllegalStateException(
@@ -41,7 +42,7 @@ class RealArtifactSyncBomLoader(
     return@runCatching bomCommit?.name
       ?: throw IllegalStateException(
         "Traversed $COUNT_SHARED_COMMITS_TO_CHECK_FOR_BOM commits " +
-          "from $ORIGIN_GREEN_MASTER_BRANCH_NAME and found no BOMs in local m2 or Artifactory."
+          "from ${config.bomSourceBranchName} and found no BOMs in local m2 or Artifactory."
       )
   }
 
