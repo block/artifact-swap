@@ -1,15 +1,14 @@
-package xyz.block.artifactswap.core.remover
+package xyz.block.artifactswap.core.repository
 
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import xyz.block.artifactswap.core.remover.services.InstalledBom
-import xyz.block.artifactswap.core.remover.services.InstalledProject
-import xyz.block.artifactswap.core.remover.services.LocalArtifactRepository
-import xyz.block.artifactswap.core.remover.services.RepositoryStats
+import xyz.block.artifactswap.core.maven.Project
 
 /** Fake implementation of LocalArtifactRepository for testing. */
 class FakeLocalArtifactRepository : LocalArtifactRepository {
+  var installedArtifacts: Set<InstalledArtifact> = emptySet()
+  var installedBom: Project? = null
   var installedProjects: List<InstalledProject> = emptyList()
   var installedBoms: List<InstalledBom> = emptyList()
   var repositoryStats: RepositoryStats? = null
@@ -20,6 +19,15 @@ class FakeLocalArtifactRepository : LocalArtifactRepository {
   // Configure which deletions should fail
   val projectDeletionFailures = mutableSetOf<InstalledProject>()
   val bomDeletionFailures = mutableSetOf<InstalledBom>()
+
+  override suspend fun getInstalledArtifacts(bom: Project): Result<Set<InstalledArtifact>> {
+    return Result.success(installedArtifacts)
+  }
+
+  override suspend fun getInstalledBom(bomVersion: String): Result<Project> {
+    return installedBom?.let { Result.success(it) }
+      ?: Result.failure(NoSuchElementException("BOM not found"))
+  }
 
   override fun getAllInstalledProjects(): Flow<InstalledProject> {
     return installedProjects.asFlow()
@@ -47,7 +55,7 @@ class FakeLocalArtifactRepository : LocalArtifactRepository {
     return !bomDeletionFailures.contains(installedBom)
   }
 
-  override suspend fun measureRepository(): RepositoryStats? {
+  override suspend fun measureRepository(): RepositoryStats {
     return repositoryStats
       ?: RepositoryStats(
         countInstalledProjects = installedProjects.size.toLong(),

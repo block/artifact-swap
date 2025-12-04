@@ -4,46 +4,45 @@ plugins {
 }
 
 dependencies {
-  // API - exposed to consumers
   api(libs.gradle.tooling.api)
   api(libs.jackson.databind)
   api(libs.jackson.dataformat.xml)
   api(libs.jgit.core)
+  api(libs.kotlinxCoroutines)
   api(libs.moshi)
+  api(libs.okhttp)
   api(libs.retrofit.core)
+  api(libs.slf4j.api)
+  api(libs.spotlight.buildscriptUtils)
 
-  // Implementation
   implementation(libs.jackson.core)
   implementation(libs.jackson.module.kotlin)
   implementation(libs.koin.core)
-  implementation(libs.kotlinxCoroutines)
   implementation(libs.log4j.kotlin)
-  implementation(libs.okhttp)
   implementation(libs.okio)
-  implementation(libs.slf4j.api)
   implementation(libs.wire.runtime)
 
-  // Runtime only
   runtimeOnly(libs.log4j.api)
   runtimeOnly(libs.log4j.core)
 
-  ksp(libs.moshi.kotlin.codegen)
+  testFixturesApi(libs.jgit.core)
+  testFixturesApi(libs.retrofit.core)
 
-  // Test dependencies
+  testFixturesImplementation(libs.kotlinxCoroutines)
+  testFixturesImplementation(libs.okhttp)
+  testFixturesImplementation(libs.okio)
+
   testImplementation(platform(libs.junit.bom))
+  testImplementation(testFixtures(project(":core")))
   testImplementation(libs.junit.jupiter.api)
   testImplementation(libs.kotlin.test)
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.mockito.core)
   testImplementation(libs.mockito.kotlin)
-  testImplementation(testFixtures(project(":core")))
+
   testRuntimeOnly(libs.junit.launcher)
 
-  lintChecks(libs.androidx.lintGradle)
+  ksp(libs.moshi.kotlin.codegen)
 
-  // Test fixtures dependencies
-  testFixturesApi(libs.retrofit.core)
-  testFixturesImplementation(libs.kotlinxCoroutines)
-  testFixturesImplementation(libs.okhttp)
-  testFixturesImplementation(libs.okio)
+  lintChecks(libs.androidx.lintGradle)
 }

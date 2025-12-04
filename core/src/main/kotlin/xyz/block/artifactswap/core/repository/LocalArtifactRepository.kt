@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.core.remover.services
+package xyz.block.artifactswap.core.repository
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -30,18 +30,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.logging.log4j.kotlin.logger
+import org.slf4j.Logger
 import xyz.block.artifactswap.core.maven.Project
 
-data class InstalledBom(
-  val version: String,
-  val repositoryPath: Path,
-  val installedProjects: List<InstalledProject>,
-) {
-  fun getArtifactsAndVersions(): Map<String, String> {
-    return installedProjects.associate { it.projectPath to it.versions.first() }
-  }
-}
+/** Information about an artifact installed locally with its project path and versions. */
+data class InstalledArtifact(val projectPath: String, val installedVersions: Set<String>)
 
+/** Information about a project installed locally with detailed repository path and versions. */
 data class InstalledProject(
   val projectPath: String,
   val repositoryPath: Path,
@@ -52,9 +47,40 @@ data class InstalledProject(
   }
 }
 
+/** Information about an installed BOM with its projects. */
+data class InstalledBom(
+  val version: String,
+  val repositoryPath: Path,
+  val installedProjects: List<InstalledProject>,
+) {
+  fun getArtifactsAndVersions(): Map<String, String> {
+    return installedProjects.associate { it.projectPath to it.versions.first() }
+  }
+}
+
+/** Statistics about the local repository. */
+data class RepositoryStats(
+  val countInstalledProjects: Long = -1,
+  val countInstalledArtifacts: Long = -1,
+  val countInstalledBoms: Long = -1,
+  val sizeOfInstalledArtifactsBytes: Long = -1,
+  val sizeOfInstalledBomsBytes: Long = -1,
+  val overallRepoSizeBytes: Long = -1,
+  val installedArtifactsMeasurementDuration: Duration? = null,
+  val installedBomsMeasurementDuration: Duration? = null,
+  val measurementDuration: Duration? = null,
+)
+
 /** Returns information about what artifacts are installed in m2 or a comparable local repo. */
 interface LocalArtifactRepository {
 
+  /** Returns installed artifacts that match the given BOM. */
+  suspend fun getInstalledArtifacts(bom: Project): Result<Set<InstalledArtifact>>
+
+  /** Returns the BOM Project installed locally for the given version. */
+  suspend fun getInstalledBom(bomVersion: String): Result<Project>
+
+  /** Returns a Flow of all installed projects. */
   fun getAllInstalledProjects(): Flow<InstalledProject>
 
   /**
@@ -63,8 +89,13 @@ interface LocalArtifactRepository {
    */
   suspend fun getInstalledBomsByRecency(count: Int): List<InstalledBom>
 
+  /**
+   * Deletes the specified installed project versions. Returns list of successfully deleted
+   * versions.
+   */
   suspend fun deleteInstalledProjectVersions(installedProject: InstalledProject): List<String>
 
+  /** Deletes the specified installed BOM. Returns true if successful. */
   suspend fun deleteInstalledBom(installedBom: InstalledBom): Boolean
 
   /**
@@ -79,28 +110,96 @@ interface LocalArtifactRepository {
   suspend fun measureRepository(): RepositoryStats?
 }
 
-data class RepositoryStats(
-  val countInstalledProjects: Long = -1,
-  val countInstalledArtifacts: Long = -1,
-  val countInstalledBoms: Long = -1,
-  val sizeOfInstalledArtifactsBytes: Long = -1,
-  val sizeOfInstalledBomsBytes: Long = -1,
-  val overallRepoSizeBytes: Long = -1,
-  val installedArtifactsMeasurementDuration: Duration? = null,
-  val installedBomsMeasurementDuration: Duration? = null,
-  val measurementDuration: Duration? = null,
-)
-
 /** Checks local .m2 cache for installed maven artifacts that match the artifact sync structure. */
 class RealLocalArtifactRepository(
-  private val localMavenDirectory: Path = Path.of(System.getProperty("user.home")).resolve(".m2"),
   private val xmlMapper: ObjectMapper,
   private val ioContext: CoroutineContext,
+  private val mavenDirectory: Path = DEFAULT_LOCAL_MAVEN_DIRECTORY,
+  private val slf4jLogger: Logger? = null,
 ) : LocalArtifactRepository {
 
   companion object {
     private const val BASE_GROUP_ID = "com.squareup.register.sandbags"
-    private const val M2_REPOSITORY_DIR_NAME = "repository"
+    private val DEFAULT_LOCAL_MAVEN_DIRECTORY: Path =
+      Path.of(System.getProperty("user.home")).resolve(".m2/repository")
+    private val logger = logger("RealLocalArtifactRepository")
+  }
+
+  /**
+   * Checks local .m2 cache for installed maven artifacts that line up with what is expected from a
+   * given bom version.
+   *
+   * Note, the bomVersion is used instead of checking all artifacts because the bom ensures that
+   * individual artifacts are swappable while still working with the rest of the project. Without
+   * enforcing that returned results are part of a single bom, there is a small risk that we would
+   * swap an artifact for something and break an engineers build.
+   */
+  override suspend fun getInstalledArtifacts(bom: Project): Result<Set<InstalledArtifact>> =
+    runCatching {
+      kotlinx.coroutines.coroutineScope {
+        val (result, duration) =
+          measureTimedValue {
+            bom.dependencyManagement.dependencies.dependency
+              .map { dependency ->
+                async(ioContext) {
+                  // no version present means we won't be able to find an artifact
+                  val dependencyVersion = dependency.version
+                  val expectedProject =
+                    mavenDirectory
+                      .resolve(dependency.groupId.replace('.', File.separatorChar))
+                      .resolve(dependency.artifactId)
+                      .resolve(dependencyVersion)
+
+                  val sourcesJar =
+                    expectedProject.resolve(
+                      "${dependency.artifactId}-${dependencyVersion}-sources.jar"
+                    )
+                  val aar =
+                    expectedProject.resolve("${dependency.artifactId}-${dependencyVersion}.aar")
+                  val jar =
+                    expectedProject.resolve("${dependency.artifactId}-${dependencyVersion}.jar")
+                  val module =
+                    expectedProject.resolve("${dependency.artifactId}-${dependencyVersion}.module")
+                  val pom =
+                    expectedProject.resolve("${dependency.artifactId}-${dependencyVersion}.pom")
+
+                  val hasBinary = jar.exists() || aar.exists()
+                  val hasMetaData = module.exists() || pom.exists()
+                  val hasSources = sourcesJar.exists()
+
+                  if (expectedProject.exists() && hasBinary && hasMetaData && hasSources) {
+                    InstalledArtifact(
+                      dependency.artifactId.artifactIdToProjectPath(),
+                      setOf(dependencyVersion),
+                    )
+                  } else {
+                    null
+                  }
+                }
+              }
+              .awaitAll()
+              .filterNotNull()
+              .toSet()
+          }
+        slf4jLogger?.debug("Found ${result.size} installed artifacts in $duration")
+        result
+      }
+    }
+
+  override suspend fun getInstalledBom(bomVersion: String): Result<Project> {
+    val expectedBomFileName = "bom-$bomVersion.pom"
+    val expectedBomLocation =
+      mavenDirectory
+        .resolve(Path.of(BASE_GROUP_ID.replace('.', File.separatorChar)))
+        .resolve("bom")
+        .resolve(bomVersion)
+        .resolve(expectedBomFileName)
+
+    return runCatching {
+      return@runCatching withContext(ioContext) {
+        xmlMapper.readValue<Project>(expectedBomLocation.inputStream())
+      }
+    }
   }
 
   override suspend fun measureRepository(): RepositoryStats {
@@ -146,9 +245,8 @@ class RealLocalArtifactRepository(
     val (bomStats, bomStatsDuration) =
       measureTimedValue {
         val bomDirectory =
-          localMavenDirectory
-            .resolve(M2_REPOSITORY_DIR_NAME)
-            .resolve(BASE_GROUP_ID.replace('.', File.separatorChar))
+          mavenDirectory
+            .resolve(Path.of(BASE_GROUP_ID.replace('.', File.separatorChar)))
             .resolve("bom")
         // hitting file system potentially many times (100s or 1000s expected)
         // ensure running in background context
@@ -197,22 +295,20 @@ class RealLocalArtifactRepository(
     )
   }
 
-  data class InstalledProjectStats(
+  private data class InstalledProjectStats(
     val countInstalledArtifacts: Long = 0,
     val sizeOfInstalledArtifactsBytes: Long = 0,
   )
 
   /**
    * Locate the bom directory, which contains entries for each bom version (names of the entries are
-   * md5 hashes). Scan the bom directory and determine the top N that were most recently
+   * version identifiers). Scan the bom directory and determine the top N that were most recently
    * added/modified, then read and return the information in the bom file.
    */
   override suspend fun getInstalledBomsByRecency(count: Int): List<InstalledBom> {
     return withContext(ioContext) {
       val baseGroupDir =
-        localMavenDirectory
-          .resolve(M2_REPOSITORY_DIR_NAME)
-          .resolve(BASE_GROUP_ID.replace('.', File.separatorChar))
+        mavenDirectory.resolve(Path.of(BASE_GROUP_ID.replace('.', File.separatorChar)))
       val bomDirectory = baseGroupDir.resolve("bom")
       val bomVersionDirectories = bomDirectory.listDirectoryEntries().filter { it.isDirectory() }
       bomVersionDirectories
@@ -273,9 +369,8 @@ class RealLocalArtifactRepository(
     channelFlow {
         val bomDirectoryName = "bom"
         val moduleArtifactDirectories =
-          localMavenDirectory
-            .resolve(M2_REPOSITORY_DIR_NAME)
-            .resolve(BASE_GROUP_ID.replace('.', File.separatorChar))
+          mavenDirectory
+            .resolve(Path.of(BASE_GROUP_ID.replace('.', File.separatorChar)))
             .listDirectoryEntries()
             .filter { it.isDirectory() && it.name != bomDirectoryName }
         val count = moduleArtifactDirectories.count()
@@ -339,6 +434,7 @@ private fun Path.sumFileSizes(): Long {
   return walk().filter { it.isRegularFile() }.sumOf { it.fileSize() }
 }
 
+/** Converts an artifact ID to a project path (e.g., "module_submodule" -> ":module:submodule"). */
 fun String.artifactIdToProjectPath(): String {
   return ":${replace('_', ':')}"
 }
