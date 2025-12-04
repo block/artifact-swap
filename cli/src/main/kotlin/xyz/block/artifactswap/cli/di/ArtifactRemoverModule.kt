@@ -9,9 +9,9 @@ import org.koin.dsl.module
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.remover.ArtifactRemover
 import xyz.block.artifactswap.core.remover.services.ArtifactRemoverEventStream
-import xyz.block.artifactswap.core.remover.services.LocalArtifactRepository
 import xyz.block.artifactswap.core.remover.services.RealArtifactRemoverEventStream
-import xyz.block.artifactswap.core.remover.services.RealLocalArtifactRepository
+import xyz.block.artifactswap.core.repository.LocalArtifactRepository
+import xyz.block.artifactswap.core.repository.RealLocalArtifactRepository
 
 /** Configuration options for the artifact remover module. */
 data class ArtifactRemoverConfig(val mavenLocalPath: Path)
@@ -27,7 +27,7 @@ fun artifactRemoverModules(application: KoinApplication, config: ArtifactRemover
 
     single<LocalArtifactRepository> {
       RealLocalArtifactRepository(
-        localMavenDirectory = config.mavenLocalPath,
+        mavenDirectory = config.mavenLocalPath,
         xmlMapper = get(),
         ioContext = get<CoroutineDispatcher>(named("IO")),
       )

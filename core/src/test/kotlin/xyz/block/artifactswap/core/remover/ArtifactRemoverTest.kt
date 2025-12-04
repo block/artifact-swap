@@ -8,8 +8,9 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import xyz.block.artifactswap.core.remover.models.ArtifactRemoverEventResult
-import xyz.block.artifactswap.core.remover.services.InstalledBom
-import xyz.block.artifactswap.core.remover.services.InstalledProject
+import xyz.block.artifactswap.core.repository.FakeLocalArtifactRepository
+import xyz.block.artifactswap.core.repository.InstalledBom
+import xyz.block.artifactswap.core.repository.InstalledProject
 
 class ArtifactRemoverTest {
 

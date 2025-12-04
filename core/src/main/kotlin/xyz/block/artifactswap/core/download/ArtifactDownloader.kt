@@ -51,7 +51,7 @@ class ArtifactDownloader(
     // Determine BOM version to use
     val resolvedBomVersion =
       bomVersion.ifBlank {
-        bomLoader.findBestBomVersion().getOrElse {
+        bomLoader.findBestBomVersion(checkRemote = true).getOrElse {
           analyticsEvent =
             analyticsEvent.copy(result = ArtifactDownloaderResult.FAILED_TO_FIND_VALID_BOM_VERSION)
           logEvent(analyticsEvent)

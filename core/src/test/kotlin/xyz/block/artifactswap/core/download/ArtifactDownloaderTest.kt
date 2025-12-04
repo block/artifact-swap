@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.wheneverBlocking
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
@@ -107,7 +108,7 @@ class ArtifactDownloaderTest {
   @Test
   fun `GIVEN no bom provided WHEN executing THEN finds most recent commit with bom and downloads using that`() =
     runTest {
-      wheneverBlocking { mockArtifactSyncBomLoader.findBestBomVersion() }
+      wheneverBlocking { mockArtifactSyncBomLoader.findBestBomVersion(any()) }
         .thenReturn(Result.success(FAKE_BOM_VERSION))
       fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
 
@@ -125,7 +126,7 @@ class ArtifactDownloaderTest {
   @Test
   fun `GIVEN no bom provided AND fails finding one WHEN executing THEN returns failure with appropriate result type`() =
     runTest {
-      wheneverBlocking { mockArtifactSyncBomLoader.findBestBomVersion() }
+      wheneverBlocking { mockArtifactSyncBomLoader.findBestBomVersion(any()) }
         .thenReturn(Result.failure(Exception("Failed to find bom version")))
 
       val result =

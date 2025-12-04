@@ -18,12 +18,13 @@ import org.mockito.kotlin.mock
 import picocli.CommandLine
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
+import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.remover.models.ArtifactRemoverEventResult
 import xyz.block.artifactswap.core.remover.services.ArtifactRemoverEventStream
-import xyz.block.artifactswap.core.remover.services.InstalledBom
-import xyz.block.artifactswap.core.remover.services.InstalledProject
-import xyz.block.artifactswap.core.remover.services.LocalArtifactRepository
-import xyz.block.artifactswap.core.remover.services.RepositoryStats
+import xyz.block.artifactswap.core.repository.InstalledBom
+import xyz.block.artifactswap.core.repository.InstalledProject
+import xyz.block.artifactswap.core.repository.LocalArtifactRepository
+import xyz.block.artifactswap.core.repository.RepositoryStats
 
 /**
  * Integration tests for the CLI command that verify picocli argument parsing and proper wiring with
@@ -153,6 +154,16 @@ internal class FakeLocalArtifactRepository : LocalArtifactRepository {
 
   val deletedProjects = mutableListOf<InstalledProject>()
   val deletedBoms = mutableListOf<InstalledBom>()
+
+  override suspend fun getInstalledArtifacts(
+    bom: Project
+  ): Result<Set<xyz.block.artifactswap.core.repository.InstalledArtifact>> {
+    return Result.success(emptySet())
+  }
+
+  override suspend fun getInstalledBom(bomVersion: String): Result<Project> {
+    return Result.failure(NoSuchElementException("BOM not found"))
+  }
 
   override fun getAllInstalledProjects(): Flow<InstalledProject> {
     return installedProjects.asFlow()

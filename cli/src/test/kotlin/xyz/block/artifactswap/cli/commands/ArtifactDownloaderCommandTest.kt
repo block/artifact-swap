@@ -10,7 +10,10 @@ import org.junit.jupiter.api.io.TempDir
 import org.koin.core.qualifier.named
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.wheneverBlocking
 import picocli.CommandLine
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
@@ -96,7 +99,7 @@ class ArtifactDownloaderCommandTest {
 
   @Test
   fun `GIVEN missing bom version WHEN executing THEN command finds best bom version`() = runTest {
-    wheneverBlocking { mockArtifactSyncBomLoader.findBestBomVersion() }
+    wheneverBlocking { mockArtifactSyncBomLoader.findBestBomVersion(any()) }
       .thenReturn(Result.success(FAKE_BOM_VERSION))
     fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
 
@@ -123,6 +126,9 @@ class ArtifactDownloaderCommandTest {
     )
 
     command.executeCommand(testApplication)
+
+    // Verify that findBestBomVersion was called with checkRemote = true
+    verify(mockArtifactSyncBomLoader).findBestBomVersion(eq(true))
 
     assertEquals(1, fakeEventStream.receivedEvents.size)
     val event = fakeEventStream.receivedEvents.first()
