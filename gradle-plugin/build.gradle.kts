@@ -1,5 +1,4 @@
 plugins {
-  id("conventions.publish")
   id("java-gradle-plugin")
   id("groovy")
 }
