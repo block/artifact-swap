@@ -4,7 +4,6 @@ plugins {
 }
 
 dependencies {
-  // API - exposed to consumers
   api(libs.jackson.databind)
   api(libs.jackson.dataformat.xml)
   api(libs.jgit.core)
@@ -15,15 +14,12 @@ dependencies {
   api(libs.slf4j.api)
   api(libs.spotlight.buildscriptUtils)
 
-  // Implementation
   implementation(libs.jackson.core)
   implementation(libs.jackson.module.kotlin)
   implementation(libs.log4j.kotlin)
-  implementation(libs.okhttp)
   implementation(libs.okio)
   implementation(libs.wire.runtime)
 
-  // Runtime only
   runtimeOnly(libs.log4j.api)
   runtimeOnly(libs.log4j.core)
 

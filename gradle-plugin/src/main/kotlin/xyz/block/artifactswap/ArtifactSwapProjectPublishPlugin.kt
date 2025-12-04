@@ -19,7 +19,7 @@ import org.gradle.api.tasks.bundling.Jar
 import xyz.block.gradle.artifactSwapCoordinates
 import xyz.block.gradle.isAndroidLibrary
 import xyz.block.gradle.isKotlin
-import xyz.block.gradle.sandbagVersion
+import xyz.block.gradle.projectArtifactVersion
 
 /**
  * Artifact Swap project publish plugin for sandbags. This plugin is responsible for configuring
@@ -34,7 +34,7 @@ import xyz.block.gradle.sandbagVersion
 class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
   override fun apply(target: Project): Unit =
     target.run {
-      val version = sandbagVersion ?: return@run
+      val version = projectArtifactVersion ?: return@run
 
       pluginManager.apply("maven-publish")
 

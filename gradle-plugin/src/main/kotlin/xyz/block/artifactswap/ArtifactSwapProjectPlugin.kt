@@ -6,7 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.jetbrains.kotlin.util.prefixIfNot
+import xyz.block.gradle.asProjectPath
 import xyz.block.gradle.generatedProtosVersion
 import xyz.block.gradle.protosSchemaVersion
 import xyz.block.gradle.services.services
@@ -19,7 +19,7 @@ import xyz.block.gradle.services.services
  * reference and searchability, the ID of this plugin is `xyz.block.artifactsync`.
  */
 @Suppress("unused")
-class ArtifactSwapProjectPlugin : Plugin<Project> {
+internal class ArtifactSwapProjectPlugin : Plugin<Project> {
   override fun apply(target: Project) =
     target.run {
       val map = gradle.services.artifactSyncBomService.bomVersionMap
@@ -91,10 +91,3 @@ private fun Project.substituteAllDependencies(substitution: DependencySubstituti
     }
   }
 }
-
-/**
- * This reverses the project -> maven dependency notation rewriting performed by
- * [ArtifactSwapSettingsPlugin].
- */
-private val ModuleComponentSelector.asProjectPath: String
-  get() = module.replace("_", ":").prefixIfNot(":")
