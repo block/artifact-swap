@@ -11,6 +11,7 @@ application {
 
 dependencies {
   implementation(project(":core"))
+  implementation(project(":gradle-tooling"))
   implementation(libs.bundles.log4j)
   implementation(libs.gradle.tooling.api)
   implementation(libs.jackson.databind)

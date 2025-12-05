@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.core.task_finder
+package xyz.block.artifactswap.gradle.tooling
 
 import java.io.File
 import java.nio.file.Path
@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import xyz.block.artifactswap.core.task_finder.FakeTaskFinderEventStream
 import xyz.block.artifactswap.core.task_finder.models.TaskFinderResult
 
 class TaskFinderServiceTest {

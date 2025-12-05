@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.core.gradle
+package xyz.block.artifactswap.gradle.tooling
 
 import java.nio.file.Path
 import kotlin.io.path.createDirectories

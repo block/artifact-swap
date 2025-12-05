@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.cli.di
+package xyz.block.artifactswap.gradle.tooling.di
 
 import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.KoinApplication
@@ -6,9 +6,9 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import xyz.block.artifactswap.core.eventstream.Eventstream
-import xyz.block.artifactswap.core.task_runner.TaskRunnerService
 import xyz.block.artifactswap.core.task_runner.services.RealTaskRunnerEventStream
 import xyz.block.artifactswap.core.task_runner.services.TaskRunnerEventStream
+import xyz.block.artifactswap.gradle.tooling.TaskRunnerService
 
 /** Configuration for TaskRunnerService module. */
 data class TaskRunnerServiceConfig(val placeholder: Boolean = false)

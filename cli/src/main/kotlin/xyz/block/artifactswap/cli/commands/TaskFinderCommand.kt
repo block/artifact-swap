@@ -13,16 +13,16 @@ import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 import picocli.CommandLine
 import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
-import xyz.block.artifactswap.cli.di.TaskFinderServiceConfig
-import xyz.block.artifactswap.cli.di.taskFinderService
-import xyz.block.artifactswap.cli.di.taskFinderServiceModules
 import xyz.block.artifactswap.cli.options.CiConfigurationOptions
 import xyz.block.artifactswap.cli.options.OutputMode
 import xyz.block.artifactswap.cli.options.TaskFinderOptions
-import xyz.block.artifactswap.core.task_finder.CiMetadata
-import xyz.block.artifactswap.core.task_finder.TaskFinderService
 import xyz.block.artifactswap.core.task_finder.models.TaskFinderResult
 import xyz.block.artifactswap.core.task_finder.models.TaskFinderServiceResult
+import xyz.block.artifactswap.gradle.tooling.CiMetadata
+import xyz.block.artifactswap.gradle.tooling.TaskFinderService
+import xyz.block.artifactswap.gradle.tooling.di.TaskFinderServiceConfig
+import xyz.block.artifactswap.gradle.tooling.di.taskFinderService
+import xyz.block.artifactswap.gradle.tooling.di.taskFinderServiceModules
 
 /** CLI command for finding Gradle tasks across all projects. */
 @CommandLine.Command(name = "task-finder", description = ["Generates the list of publishing tasks"])
