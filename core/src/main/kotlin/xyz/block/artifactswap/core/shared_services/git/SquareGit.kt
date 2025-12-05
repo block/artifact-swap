@@ -8,6 +8,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.diff.DiffEntry
+import org.eclipse.jgit.diff.DiffEntry.ChangeType.ADD
+import org.eclipse.jgit.diff.DiffEntry.ChangeType.COPY
+import org.eclipse.jgit.diff.DiffEntry.ChangeType.DELETE
+import org.eclipse.jgit.diff.DiffEntry.ChangeType.MODIFY
+import org.eclipse.jgit.diff.DiffEntry.ChangeType.RENAME
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.revwalk.RevCommit
@@ -133,12 +138,11 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
         }
       diffs.flatMap {
         when (it.changeType) {
-          DiffEntry.ChangeType.ADD,
-          DiffEntry.ChangeType.COPY,
-          DiffEntry.ChangeType.MODIFY -> listOf(it.newPath)
-
-          DiffEntry.ChangeType.RENAME -> listOf(it.oldPath, it.newPath)
-          DiffEntry.ChangeType.DELETE -> listOf(it.oldPath)
+          ADD,
+          COPY,
+          MODIFY -> listOf(it.newPath)
+          RENAME -> listOf(it.oldPath, it.newPath)
+          DELETE -> listOf(it.oldPath)
           null -> emptyList()
         }
       }
