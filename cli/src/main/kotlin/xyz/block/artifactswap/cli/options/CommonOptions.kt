@@ -6,7 +6,6 @@ import kotlin.io.path.isDirectory
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.core.config.Configurator
 import picocli.CommandLine.Option
-import xyz.block.artifactswap.cli.network.EventStreamLoggingEnvironment
 import xyz.block.artifactswap.cli.utils.LogBackLogLevelTypeConverter
 
 /** Common options for all commands */
@@ -18,14 +17,6 @@ internal class CommonOptions {
       require(value.isDirectory()) { "Param --dir must point to a valid directory" }
       field = value.toRealPath()
     }
-
-  @set:Option(
-    names = ["--logging_environment"],
-    description = ["Logging Environment (defaults to staging)"],
-    defaultValue = "PRODUCTION",
-  )
-  lateinit var loggingEnvironment: EventStreamLoggingEnvironment
-    internal set
 
   @set:Option(
     names = ["--dry-run"],
