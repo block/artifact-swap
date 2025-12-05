@@ -4,9 +4,9 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlin.time.Duration
 import xyz.block.artifactswap.core.eventstream.EventstreamEvent
-import xyz.block.artifactswap.core.remover.services.InstalledBom
-import xyz.block.artifactswap.core.remover.services.InstalledProject
-import xyz.block.artifactswap.core.remover.services.RepositoryStats
+import xyz.block.artifactswap.core.repository.InstalledBom
+import xyz.block.artifactswap.core.repository.InstalledProject
+import xyz.block.artifactswap.core.repository.RepositoryStats
 import xyz.block.artifactswap.core.utils.inWholeMillisecondsIfFinite
 
 enum class ArtifactRemoverEventResult(val exitCode: Int) {

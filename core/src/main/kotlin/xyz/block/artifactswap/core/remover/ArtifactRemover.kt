@@ -14,9 +14,9 @@ import xyz.block.artifactswap.core.remover.models.ArtifactRemoverResult
 import xyz.block.artifactswap.core.remover.models.DeleteOldArtifactsResult
 import xyz.block.artifactswap.core.remover.models.DeleteOldBomsResult
 import xyz.block.artifactswap.core.remover.services.ArtifactRemoverEventStream
-import xyz.block.artifactswap.core.remover.services.InstalledBom
-import xyz.block.artifactswap.core.remover.services.InstalledProject
-import xyz.block.artifactswap.core.remover.services.LocalArtifactRepository
+import xyz.block.artifactswap.core.repository.InstalledBom
+import xyz.block.artifactswap.core.repository.InstalledProject
+import xyz.block.artifactswap.core.repository.LocalArtifactRepository
 
 class ArtifactRemover(
   val artifactEventStream: ArtifactRemoverEventStream,
