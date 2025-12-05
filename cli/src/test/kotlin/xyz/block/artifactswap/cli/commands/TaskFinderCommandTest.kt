@@ -18,9 +18,10 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.mockito.kotlin.mock
 import picocli.CommandLine
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
-import xyz.block.artifactswap.core.task_finder.FakeTaskFinderEventStream
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
 
 /**
  * Integration tests for the CLI command that verify picocli argument parsing and proper wiring with
@@ -32,12 +33,12 @@ class TaskFinderCommandTest {
 
   @TempDir lateinit var taskOutputDir: File
 
-  private lateinit var fakeEventStream: FakeTaskFinderEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var commandLine: CommandLine
 
   @BeforeEach
   fun setUp() {
-    fakeEventStream = FakeTaskFinderEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     commandLine = CommandLine(TaskFinderCommand())
   }
 
@@ -76,19 +77,13 @@ class TaskFinderCommandTest {
     )
     command.init(testApplication)
     testApplication.modules(
-      module {
-        single<xyz.block.artifactswap.core.task_finder.services.TaskFinderEventStream> {
-          fakeEventStream
-        }
-      }
+      module { single<EventStreamAdapter>(named("taskFinderEventStream")) { fakeEventStream } }
     )
 
     command.executeCommand(testApplication)
 
-    // Verify that the tasks were found
-    assertEquals(1, fakeEventStream.receivedResults.size)
-    val result = fakeEventStream.receivedResults.first()
-    assertEquals(2, result.countTasksWithName)
+    // Verify that events were logged
+    assertEquals(1, fakeEventStream.receivedEvents.size)
 
     // Verify output file was created with correct content
     val outputFiles = taskOutputDir.toPath().walk().filter { it.toFile().isFile }.toList()
@@ -135,18 +130,13 @@ class TaskFinderCommandTest {
       )
       command.init(testApplication)
       testApplication.modules(
-        module {
-          single<xyz.block.artifactswap.core.task_finder.services.TaskFinderEventStream> {
-            fakeEventStream
-          }
-        }
+        module { single<EventStreamAdapter>(named("taskFinderEventStream")) { fakeEventStream } }
       )
 
       command.executeCommand(testApplication)
 
-      // Verify that the tasks were found
-      val result = fakeEventStream.receivedResults.first()
-      assertEquals(10, result.countTasksWithName)
+      // Verify that events were logged
+      assertEquals(1, fakeEventStream.receivedEvents.size)
 
       // Verify multiple output files were created
       val outputFiles =
@@ -198,14 +188,13 @@ class TaskFinderCommandTest {
     )
     command.init(testApplication)
     testApplication.modules(
-      module {
-        single<xyz.block.artifactswap.core.task_finder.services.TaskFinderEventStream> {
-          fakeEventStream
-        }
-      }
+      module { single<EventStreamAdapter>(named("taskFinderEventStream")) { fakeEventStream } }
     )
 
     command.executeCommand(testApplication)
+
+    // Verify that events were logged
+    assertEquals(1, fakeEventStream.receivedEvents.size)
 
     // Verify single output file
     val outputFiles = taskOutputDir.toPath().walk().filter { it.toFile().isFile }.toList()

@@ -6,11 +6,10 @@ import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.remover.ArtifactRemover
-import xyz.block.artifactswap.core.remover.services.ArtifactRemoverEventStream
 import xyz.block.artifactswap.core.remover.services.LocalArtifactRepository
-import xyz.block.artifactswap.core.remover.services.RealArtifactRemoverEventStream
 import xyz.block.artifactswap.core.remover.services.RealLocalArtifactRepository
 
 // Extension properties for accessing common values from KoinApplication
@@ -24,10 +23,11 @@ data class ArtifactRemoverConfig(val mavenLocalPath: Path)
 
 fun artifactRemoverModules(application: KoinApplication, config: ArtifactRemoverConfig): Module {
   return module {
-    single<ArtifactRemoverEventStream> {
-      RealArtifactRemoverEventStream(
+    single<EventStreamAdapter>(named("artifactRemoverEventStream")) {
+      EventStreamAdapter(
         eventstream = get<Eventstream>(named(EVENT_STREAM_NAME)),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
+        catalogName = "artifact_sync_m2_cleanup",
       )
     }
 
@@ -40,7 +40,10 @@ fun artifactRemoverModules(application: KoinApplication, config: ArtifactRemover
     }
 
     single<ArtifactRemover> {
-      ArtifactRemover(artifactEventStream = get(), artifactRepository = get())
+      ArtifactRemover(
+        artifactEventStream = get(named("artifactRemoverEventStream")),
+        artifactRepository = get(),
+      )
     }
   }
 }

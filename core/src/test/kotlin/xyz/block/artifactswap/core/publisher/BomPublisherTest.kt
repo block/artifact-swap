@@ -10,16 +10,18 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import retrofit2.Response
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
 import xyz.block.artifactswap.core.maven.Metadata
 import xyz.block.artifactswap.core.maven.Versioning
 import xyz.block.artifactswap.core.maven.Versions
+import xyz.block.artifactswap.core.publisher.models.BomPublishingEvent
 import xyz.block.artifactswap.core.publisher.models.BomPublishingResult
 
 class BomPublisherTest {
 
   private lateinit var fakeHashReader: FakeProjectHashReader
   private lateinit var fakeArtifactoryEndpoints: FakeArtifactoryEndpoints
-  private lateinit var fakeEventStream: FakeBomPublisherEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var bomPublisher: BomPublisher
 
   private val testCiMetadata =
@@ -37,7 +39,7 @@ class BomPublisherTest {
   fun setUp() {
     fakeHashReader = FakeProjectHashReader()
     fakeArtifactoryEndpoints = FakeArtifactoryEndpoints()
-    fakeEventStream = FakeBomPublisherEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     bomPublisher =
       BomPublisher(
         projectHashReader = fakeHashReader,
@@ -309,8 +311,8 @@ class BomPublisherTest {
         )
       bomPublisher.logResult(result)
 
-      assertEquals(1, fakeEventStream.receivedResults.size)
-      val receivedResult = fakeEventStream.receivedResults.first()
+      assertEquals(1, fakeEventStream.receivedEvents.size)
+      val receivedResult = fakeEventStream.receivedEvents.first() as BomPublishingEvent
       assertTrue(
         receivedResult.result in
           listOf(

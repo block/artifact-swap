@@ -12,14 +12,16 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import xyz.block.artifactswap.core.download.FakeGradleProjectsProvider
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
 import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
+import xyz.block.artifactswap.core.hashing.models.HashingExecutionEvent
 
 class ProjectHashServiceTest {
 
   @TempDir lateinit var tempDir: File
 
   private lateinit var fakeGradleProjectsProvider: FakeGradleProjectsProvider
-  private lateinit var fakeEventStream: FakeHashingEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var projectHashService: ProjectHashService
 
   private val testCiMetadata =
@@ -36,7 +38,7 @@ class ProjectHashServiceTest {
   @BeforeEach
   fun setUp() {
     fakeGradleProjectsProvider = FakeGradleProjectsProvider()
-    fakeEventStream = FakeHashingEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     projectHashService =
       ProjectHashService(
         gradleProjectsProvider = fakeGradleProjectsProvider,
@@ -202,8 +204,8 @@ class ProjectHashServiceTest {
       )
     projectHashService.logResult(result)
 
-    assertEquals(1, fakeEventStream.receivedResults.size)
-    val receivedResult = fakeEventStream.receivedResults.first()
+    assertEquals(1, fakeEventStream.receivedEvents.size)
+    val receivedResult = fakeEventStream.receivedEvents.first() as HashingExecutionEvent
     assertEquals(0, receivedResult.countProjectsHashed)
   }
 

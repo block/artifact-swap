@@ -6,12 +6,11 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.publisher.BomPublisher
-import xyz.block.artifactswap.core.publisher.services.BomPublisherEventStream
 import xyz.block.artifactswap.core.publisher.services.ProjectHashReader
-import xyz.block.artifactswap.core.publisher.services.RealBomPublisherEventStream
 import xyz.block.artifactswap.core.publisher.services.RealProjectHashReader
 
 // Extension properties for accessing common values from KoinApplication
@@ -27,10 +26,11 @@ fun bomPublisherModules(application: KoinApplication, config: BomPublisherConfig
   return module {
     single<ProjectHashReader> { RealProjectHashReader() }
 
-    single<BomPublisherEventStream> {
-      RealBomPublisherEventStream(
+    single<EventStreamAdapter>(named("bomPublisherEventStream")) {
+      EventStreamAdapter(
         eventstream = get<Eventstream>(named(EVENT_STREAM_NAME)),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
+        catalogName = "artifact_sync_bom_publishing",
       )
     }
 
@@ -38,7 +38,7 @@ fun bomPublisherModules(application: KoinApplication, config: BomPublisherConfig
       BomPublisher(
         projectHashReader = get(),
         artifactoryEndpoints = get<ArtifactoryEndpoints>(),
-        eventStream = get(),
+        eventStream = get(named("bomPublisherEventStream")),
         config = get<ArtifactSwapConfig>(),
         dryRun = config.dryRun,
       )

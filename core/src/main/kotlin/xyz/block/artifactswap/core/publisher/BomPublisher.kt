@@ -10,6 +10,7 @@ import kotlinx.coroutines.coroutineScope
 import org.apache.logging.log4j.kotlin.logger
 import retrofit2.Response
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.maven.Dependencies
 import xyz.block.artifactswap.core.maven.Dependency
 import xyz.block.artifactswap.core.maven.DependencyManagement
@@ -20,14 +21,14 @@ import xyz.block.artifactswap.core.maven.Versions
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.publisher.models.BomPublisherResult
 import xyz.block.artifactswap.core.publisher.models.BomPublishingResult
-import xyz.block.artifactswap.core.publisher.services.BomPublisherEventStream
+import xyz.block.artifactswap.core.publisher.models.toEvent
 import xyz.block.artifactswap.core.publisher.services.ProjectHashReader
 
 /** Service for publishing BOM (Bill of Materials) to Artifactory. */
 class BomPublisher(
   private val projectHashReader: ProjectHashReader,
   private val artifactoryEndpoints: ArtifactoryEndpoints,
-  private val eventStream: BomPublisherEventStream,
+  private val eventStream: EventStreamAdapter,
   private val config: ArtifactSwapConfig,
   private val dryRun: Boolean = false,
 ) {
@@ -157,7 +158,7 @@ class BomPublisher(
 
   /** Logs the result to the event stream. */
   suspend fun logResult(result: BomPublisherResult) {
-    eventStream.sendResults(listOf(result))
+    eventStream.sendEvents(listOf(result.toEvent()))
   }
 
   private suspend fun fetchPublishedDependencies(

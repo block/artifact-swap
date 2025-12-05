@@ -17,14 +17,16 @@ import org.mockito.kotlin.mock
 import picocli.CommandLine
 import retrofit2.Response
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
 import xyz.block.artifactswap.core.maven.Metadata
 import xyz.block.artifactswap.core.maven.Versioning
 import xyz.block.artifactswap.core.maven.Versions
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
+import xyz.block.artifactswap.core.publisher.models.BomPublishingEvent
 import xyz.block.artifactswap.core.publisher.models.BomPublishingResult
-import xyz.block.artifactswap.core.publisher.services.BomPublisherEventStream
 import xyz.block.artifactswap.core.publisher.services.ProjectHashReader
 
 /**
@@ -35,14 +37,14 @@ class BomPublishingCommandTest {
 
   @TempDir lateinit var tempDir: File
 
-  private lateinit var fakeEventStream: FakeBomPublisherEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var fakeArtifactoryEndpoints: FakeArtifactoryEndpoints
   private lateinit var fakeHashReader: FakeProjectHashReader
   private lateinit var commandLine: CommandLine
 
   @BeforeEach
   fun setUp() {
-    fakeEventStream = FakeBomPublisherEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     fakeArtifactoryEndpoints = FakeArtifactoryEndpoints()
     fakeHashReader = FakeProjectHashReader()
     commandLine = CommandLine(BomPublishingCommand())
@@ -103,7 +105,7 @@ class BomPublishingCommandTest {
       command.init(testApplication)
       testApplication.modules(
         module {
-          single<BomPublisherEventStream> { fakeEventStream }
+          single<EventStreamAdapter>(named("bomPublisherEventStream")) { fakeEventStream }
           single<ProjectHashReader> { fakeHashReader }
         }
       )
@@ -111,8 +113,8 @@ class BomPublishingCommandTest {
       command.executeCommand(testApplication)
 
       // Verify that the publisher was called and completed successfully
-      assertEquals(1, fakeEventStream.receivedResults.size)
-      val result = fakeEventStream.receivedResults.first()
+      assertEquals(1, fakeEventStream.receivedEvents.size)
+      val result = fakeEventStream.receivedEvents.first() as BomPublishingEvent
       assertTrue(
         result.result in
           listOf(
@@ -182,12 +184,15 @@ class BomPublishingCommandTest {
       command.init(testApplication)
       testApplication.modules(
         module {
-          single<BomPublisherEventStream> { fakeEventStream }
+          single<EventStreamAdapter>(named("bomPublisherEventStream")) { fakeEventStream }
           single<ProjectHashReader> { fakeHashReader }
         }
       )
 
       command.executeCommand(testApplication)
+
+      // Verify events were logged
+      assertEquals(1, fakeEventStream.receivedEvents.size)
 
       // Verify the published BOM
       assertEquals(1, fakeArtifactoryEndpoints.pushedPoms.size)

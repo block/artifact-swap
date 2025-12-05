@@ -9,13 +9,14 @@ import org.apache.logging.log4j.kotlin.logger
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.task_finder.models.TaskFinderResult
 import xyz.block.artifactswap.core.task_finder.models.TaskFinderServiceResult
-import xyz.block.artifactswap.core.task_finder.services.TaskFinderEventStream
+import xyz.block.artifactswap.core.task_finder.models.toEvent
 
 /** Service for finding Gradle tasks across all projects. */
 class TaskFinderService(
-  private val eventStream: TaskFinderEventStream,
+  private val eventStream: EventStreamAdapter,
   private val ioDispatcher: CoroutineDispatcher,
 ) {
   /**
@@ -103,7 +104,7 @@ class TaskFinderService(
 
   /** Logs the result to the event stream. */
   suspend fun logResult(result: TaskFinderServiceResult) {
-    eventStream.sendResults(listOf(result))
+    eventStream.sendEvents(listOf(result.toEvent()))
   }
 
   /** Recursively collects all tasks from a Gradle project and its children. */

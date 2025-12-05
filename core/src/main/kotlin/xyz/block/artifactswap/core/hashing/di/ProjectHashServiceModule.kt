@@ -7,12 +7,11 @@ import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.GradleToolingHashingProjectsProvider
 import xyz.block.artifactswap.core.hashing.ProjectHashService
-import xyz.block.artifactswap.core.hashing.services.HashingEventStream
-import xyz.block.artifactswap.core.hashing.services.RealHashingEventStream
 
 // Extension properties for accessing common values from KoinApplication
 val KoinApplication.ioDispatcher: kotlinx.coroutines.CoroutineDispatcher
@@ -33,10 +32,11 @@ fun projectHashServiceModules(
   config: ProjectHashServiceConfig,
 ): Module {
   return module {
-    single<HashingEventStream> {
-      RealHashingEventStream(
+    single<EventStreamAdapter>(named("hashingEventStream")) {
+      EventStreamAdapter(
         eventstream = get<Eventstream>(named(EVENT_STREAM_NAME)),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
+        catalogName = "artifact_sync_hashing",
       )
     }
 
@@ -55,7 +55,7 @@ fun projectHashServiceModules(
     single<ProjectHashService> {
       ProjectHashService(
         gradleProjectsProvider = get<GradleProjectsProvider>(),
-        eventStream = get(),
+        eventStream = get(named("hashingEventStream")),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
         defaultDispatcher = get<CoroutineDispatcher>(named("Default")),
       )

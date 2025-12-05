@@ -14,16 +14,16 @@ import xyz.block.artifactswap.core.download.models.ArtifactDownloaderEvent
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult
 import xyz.block.artifactswap.core.download.models.DownloadFileType
 import xyz.block.artifactswap.core.download.models.LocalArtifactState.NOT_INSTALLED
-import xyz.block.artifactswap.core.download.services.ArtifactDownloaderEventStream
 import xyz.block.artifactswap.core.download.services.ArtifactRepository
 import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
 import xyz.block.artifactswap.core.utils.inWholeMillisecondsIfFinite
 
 class ArtifactDownloader(
   val bomLoader: ArtifactSyncBomLoader,
-  val artifactEventStream: ArtifactDownloaderEventStream,
+  val artifactEventStream: EventStreamAdapter,
   val artifactRepository: ArtifactRepository,
   val settingsGradleProjectsProvider: GradleProjectsProvider,
   val gradlePropertiesProvider: GradlePropertiesProvider,

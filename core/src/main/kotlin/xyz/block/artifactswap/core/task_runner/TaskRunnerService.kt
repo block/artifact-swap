@@ -10,13 +10,14 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.task_runner.models.TaskRunnerResult
 import xyz.block.artifactswap.core.task_runner.models.TaskRunnerServiceResult
-import xyz.block.artifactswap.core.task_runner.services.TaskRunnerEventStream
+import xyz.block.artifactswap.core.task_runner.models.toEvent
 
 /** Service for running Gradle tasks and tracking their execution. */
 class TaskRunnerService(
-  private val eventStream: TaskRunnerEventStream,
+  private val eventStream: EventStreamAdapter,
   private val ioDispatcher: CoroutineDispatcher,
 ) {
   companion object {
@@ -141,7 +142,7 @@ class TaskRunnerService(
 
   /** Logs the result to the event stream. */
   suspend fun logResult(result: TaskRunnerServiceResult) {
-    eventStream.sendResults(listOf(result))
+    eventStream.sendEvents(listOf(result.toEvent()))
   }
 }
 

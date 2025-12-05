@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.core.download.di
+package xyz.block.artifactswap.cli.di
 
 import java.nio.file.Path
 import java.util.Properties
@@ -9,14 +9,13 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.download.ArtifactDownloader
-import xyz.block.artifactswap.core.download.services.ArtifactDownloaderEventStream
 import xyz.block.artifactswap.core.download.services.ArtifactRepository
 import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
 import xyz.block.artifactswap.core.download.services.RealArtifactRepository
 import xyz.block.artifactswap.core.download.services.RealArtifactSyncBomLoader
-import xyz.block.artifactswap.core.download.services.RealEventStream
 import xyz.block.artifactswap.core.download.services.RealSquareGit
 import xyz.block.artifactswap.core.download.services.SquareGit
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
@@ -24,16 +23,6 @@ import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
 import xyz.block.artifactswap.core.gradle.RealGradlePropertiesProvider
 import xyz.block.artifactswap.core.gradle.SettingsGradleHashingProjectsProvider
 import xyz.block.artifactswap.core.network.ArtifactoryService
-
-// Extension properties for accessing common values from KoinApplication
-// These can be provided by the CLI or test modules
-val KoinApplication.directory: Path
-  get() = koin.get(named("directory"))
-
-val KoinApplication.ioDispatcher: CoroutineDispatcher
-  get() = koin.get(named("IO"))
-
-internal const val EVENT_STREAM_NAME = "analyticsModuleEventStream"
 
 /** Configuration options for the artifact downloader module. */
 data class ArtifactDownloaderConfig(
@@ -47,10 +36,11 @@ fun artifactDownloaderModules(
   config: ArtifactDownloaderConfig,
 ): Module {
   return module {
-    single<ArtifactDownloaderEventStream> {
-      RealEventStream(
+    single<EventStreamAdapter>(named("artifactDownloaderEventStream")) {
+      EventStreamAdapter(
         eventstream = get<Eventstream>(named(EVENT_STREAM_NAME)),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
+        catalogName = "artifact_sync_artifact_downloader",
       )
     }
     single<ArtifactRepository> {
@@ -97,7 +87,7 @@ fun artifactDownloaderModules(
     single<ArtifactDownloader> {
       ArtifactDownloader(
         bomLoader = get(),
-        artifactEventStream = get(),
+        artifactEventStream = get(named("artifactDownloaderEventStream")),
         artifactRepository = get(),
         settingsGradleProjectsProvider = get(),
         gradlePropertiesProvider = get(),

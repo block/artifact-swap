@@ -5,8 +5,7 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import xyz.block.artifactswap.core.artifact_checker.ArtifactCheckerService
-import xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream
-import xyz.block.artifactswap.core.artifact_checker.services.RealArtifactCheckerEventStream
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 
 /** Configuration for ArtifactCheckerService module. */
@@ -18,17 +17,18 @@ fun artifactCheckerServiceModules(
   config: ArtifactCheckerServiceConfig,
 ): Module {
   return module {
-    single<ArtifactCheckerEventStream> {
-      RealArtifactCheckerEventStream(
+    single<EventStreamAdapter>(named("artifactCheckerEventStream")) {
+      EventStreamAdapter(
         eventstream = get<Eventstream>(named("analyticsModuleEventStream")),
         ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
+        catalogName = "artifact_sync_artifact_checker",
       )
     }
 
     single {
       ArtifactCheckerService(
         artifactoryService = get(),
-        eventStream = get(),
+        eventStream = get(named("artifactCheckerEventStream")),
         ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
       )
     }

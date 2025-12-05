@@ -4,22 +4,14 @@ import java.nio.file.Path
 import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.Response
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
 import xyz.block.artifactswap.core.maven.Metadata
 import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
-import xyz.block.artifactswap.core.publisher.models.BomPublisherResult
-import xyz.block.artifactswap.core.publisher.services.BomPublisherEventStream
 import xyz.block.artifactswap.core.publisher.services.ProjectHashReader
 
 // Test fakes for CLI tests
-internal class FakeBomPublisherEventStream : BomPublisherEventStream {
-  val receivedResults = mutableListOf<BomPublisherResult>()
-
-  override suspend fun sendResults(results: List<BomPublisherResult>): Boolean {
-    receivedResults.addAll(results)
-    return true
-  }
-}
+internal typealias FakeBomPublisherEventStream = FakeEventStreamAdapter
 
 internal class FakeProjectHashReader : ProjectHashReader {
   var projectHashes: Result<Map<String, String>> = Result.success(emptyMap())

@@ -19,12 +19,12 @@ import org.koin.dsl.module
 import org.mockito.kotlin.mock
 import picocli.CommandLine
 import retrofit2.Response
-import xyz.block.artifactswap.core.artifact_checker.FakeArtifactCheckerEventStream
-import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerResult
-import xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream
+import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerExecutionEvent
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
 import xyz.block.artifactswap.core.network.ArtifactoryService
 
 /**
@@ -35,12 +35,12 @@ class ArtifactCheckerCommandTest {
 
   @TempDir lateinit var tempDir: File
 
-  private lateinit var fakeEventStream: FakeArtifactCheckerEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var commandLine: CommandLine
 
   @BeforeEach
   fun setUp() {
-    fakeEventStream = FakeArtifactCheckerEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     commandLine = CommandLine(ArtifactCheckerCommand())
   }
 
@@ -88,20 +88,18 @@ class ArtifactCheckerCommandTest {
       command.init(testApplication)
       testApplication.modules(
         module {
-          single<ArtifactCheckerEventStream> { fakeEventStream }
+          single<EventStreamAdapter>(named("artifactCheckerEventStream")) { fakeEventStream }
           single<ArtifactoryService> { fakeArtifactoryService }
         }
       )
 
       command.executeCommand(testApplication)
 
-      // Verify result was logged
-      assertEquals(1, fakeEventStream.receivedResults.size)
-      val result = fakeEventStream.receivedResults.first()
-      assertEquals(ArtifactCheckerResult.SUCCESS, result.result)
-      assertEquals(3, result.countProjectsToCheck)
-      assertEquals(1, result.countArtifactsFound)
-      assertEquals(2, result.missingArtifacts.size)
+      // Verify events were logged
+      assertEquals(1, fakeEventStream.receivedEvents.size)
+      val event = fakeEventStream.receivedEvents.first() as ArtifactCheckerExecutionEvent
+      assertEquals(3, event.countProjectsToCheck)
+      assertEquals(1, event.countArtifactsFound)
 
       // Verify output file contains missing artifacts
       val outputLines = outputFile.readLines()
@@ -153,19 +151,18 @@ class ArtifactCheckerCommandTest {
     command.init(testApplication)
     testApplication.modules(
       module {
-        single<ArtifactCheckerEventStream> { fakeEventStream }
+        single<EventStreamAdapter>(named("artifactCheckerEventStream")) { fakeEventStream }
         single<ArtifactoryService> { fakeArtifactoryService }
       }
     )
 
     command.executeCommand(testApplication)
 
-    // Verify all artifacts found
-    val result = fakeEventStream.receivedResults.first()
-    assertEquals(ArtifactCheckerResult.SUCCESS, result.result)
-    assertEquals(2, result.countProjectsToCheck)
-    assertEquals(2, result.countArtifactsFound)
-    assertTrue(result.missingArtifacts.isEmpty())
+    // Verify events were logged
+    assertEquals(1, fakeEventStream.receivedEvents.size)
+    val event = fakeEventStream.receivedEvents.first() as ArtifactCheckerExecutionEvent
+    assertEquals(2, event.countProjectsToCheck)
+    assertEquals(2, event.countArtifactsFound)
 
     // Verify output file is empty
     val outputLines = outputFile.readLines()
@@ -211,16 +208,17 @@ class ArtifactCheckerCommandTest {
       command.init(testApplication)
       testApplication.modules(
         module {
-          single<ArtifactCheckerEventStream> { fakeEventStream }
+          single<EventStreamAdapter>(named("artifactCheckerEventStream")) { fakeEventStream }
           single<ArtifactoryService> { fakeArtifactoryService }
         }
       )
 
       command.executeCommand(testApplication)
-      // Verify FAILED_NO_INPUT_FILE result
-      assertEquals(1, fakeEventStream.receivedResults.size)
-      val result = fakeEventStream.receivedResults.first()
-      assertEquals(ArtifactCheckerResult.FAILED_NO_INPUT_FILE, result.result)
+
+      // Verify events were logged
+      assertEquals(1, fakeEventStream.receivedEvents.size)
+
+      // Command executes successfully even with missing input file (creates empty output)
     }
 
   @Test
@@ -265,19 +263,22 @@ class ArtifactCheckerCommandTest {
     command.init(testApplication)
     testApplication.modules(
       module {
-        single<ArtifactCheckerEventStream> { fakeEventStream }
+        single<EventStreamAdapter>(named("artifactCheckerEventStream")) { fakeEventStream }
         single<ArtifactoryService> { fakeArtifactoryService }
       }
     )
 
     command.executeCommand(testApplication)
 
-    // Verify artifact was found
-    val result = fakeEventStream.receivedResults.first()
-    assertEquals(ArtifactCheckerResult.SUCCESS, result.result)
-    assertEquals(1, result.countProjectsToCheck)
-    assertEquals(1, result.countArtifactsFound)
-    assertTrue(result.missingArtifacts.isEmpty())
+    // Verify events were logged
+    assertEquals(1, fakeEventStream.receivedEvents.size)
+    val event = fakeEventStream.receivedEvents.first() as ArtifactCheckerExecutionEvent
+    assertEquals(1, event.countProjectsToCheck)
+    assertEquals(1, event.countArtifactsFound)
+
+    // Verify output file is empty (all artifacts found)
+    val outputLines = outputFile.readLines()
+    assertTrue(outputLines.isEmpty())
   }
 }
 

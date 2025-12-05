@@ -17,12 +17,13 @@ import org.koin.dsl.module
 import org.mockito.kotlin.mock
 import picocli.CommandLine
 import xyz.block.artifactswap.core.download.FakeGradleProjectsProvider
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
-import xyz.block.artifactswap.core.hashing.FakeHashingEventStream
-import xyz.block.artifactswap.core.hashing.services.HashingEventStream
+import xyz.block.artifactswap.core.hashing.models.HashingExecutionEvent
 
 /**
  * Integration tests for the CLI command that verify picocli argument parsing and proper wiring with
@@ -32,13 +33,13 @@ class HashingCommandTest {
 
   @TempDir lateinit var tempDir: File
 
-  private lateinit var fakeEventStream: FakeHashingEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var fakeGradleProjectsProvider: FakeGradleProjectsProvider
   private lateinit var commandLine: CommandLine
 
   @BeforeEach
   fun setUp() {
-    fakeEventStream = FakeHashingEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     fakeGradleProjectsProvider = FakeGradleProjectsProvider()
     commandLine = CommandLine(HashingCommand())
   }
@@ -80,7 +81,7 @@ class HashingCommandTest {
     command.init(testApplication)
     testApplication.modules(
       module {
-        single<HashingEventStream> { fakeEventStream }
+        single<EventStreamAdapter>(named("hashingEventStream")) { fakeEventStream }
         single<GradleProjectsProvider> { fakeGradleProjectsProvider }
       }
     )
@@ -88,8 +89,8 @@ class HashingCommandTest {
     command.executeCommand(testApplication)
 
     // Verify that the hashing was called and completed successfully
-    assertEquals(1, fakeEventStream.receivedResults.size)
-    val result = fakeEventStream.receivedResults.first()
+    assertEquals(1, fakeEventStream.receivedEvents.size)
+    val result = fakeEventStream.receivedEvents.first() as HashingExecutionEvent
     assertEquals(1, result.countProjectsHashed)
     assertEquals(1, result.countFilesHashed)
 
@@ -148,12 +149,15 @@ class HashingCommandTest {
       command.init(testApplication)
       testApplication.modules(
         module {
-          single<HashingEventStream> { fakeEventStream }
+          single<EventStreamAdapter>(named("hashingEventStream")) { fakeEventStream }
           single<GradleProjectsProvider> { fakeGradleProjectsProvider }
         }
       )
 
       command.executeCommand(testApplication)
+
+      // Verify events were logged
+      assertEquals(1, fakeEventStream.receivedEvents.size)
 
       // Verify output file content
       val lines = hashingOutputFile.readLines()
@@ -213,15 +217,18 @@ class HashingCommandTest {
     command.init(testApplication)
     testApplication.modules(
       module {
-        single<HashingEventStream> { fakeEventStream }
+        single<EventStreamAdapter>(named("hashingEventStream")) { fakeEventStream }
         single<GradleProjectsProvider> { fakeGradleProjectsProvider }
       }
     )
 
     command.executeCommand(testApplication)
 
-    // Verify only one project was hashed
-    assertEquals(1, fakeEventStream.receivedResults.first().countProjectsHashed)
+    // Verify events were logged
+    assertEquals(1, fakeEventStream.receivedEvents.size)
+    val result = fakeEventStream.receivedEvents.first() as HashingExecutionEvent
+    assertEquals(1, result.countProjectsHashed)
+
     val lines = hashingOutputFile.readLines()
     assertEquals(1, lines.size)
     assertTrue(lines.first().startsWith(":project1|"))

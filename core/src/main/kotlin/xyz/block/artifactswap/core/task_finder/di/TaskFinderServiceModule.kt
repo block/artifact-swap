@@ -4,10 +4,9 @@ import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.task_finder.TaskFinderService
-import xyz.block.artifactswap.core.task_finder.services.RealTaskFinderEventStream
-import xyz.block.artifactswap.core.task_finder.services.TaskFinderEventStream
 
 /** Configuration for TaskFinderService module. */
 data class TaskFinderServiceConfig(val placeholder: Boolean = false)
@@ -18,16 +17,17 @@ fun taskFinderServiceModules(
   config: TaskFinderServiceConfig,
 ): Module {
   return module {
-    single<TaskFinderEventStream> {
-      RealTaskFinderEventStream(
+    single<EventStreamAdapter>(named("taskFinderEventStream")) {
+      EventStreamAdapter(
         eventstream = get<Eventstream>(named("analyticsModuleEventStream")),
         ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
+        catalogName = "artifact_sync_task_finder",
       )
     }
 
     single {
       TaskFinderService(
-        eventStream = get(),
+        eventStream = get(named("taskFinderEventStream")),
         ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
       )
     }

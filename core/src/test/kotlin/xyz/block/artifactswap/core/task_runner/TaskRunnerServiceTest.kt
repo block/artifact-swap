@@ -11,13 +11,15 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
+import xyz.block.artifactswap.core.task_runner.models.TaskRunnerExecutionEvent
 import xyz.block.artifactswap.core.task_runner.models.TaskRunnerResult
 
 class TaskRunnerServiceTest {
 
   @TempDir lateinit var tempDir: File
 
-  private lateinit var fakeEventStream: FakeTaskRunnerEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var taskRunnerService: TaskRunnerService
 
   private val testCiMetadata =
@@ -33,7 +35,7 @@ class TaskRunnerServiceTest {
 
   @BeforeEach
   fun setUp() {
-    fakeEventStream = FakeTaskRunnerEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     taskRunnerService =
       TaskRunnerService(eventStream = fakeEventStream, ioDispatcher = Dispatchers.Unconfined)
   }
@@ -114,8 +116,8 @@ class TaskRunnerServiceTest {
 
       taskRunnerService.logResult(result)
 
-      assertEquals(1, fakeEventStream.receivedResults.size)
-      val receivedResult = fakeEventStream.receivedResults.first()
+      assertEquals(1, fakeEventStream.receivedEvents.size)
+      val receivedResult = fakeEventStream.receivedEvents.first() as TaskRunnerExecutionEvent
       assertEquals(TaskRunnerResult.SUCCESS, receivedResult.result)
       assertEquals(1, receivedResult.countTasksToRun)
     }

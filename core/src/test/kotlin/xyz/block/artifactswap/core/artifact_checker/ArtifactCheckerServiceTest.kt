@@ -6,11 +6,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerExecutionEvent
 import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerResult
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
 
 class ArtifactCheckerServiceTest {
 
-  private lateinit var fakeEventStream: FakeArtifactCheckerEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var artifactCheckerService: ArtifactCheckerService
 
   private val testCiMetadata =
@@ -26,7 +28,7 @@ class ArtifactCheckerServiceTest {
 
   @BeforeEach
   fun setUp() {
-    fakeEventStream = FakeArtifactCheckerEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
   }
 
   private fun createServiceWith(
@@ -143,8 +145,8 @@ class ArtifactCheckerServiceTest {
 
     artifactCheckerService.logResult(result)
 
-    assertEquals(1, fakeEventStream.receivedResults.size)
-    val receivedResult = fakeEventStream.receivedResults.first()
+    assertEquals(1, fakeEventStream.receivedEvents.size)
+    val receivedResult = fakeEventStream.receivedEvents.first() as ArtifactCheckerExecutionEvent
     assertEquals(ArtifactCheckerResult.SUCCESS, receivedResult.result)
     assertEquals(1, receivedResult.countProjectsToCheck)
     assertEquals(1, receivedResult.countArtifactsFound)

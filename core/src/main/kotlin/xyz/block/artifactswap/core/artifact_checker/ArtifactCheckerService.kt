@@ -10,13 +10,14 @@ import kotlinx.coroutines.launch
 import org.apache.logging.log4j.kotlin.logger
 import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerResult
 import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerServiceResult
-import xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream
+import xyz.block.artifactswap.core.artifact_checker.models.toEvent
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.network.ArtifactoryService
 
 /** Service for checking if artifacts exist in Artifactory. */
 class ArtifactCheckerService(
   private val artifactoryService: ArtifactoryService,
-  private val eventStream: ArtifactCheckerEventStream,
+  private val eventStream: EventStreamAdapter,
   private val ioDispatcher: CoroutineDispatcher,
 ) {
   /**
@@ -79,7 +80,7 @@ class ArtifactCheckerService(
 
   /** Logs the result to the event stream. */
   suspend fun logResult(result: ArtifactCheckerServiceResult) {
-    eventStream.sendResults(listOf(result))
+    eventStream.sendEvents(listOf(result.toEvent()))
   }
 
   /**

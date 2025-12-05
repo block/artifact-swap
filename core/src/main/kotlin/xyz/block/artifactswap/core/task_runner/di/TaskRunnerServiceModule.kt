@@ -4,10 +4,9 @@ import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.task_runner.TaskRunnerService
-import xyz.block.artifactswap.core.task_runner.services.RealTaskRunnerEventStream
-import xyz.block.artifactswap.core.task_runner.services.TaskRunnerEventStream
 
 /** Configuration for TaskRunnerService module. */
 data class TaskRunnerServiceConfig(val placeholder: Boolean = false)
@@ -18,16 +17,17 @@ fun taskRunnerServiceModules(
   config: TaskRunnerServiceConfig,
 ): Module {
   return module {
-    single<TaskRunnerEventStream> {
-      RealTaskRunnerEventStream(
+    single<EventStreamAdapter>(named("taskRunnerEventStream")) {
+      EventStreamAdapter(
         eventstream = get<Eventstream>(named("analyticsModuleEventStream")),
         ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
+        catalogName = "artifact_sync_task_runner",
       )
     }
 
     single {
       TaskRunnerService(
-        eventStream = get(),
+        eventStream = get(named("taskRunnerEventStream")),
         ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
       )
     }

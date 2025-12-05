@@ -7,19 +7,21 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
+import xyz.block.artifactswap.core.remover.models.ArtifactRemoverEvent
 import xyz.block.artifactswap.core.remover.models.ArtifactRemoverEventResult
 import xyz.block.artifactswap.core.remover.services.InstalledBom
 import xyz.block.artifactswap.core.remover.services.InstalledProject
 
 class ArtifactRemoverTest {
 
-  private lateinit var fakeEventStream: FakeArtifactRemoverEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var fakeRepository: FakeLocalArtifactRepository
   private lateinit var remover: ArtifactRemover
 
   @BeforeEach
   fun setUp() {
-    fakeEventStream = FakeArtifactRemoverEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     fakeRepository = FakeLocalArtifactRepository()
     remover =
       ArtifactRemover(artifactEventStream = fakeEventStream, artifactRepository = fakeRepository)
@@ -145,8 +147,8 @@ class ArtifactRemoverTest {
       val result = remover.removeArtifacts()
       remover.logResult(result)
 
-      assertEquals(1, fakeEventStream.receivedResults.size)
-      val receivedResult = fakeEventStream.receivedResults.first()
+      assertEquals(1, fakeEventStream.receivedEvents.size)
+      val receivedResult = fakeEventStream.receivedEvents.first() as ArtifactRemoverEvent
       assertEquals(ArtifactRemoverEventResult.SUCCESS, receivedResult.result)
     }
 

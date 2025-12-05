@@ -18,16 +18,17 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.logging.log4j.kotlin.logger
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
 import xyz.block.artifactswap.core.hashing.models.HashingServiceResult
 import xyz.block.artifactswap.core.hashing.models.ProjectHashingResult
-import xyz.block.artifactswap.core.hashing.services.HashingEventStream
+import xyz.block.artifactswap.core.hashing.models.toEvent
 
 /** Service for hashing Gradle project source files. */
 class ProjectHashService(
   private val gradleProjectsProvider: GradleProjectsProvider,
-  private val eventStream: HashingEventStream,
+  private val eventStream: EventStreamAdapter,
   private val ioDispatcher: CoroutineContext,
   private val defaultDispatcher: CoroutineDispatcher,
 ) {
@@ -120,7 +121,7 @@ class ProjectHashService(
 
   /** Logs the result to the event stream. */
   suspend fun logResult(result: HashingServiceResult) {
-    eventStream.sendResults(listOf(result))
+    eventStream.sendEvents(listOf(result.toEvent()))
   }
 
   private fun List<ProjectHashingInfo>.getHashFlow(

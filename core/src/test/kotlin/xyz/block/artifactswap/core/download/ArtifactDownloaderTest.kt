@@ -23,6 +23,7 @@ import xyz.block.artifactswap.core.download.models.DownloadFileType
 import xyz.block.artifactswap.core.download.models.InstallArtifactFilesResult
 import xyz.block.artifactswap.core.download.models.LocalArtifactState
 import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
 import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
@@ -32,7 +33,7 @@ class ArtifactDownloaderTest {
   @TempDir lateinit var tempDir: File
   val mockArtifactSyncBomLoader = mock<ArtifactSyncBomLoader>()
   lateinit var fakeArtifactRepository: FakeArtifactRepository
-  lateinit var fakeEventStream: FakeEventStream
+  lateinit var fakeEventStream: FakeEventStreamAdapter
   lateinit var projectsProvider: GradleProjectsProvider
   lateinit var propertiesProvider: GradlePropertiesProvider
   lateinit var downloader: ArtifactDownloader
@@ -41,7 +42,7 @@ class ArtifactDownloaderTest {
   @BeforeEach
   fun setUp() {
     fakeArtifactRepository = FakeArtifactRepository()
-    fakeEventStream = FakeEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     projectsProvider = FakeGradleProjectsProvider(emptyList())
     propertiesProvider = FakeGradlePropertiesProvider()
     downloader =

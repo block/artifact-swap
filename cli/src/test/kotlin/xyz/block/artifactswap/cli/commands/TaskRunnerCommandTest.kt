@@ -15,9 +15,11 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.mockito.kotlin.mock
 import picocli.CommandLine
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
-import xyz.block.artifactswap.core.task_runner.FakeTaskRunnerEventStream
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
+import xyz.block.artifactswap.core.task_runner.models.TaskRunnerExecutionEvent
 import xyz.block.artifactswap.core.task_runner.models.TaskRunnerResult
 
 /**
@@ -30,12 +32,12 @@ class TaskRunnerCommandTest {
 
   @TempDir lateinit var taskListDir: File
 
-  private lateinit var fakeEventStream: FakeTaskRunnerEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var commandLine: CommandLine
 
   @BeforeEach
   fun setUp() {
-    fakeEventStream = FakeTaskRunnerEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     commandLine = CommandLine(TaskRunnerCommand())
   }
 
@@ -76,18 +78,14 @@ class TaskRunnerCommandTest {
       )
       command.init(testApplication)
       testApplication.modules(
-        module {
-          single<xyz.block.artifactswap.core.task_runner.services.TaskRunnerEventStream> {
-            fakeEventStream
-          }
-        }
+        module { single<EventStreamAdapter>(named("taskRunnerEventStream")) { fakeEventStream } }
       )
 
       command.executeCommand(testApplication)
 
-      // Verify that the tasks were executed
-      assertEquals(1, fakeEventStream.receivedResults.size)
-      val result = fakeEventStream.receivedResults.first()
+      // Verify that the tasks were executed and events were logged
+      assertEquals(1, fakeEventStream.receivedEvents.size)
+      val result = fakeEventStream.receivedEvents.first() as TaskRunnerExecutionEvent
       assertEquals(TaskRunnerResult.SUCCESS, result.result)
       assertEquals(1, result.countTasksToRun)
     }
@@ -124,18 +122,14 @@ class TaskRunnerCommandTest {
     )
     command.init(testApplication)
     testApplication.modules(
-      module {
-        single<xyz.block.artifactswap.core.task_runner.services.TaskRunnerEventStream> {
-          fakeEventStream
-        }
-      }
+      module { single<EventStreamAdapter>(named("taskRunnerEventStream")) { fakeEventStream } }
     )
 
     command.executeCommand(testApplication)
 
-    // Verify NO_OP result for empty task list
-    assertEquals(1, fakeEventStream.receivedResults.size)
-    val result = fakeEventStream.receivedResults.first()
+    // Verify NO_OP result for empty task list and events were logged
+    assertEquals(1, fakeEventStream.receivedEvents.size)
+    val result = fakeEventStream.receivedEvents.first() as TaskRunnerExecutionEvent
     assertEquals(TaskRunnerResult.NO_OP, result.result)
     assertEquals(0, result.countTasksToRun)
   }
@@ -172,17 +166,14 @@ class TaskRunnerCommandTest {
     )
     command.init(testApplication)
     testApplication.modules(
-      module {
-        single<xyz.block.artifactswap.core.task_runner.services.TaskRunnerEventStream> {
-          fakeEventStream
-        }
-      }
+      module { single<EventStreamAdapter>(named("taskRunnerEventStream")) { fakeEventStream } }
     )
 
     command.executeCommand(testApplication)
 
-    // Verify multiple tasks were tracked
-    val result = fakeEventStream.receivedResults.first()
+    // Verify multiple tasks were tracked and events were logged
+    assertEquals(1, fakeEventStream.receivedEvents.size)
+    val result = fakeEventStream.receivedEvents.first() as TaskRunnerExecutionEvent
     assertEquals(TaskRunnerResult.SUCCESS, result.result)
     assertEquals(2, result.countTasksToRun)
     assertTrue(result.countTasksSucceeded >= 0)

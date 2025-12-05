@@ -15,14 +15,15 @@ import org.mockito.kotlin.wheneverBlocking
 import picocli.CommandLine
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.download.FakeArtifactRepository
-import xyz.block.artifactswap.core.download.FakeEventStream
 import xyz.block.artifactswap.core.download.FakeGradleProjectsProvider
 import xyz.block.artifactswap.core.download.FakeGradlePropertiesProvider
 import xyz.block.artifactswap.core.download.models.Artifact
+import xyz.block.artifactswap.core.download.models.ArtifactDownloaderEvent
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult
-import xyz.block.artifactswap.core.download.services.ArtifactDownloaderEventStream
 import xyz.block.artifactswap.core.download.services.ArtifactRepository
 import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
 
@@ -35,7 +36,7 @@ class ArtifactDownloaderCommandTest {
   @TempDir lateinit var tempDir: File
   val mockArtifactSyncBomLoader = mock<ArtifactSyncBomLoader>()
   lateinit var fakeArtifactRepository: FakeArtifactRepository
-  lateinit var fakeEventStream: FakeEventStream
+  lateinit var fakeEventStream: FakeEventStreamAdapter
   lateinit var projectsProvider: GradleProjectsProvider
   lateinit var propertiesProvider: GradlePropertiesProvider
   lateinit var commandLine: CommandLine
@@ -43,7 +44,7 @@ class ArtifactDownloaderCommandTest {
   @BeforeEach
   fun setUp() {
     fakeArtifactRepository = FakeArtifactRepository()
-    fakeEventStream = FakeEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     projectsProvider = FakeGradleProjectsProvider(emptyList())
     propertiesProvider = FakeGradlePropertiesProvider()
     commandLine = CommandLine(ArtifactDownloaderCommand())
@@ -80,7 +81,7 @@ class ArtifactDownloaderCommandTest {
           single<ArtifactSwapConfig> { ArtifactSwapConfig() }
           single<ArtifactSyncBomLoader> { mockArtifactSyncBomLoader }
           single<ArtifactRepository> { fakeArtifactRepository }
-          single<ArtifactDownloaderEventStream> { fakeEventStream }
+          single<EventStreamAdapter>(named("artifactDownloaderEventStream")) { fakeEventStream }
           single<GradleProjectsProvider> { projectsProvider }
           single<GradlePropertiesProvider> { propertiesProvider }
         }
@@ -90,7 +91,7 @@ class ArtifactDownloaderCommandTest {
 
       // Verify that the downloader was called and completed successfully
       assertEquals(1, fakeEventStream.receivedEvents.size)
-      val event = fakeEventStream.receivedEvents.first()
+      val event = fakeEventStream.receivedEvents.first() as ArtifactDownloaderEvent
       assertEquals(ArtifactDownloaderResult.SUCCESS, event.result)
     }
 
@@ -116,7 +117,7 @@ class ArtifactDownloaderCommandTest {
         single<ArtifactSwapConfig> { ArtifactSwapConfig() }
         single<ArtifactSyncBomLoader> { mockArtifactSyncBomLoader }
         single<ArtifactRepository> { fakeArtifactRepository }
-        single<ArtifactDownloaderEventStream> { fakeEventStream }
+        single<EventStreamAdapter>(named("artifactDownloaderEventStream")) { fakeEventStream }
         single<GradleProjectsProvider> { projectsProvider }
         single<GradlePropertiesProvider> { propertiesProvider }
       }
@@ -125,7 +126,7 @@ class ArtifactDownloaderCommandTest {
     command.executeCommand(testApplication)
 
     assertEquals(1, fakeEventStream.receivedEvents.size)
-    val event = fakeEventStream.receivedEvents.first()
+    val event = fakeEventStream.receivedEvents.first() as ArtifactDownloaderEvent
     assertEquals(ArtifactDownloaderResult.SUCCESS, event.result)
   }
 }

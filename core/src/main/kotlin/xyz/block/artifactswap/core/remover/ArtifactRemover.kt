@@ -9,17 +9,17 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import org.apache.logging.log4j.kotlin.logger
+import xyz.block.artifactswap.core.eventstream.EventStreamAdapter
 import xyz.block.artifactswap.core.remover.models.ArtifactRemoverEventResult
 import xyz.block.artifactswap.core.remover.models.ArtifactRemoverResult
 import xyz.block.artifactswap.core.remover.models.DeleteOldArtifactsResult
 import xyz.block.artifactswap.core.remover.models.DeleteOldBomsResult
-import xyz.block.artifactswap.core.remover.services.ArtifactRemoverEventStream
 import xyz.block.artifactswap.core.remover.services.InstalledBom
 import xyz.block.artifactswap.core.remover.services.InstalledProject
 import xyz.block.artifactswap.core.remover.services.LocalArtifactRepository
 
 class ArtifactRemover(
-  val artifactEventStream: ArtifactRemoverEventStream,
+  val artifactEventStream: EventStreamAdapter,
   val artifactRepository: LocalArtifactRepository,
 ) {
   companion object {
@@ -209,7 +209,7 @@ class ArtifactRemover(
   suspend fun logResult(analyticsEvent: ArtifactRemoverResult) {
     runCatching {
         logger.debug { "Sending event to eventstream: ${analyticsEvent.toArtifactRemoverEvent()}" }
-        val result = artifactEventStream.sendResults(listOf(analyticsEvent))
+        val result = artifactEventStream.sendEvents(listOf(analyticsEvent.toArtifactRemoverEvent()))
         if (result) {
           logger.debug { "Successfully sent event to eventstream" }
         } else {

@@ -11,13 +11,15 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import xyz.block.artifactswap.core.eventstream.FakeEventStreamAdapter
+import xyz.block.artifactswap.core.task_finder.models.TaskFinderExecutionEvent
 import xyz.block.artifactswap.core.task_finder.models.TaskFinderResult
 
 class TaskFinderServiceTest {
 
   @TempDir lateinit var tempDir: File
 
-  private lateinit var fakeEventStream: FakeTaskFinderEventStream
+  private lateinit var fakeEventStream: FakeEventStreamAdapter
   private lateinit var taskFinderService: TaskFinderService
 
   private val testCiMetadata =
@@ -33,7 +35,7 @@ class TaskFinderServiceTest {
 
   @BeforeEach
   fun setUp() {
-    fakeEventStream = FakeTaskFinderEventStream()
+    fakeEventStream = FakeEventStreamAdapter()
     taskFinderService =
       TaskFinderService(eventStream = fakeEventStream, ioDispatcher = Dispatchers.Unconfined)
   }
@@ -201,8 +203,8 @@ class TaskFinderServiceTest {
 
       taskFinderService.logResult(result.serviceResult)
 
-      assertEquals(1, fakeEventStream.receivedResults.size)
-      val receivedResult = fakeEventStream.receivedResults.first()
+      assertEquals(1, fakeEventStream.receivedEvents.size)
+      val receivedResult = fakeEventStream.receivedEvents.first() as TaskFinderExecutionEvent
       assertEquals(TaskFinderResult.SUCCESS, receivedResult.result)
       assertEquals(1, receivedResult.countTasksWithName)
     }
