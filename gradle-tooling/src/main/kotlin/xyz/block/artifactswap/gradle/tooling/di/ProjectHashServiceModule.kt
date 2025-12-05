@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.cli.di
+package xyz.block.artifactswap.gradle.tooling.di
 
 import java.nio.file.Path
 import kotlinx.coroutines.CoroutineDispatcher
@@ -9,10 +9,10 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
-import xyz.block.artifactswap.core.gradle.GradleToolingHashingProjectsProvider
 import xyz.block.artifactswap.core.hashing.ProjectHashService
 import xyz.block.artifactswap.core.hashing.services.HashingEventStream
 import xyz.block.artifactswap.core.hashing.services.RealHashingEventStream
+import xyz.block.artifactswap.gradle.tooling.GradleToolingHashingProjectsProvider
 
 /** Configuration options for the project hash service module. */
 data class ProjectHashServiceConfig(

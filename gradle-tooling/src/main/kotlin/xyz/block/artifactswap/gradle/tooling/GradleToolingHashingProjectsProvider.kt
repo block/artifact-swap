@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.core.gradle
+package xyz.block.artifactswap.gradle.tooling
 
 import java.io.File
 import java.nio.file.Path
@@ -9,6 +9,8 @@ import org.apache.logging.log4j.kotlin.logger
 import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.gradle.GradleBuild
+import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
+import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
 
 class GradleToolingHashingProjectsProvider(
   private val cancellationTokenSource: CancellationTokenSource,

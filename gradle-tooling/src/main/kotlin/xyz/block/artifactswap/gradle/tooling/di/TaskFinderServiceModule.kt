@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.cli.di
+package xyz.block.artifactswap.gradle.tooling.di
 
 import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.KoinApplication
@@ -6,9 +6,9 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import xyz.block.artifactswap.core.eventstream.Eventstream
-import xyz.block.artifactswap.core.task_finder.TaskFinderService
 import xyz.block.artifactswap.core.task_finder.services.RealTaskFinderEventStream
 import xyz.block.artifactswap.core.task_finder.services.TaskFinderEventStream
+import xyz.block.artifactswap.gradle.tooling.TaskFinderService
 
 /** Configuration for TaskFinderService module. */
 data class TaskFinderServiceConfig(val placeholder: Boolean = false)

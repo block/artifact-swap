@@ -5,7 +5,6 @@ plugins {
 
 dependencies {
   // API - exposed to consumers
-  api(libs.gradle.tooling.api)
   api(libs.jackson.databind)
   api(libs.jackson.dataformat.xml)
   api(libs.jgit.core)
