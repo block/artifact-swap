@@ -15,9 +15,9 @@ import xyz.block.artifactswap.cli.options.CiConfigurationOptions
 import xyz.block.artifactswap.cli.options.HashingOptions
 import xyz.block.artifactswap.core.hashing.CiMetadata
 import xyz.block.artifactswap.core.hashing.ProjectHashService
-import xyz.block.artifactswap.core.hashing.di.ProjectHashServiceConfig
-import xyz.block.artifactswap.core.hashing.di.projectHashService
-import xyz.block.artifactswap.core.hashing.di.projectHashServiceModules
+import xyz.block.artifactswap.gradle.tooling.di.ProjectHashServiceConfig
+import xyz.block.artifactswap.gradle.tooling.di.projectHashService
+import xyz.block.artifactswap.gradle.tooling.di.projectHashServiceModules
 
 @CommandLine.Command(
   name = "hashing",

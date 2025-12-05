@@ -4,11 +4,11 @@ import org.koin.core.KoinApplication
 import picocli.CommandLine
 import picocli.CommandLine.Mixin
 import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
+import xyz.block.artifactswap.cli.di.ArtifactRemoverConfig
+import xyz.block.artifactswap.cli.di.artifactRemover
+import xyz.block.artifactswap.cli.di.artifactRemoverModules
 import xyz.block.artifactswap.cli.options.ArtifactRemoverOptions
 import xyz.block.artifactswap.core.remover.ArtifactRemover
-import xyz.block.artifactswap.core.remover.di.ArtifactRemoverConfig
-import xyz.block.artifactswap.core.remover.di.artifactRemover
-import xyz.block.artifactswap.core.remover.di.artifactRemoverModules
 
 @CommandLine.Command(
   name = "artifact-remover",

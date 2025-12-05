@@ -15,7 +15,6 @@ import okhttp3.Dispatcher
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.slf4j.LoggerFactory
@@ -143,8 +142,6 @@ internal fun artifactoryNetworkModule() = module {
   single(named("artifactorySecretsPath")) { System.getenv("SECRETS_PATH") }
 }
 
-const val EVENT_STREAM_NAME = "analyticsModuleEventStream"
-
 internal fun analyticsNetworkModule() = module {
   single<EventstreamService> {
     val config = get<ArtifactSwapConfig>()
@@ -163,16 +160,5 @@ internal fun analyticsNetworkModule() = module {
       .create<EventstreamService>()
   }
 
-  single<Eventstream>(named(EVENT_STREAM_NAME)) {
-    Eventstream(eventstreamService = get<EventstreamService>())
-  }
+  single<Eventstream> { Eventstream(eventstreamService = get<EventstreamService>()) }
 }
-
-val KoinApplication.artifactoryService: ArtifactoryService
-  get() = koin.get()
-
-val KoinApplication.artifactoryEndpoints: ArtifactoryEndpoints
-  get() = koin.get()
-
-val KoinApplication.eventStream: Eventstream
-  get() = koin.get(named(EVENT_STREAM_NAME))

@@ -5,11 +5,11 @@ import org.koin.core.KoinApplication
 import picocli.CommandLine
 import picocli.CommandLine.Mixin
 import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
+import xyz.block.artifactswap.cli.di.ArtifactDownloaderConfig
+import xyz.block.artifactswap.cli.di.artifactDownloader
+import xyz.block.artifactswap.cli.di.artifactDownloaderModules
 import xyz.block.artifactswap.cli.options.ArtifactDownloaderOptions
 import xyz.block.artifactswap.core.download.ArtifactDownloader
-import xyz.block.artifactswap.core.download.di.ArtifactDownloaderConfig
-import xyz.block.artifactswap.core.download.di.artifactDownloader
-import xyz.block.artifactswap.core.download.di.artifactDownloaderModules
 
 @CommandLine.Command(
   name = "download-artifacts",

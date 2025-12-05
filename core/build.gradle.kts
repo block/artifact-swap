@@ -5,7 +5,6 @@ plugins {
 
 dependencies {
   // API - exposed to consumers
-  api(libs.gradle.tooling.api)
   api(libs.jackson.databind)
   api(libs.jackson.dataformat.xml)
   api(libs.jgit.core)
@@ -15,7 +14,6 @@ dependencies {
   // Implementation
   implementation(libs.jackson.core)
   implementation(libs.jackson.module.kotlin)
-  implementation(libs.koin.core)
   implementation(libs.kotlinxCoroutines)
   implementation(libs.log4j.kotlin)
   implementation(libs.okhttp)

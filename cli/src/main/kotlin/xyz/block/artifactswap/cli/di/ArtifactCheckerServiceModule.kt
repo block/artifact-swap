@@ -1,5 +1,6 @@
-package xyz.block.artifactswap.core.artifact_checker.di
+package xyz.block.artifactswap.cli.di
 
+import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -21,7 +22,7 @@ fun artifactCheckerServiceModules(
     single<ArtifactCheckerEventStream> {
       RealArtifactCheckerEventStream(
         eventstream = get<Eventstream>(named("analyticsModuleEventStream")),
-        ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
+        ioDispatcher = get<CoroutineDispatcher>(named("IO")),
       )
     }
 
@@ -29,7 +30,7 @@ fun artifactCheckerServiceModules(
       ArtifactCheckerService(
         artifactoryService = get(),
         eventStream = get(),
-        ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
+        ioDispatcher = get<CoroutineDispatcher>(named("IO")),
       )
     }
   }

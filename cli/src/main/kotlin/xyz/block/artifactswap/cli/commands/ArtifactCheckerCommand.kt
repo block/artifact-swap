@@ -14,13 +14,13 @@ import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 import picocli.CommandLine
 import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
+import xyz.block.artifactswap.cli.di.ArtifactCheckerServiceConfig
+import xyz.block.artifactswap.cli.di.artifactCheckerService
+import xyz.block.artifactswap.cli.di.artifactCheckerServiceModules
 import xyz.block.artifactswap.cli.options.ArtifactCheckerOptions
 import xyz.block.artifactswap.cli.options.CiConfigurationOptions
 import xyz.block.artifactswap.core.artifact_checker.ArtifactCheckerService
 import xyz.block.artifactswap.core.artifact_checker.CiMetadata
-import xyz.block.artifactswap.core.artifact_checker.di.ArtifactCheckerServiceConfig
-import xyz.block.artifactswap.core.artifact_checker.di.artifactCheckerService
-import xyz.block.artifactswap.core.artifact_checker.di.artifactCheckerServiceModules
 import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerResult
 import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerServiceResult
 

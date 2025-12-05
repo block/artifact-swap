@@ -13,11 +13,11 @@ import picocli.CommandLine
 import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
 import xyz.block.artifactswap.cli.options.CiConfigurationOptions
 import xyz.block.artifactswap.cli.options.TaskRunnerOptions
-import xyz.block.artifactswap.core.task_runner.CiMetadata
-import xyz.block.artifactswap.core.task_runner.TaskRunnerService
-import xyz.block.artifactswap.core.task_runner.di.TaskRunnerServiceConfig
-import xyz.block.artifactswap.core.task_runner.di.taskRunnerService
-import xyz.block.artifactswap.core.task_runner.di.taskRunnerServiceModules
+import xyz.block.artifactswap.gradle.tooling.CiMetadata
+import xyz.block.artifactswap.gradle.tooling.TaskRunnerService
+import xyz.block.artifactswap.gradle.tooling.di.TaskRunnerServiceConfig
+import xyz.block.artifactswap.gradle.tooling.di.taskRunnerService
+import xyz.block.artifactswap.gradle.tooling.di.taskRunnerServiceModules
 
 /** CLI command for running Gradle tasks from a file. */
 @CommandLine.Command(
