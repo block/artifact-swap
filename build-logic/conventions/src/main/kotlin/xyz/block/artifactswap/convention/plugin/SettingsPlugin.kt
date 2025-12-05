@@ -22,6 +22,7 @@ class SettingsPlugin : Plugin<Settings> {
     gradle.lifecycle.beforeProject { project ->
       project.plugins.apply(BasePlugin::class.java)
       project.plugins.apply(ChecksPlugin::class.java)
+      project.plugins.apply(PublishPlugin::class.java)
     }
   }
 

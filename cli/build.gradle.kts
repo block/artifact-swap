@@ -1,7 +1,6 @@
 plugins {
     application
     id("com.gradleup.shadow")
-    id("conventions.publish")
 }
 
 application {
