@@ -14,6 +14,7 @@ import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.repository.InstalledArtifact
 import xyz.block.artifactswap.core.repository.LocalArtifactRepository
+import xyz.block.artifactswap.core.shared_services.git.SquareGit
 
 private val LOGGER = LoggerFactory.getLogger(RealArtifactSwapModuleSelector::class.java)
 
@@ -157,7 +158,7 @@ class RealArtifactSwapModuleSelector(
     val (result, duration) =
       measureTimedValue {
         try {
-          val files = squareGit.findChangedFiles(baseCommit = bomVersion).getOrThrow()
+          val files = squareGit.findChangedFiles(baseRef = bomVersion).getOrThrow()
           // Convert changed files to the projects that contain them
           val projectsWithChanges =
             candidates

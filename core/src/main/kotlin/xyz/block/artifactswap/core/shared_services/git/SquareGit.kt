@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.core.module_selector
+package xyz.block.artifactswap.core.shared_services.git
 
 import java.nio.file.Path
 import kotlin.coroutines.CoroutineContext
@@ -7,11 +7,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.diff.DiffEntry.ChangeType.ADD
-import org.eclipse.jgit.diff.DiffEntry.ChangeType.COPY
-import org.eclipse.jgit.diff.DiffEntry.ChangeType.DELETE
-import org.eclipse.jgit.diff.DiffEntry.ChangeType.MODIFY
-import org.eclipse.jgit.diff.DiffEntry.ChangeType.RENAME
+import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.revwalk.RevCommit
@@ -25,7 +21,7 @@ import org.slf4j.LoggerFactory
 interface SquareGit {
 
   /** Returns the commit hash of the youngest ancestor between HEAD and the base branch. */
-  suspend fun findRecentSharedCommits(baseBranch: String, count: Int = 50): List<ObjectId>?
+  suspend fun findRecentSharedCommits(baseRef: String, count: Int = 50): List<ObjectId>?
 
   /**
    * Returns the list of file paths (relative to the repository root) that have changed between the
@@ -33,7 +29,7 @@ interface SquareGit {
    *
    * Functionally similar to `git diff --name-only <COMMIT_HASH>`
    */
-  suspend fun findChangedFiles(baseCommit: String): Result<Set<Path>>
+  suspend fun findChangedFiles(baseRef: String): Result<Set<Path>>
 }
 
 private val LOGGER = LoggerFactory.getLogger(SquareGit::class.java)
@@ -70,8 +66,9 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
       .toSet()
   }
 
-  override suspend fun findRecentSharedCommits(baseBranch: String, count: Int): List<ObjectId>? {
-    val baseCommit = repository.resolve(baseBranch)
+  override suspend fun findRecentSharedCommits(baseRef: String, count: Int): List<ObjectId>? {
+    LOGGER.debug("Finding merge base between $baseRef and ${Constants.HEAD}")
+    val baseCommit = repository.resolve(baseRef)
     val headCommit = repository.resolve(Constants.HEAD)
     val mergeBase =
       RevWalk(repository).use { walk ->
@@ -87,7 +84,7 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
         }
       }
     if (mergeBase == null) {
-      LOGGER.warn("No merge base found between $baseBranch and HEAD")
+      LOGGER.warn("No merge base found between $baseRef and HEAD")
       return null
     }
     val commits = git.log().add(mergeBase).call().take(count).map { it.id }
@@ -103,21 +100,21 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  override suspend fun findChangedFiles(baseCommit: String): Result<Set<Path>> = runCatching {
-    val commitId =
-      findRecentSharedCommits(baseCommit)?.first()
+  override suspend fun findChangedFiles(baseRef: String): Result<Set<Path>> = runCatching {
+    val baseCommit =
+      findRecentSharedCommits(baseRef)?.first()
         ?: throw IllegalStateException("No recent shared commits found")
-    LOGGER.debug("Got comparison labels: {}", getComparisonLabels(commitId))
+    LOGGER.debug("Got comparison labels: {}", getComparisonLabels(baseCommit))
 
     LOGGER.debug("Resolved headId={}", headId)
 
-    LOGGER.debug("Resolved comparisonMergeBaseId={}", commitId)
+    LOGGER.debug("Resolved comparisonMergeBaseId={}", baseCommit)
 
     LOGGER.debug("Current branch={}", currentBranch)
 
     withContext(context) {
       val uncommittedChangesDeferred = async { findUncommittedChanges() }
-      val committedChangesDeferred = async { findCommittedChanges(commitId) }
+      val committedChangesDeferred = async { findCommittedChanges(baseCommit) }
       (uncommittedChangesDeferred.await() + committedChangesDeferred.await())
         .map { repoRoot.resolve(it).absolute().normalize() }
         .toSet()
@@ -136,12 +133,12 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
         }
       diffs.flatMap {
         when (it.changeType) {
-          ADD,
-          COPY,
-          MODIFY -> listOf(it.newPath)
+          DiffEntry.ChangeType.ADD,
+          DiffEntry.ChangeType.COPY,
+          DiffEntry.ChangeType.MODIFY -> listOf(it.newPath)
 
-          RENAME -> listOf(it.oldPath, it.newPath)
-          DELETE -> listOf(it.oldPath)
+          DiffEntry.ChangeType.RENAME -> listOf(it.oldPath, it.newPath)
+          DiffEntry.ChangeType.DELETE -> listOf(it.oldPath)
           null -> emptyList()
         }
       }

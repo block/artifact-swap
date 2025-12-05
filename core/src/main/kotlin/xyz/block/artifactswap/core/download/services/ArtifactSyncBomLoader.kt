@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.network.ArtifactoryService
+import xyz.block.artifactswap.core.shared_services.git.SquareGit
 
 private val LOGGER = LoggerFactory.getLogger(ArtifactSyncBomLoader::class.java)
 
