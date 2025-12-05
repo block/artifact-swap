@@ -13,14 +13,14 @@ import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 import picocli.CommandLine
 import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
+import xyz.block.artifactswap.cli.di.TaskFinderServiceConfig
+import xyz.block.artifactswap.cli.di.taskFinderService
+import xyz.block.artifactswap.cli.di.taskFinderServiceModules
 import xyz.block.artifactswap.cli.options.CiConfigurationOptions
 import xyz.block.artifactswap.cli.options.OutputMode
 import xyz.block.artifactswap.cli.options.TaskFinderOptions
 import xyz.block.artifactswap.core.task_finder.CiMetadata
 import xyz.block.artifactswap.core.task_finder.TaskFinderService
-import xyz.block.artifactswap.core.task_finder.di.TaskFinderServiceConfig
-import xyz.block.artifactswap.core.task_finder.di.taskFinderService
-import xyz.block.artifactswap.core.task_finder.di.taskFinderServiceModules
 import xyz.block.artifactswap.core.task_finder.models.TaskFinderResult
 import xyz.block.artifactswap.core.task_finder.models.TaskFinderServiceResult
 

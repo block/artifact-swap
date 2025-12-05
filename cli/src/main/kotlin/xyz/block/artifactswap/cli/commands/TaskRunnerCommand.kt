@@ -11,13 +11,13 @@ import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 import picocli.CommandLine
 import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
+import xyz.block.artifactswap.cli.di.TaskRunnerServiceConfig
+import xyz.block.artifactswap.cli.di.taskRunnerService
+import xyz.block.artifactswap.cli.di.taskRunnerServiceModules
 import xyz.block.artifactswap.cli.options.CiConfigurationOptions
 import xyz.block.artifactswap.cli.options.TaskRunnerOptions
 import xyz.block.artifactswap.core.task_runner.CiMetadata
 import xyz.block.artifactswap.core.task_runner.TaskRunnerService
-import xyz.block.artifactswap.core.task_runner.di.TaskRunnerServiceConfig
-import xyz.block.artifactswap.core.task_runner.di.taskRunnerService
-import xyz.block.artifactswap.core.task_runner.di.taskRunnerServiceModules
 
 /** CLI command for running Gradle tasks from a file. */
 @CommandLine.Command(

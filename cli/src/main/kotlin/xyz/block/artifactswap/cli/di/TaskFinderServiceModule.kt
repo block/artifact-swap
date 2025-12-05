@@ -1,5 +1,6 @@
-package xyz.block.artifactswap.core.task_finder.di
+package xyz.block.artifactswap.cli.di
 
+import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -21,15 +22,12 @@ fun taskFinderServiceModules(
     single<TaskFinderEventStream> {
       RealTaskFinderEventStream(
         eventstream = get<Eventstream>(named("analyticsModuleEventStream")),
-        ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
+        ioDispatcher = get<CoroutineDispatcher>(named("IO")),
       )
     }
 
     single {
-      TaskFinderService(
-        eventStream = get(),
-        ioDispatcher = get<kotlinx.coroutines.CoroutineDispatcher>(named("IO")),
-      )
+      TaskFinderService(eventStream = get(), ioDispatcher = get<CoroutineDispatcher>(named("IO")))
     }
   }
 }

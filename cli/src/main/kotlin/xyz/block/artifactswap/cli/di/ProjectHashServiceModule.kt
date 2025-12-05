@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.core.hashing.di
+package xyz.block.artifactswap.cli.di
 
 import java.nio.file.Path
 import kotlinx.coroutines.CoroutineDispatcher
@@ -14,15 +14,6 @@ import xyz.block.artifactswap.core.hashing.ProjectHashService
 import xyz.block.artifactswap.core.hashing.services.HashingEventStream
 import xyz.block.artifactswap.core.hashing.services.RealHashingEventStream
 
-// Extension properties for accessing common values from KoinApplication
-val KoinApplication.ioDispatcher: kotlinx.coroutines.CoroutineDispatcher
-  get() = koin.get(named("IO"))
-
-val KoinApplication.defaultDispatcher: CoroutineDispatcher
-  get() = koin.get(named("Default"))
-
-internal const val EVENT_STREAM_NAME = "analyticsModuleEventStream"
-
 /** Configuration options for the project hash service module. */
 data class ProjectHashServiceConfig(
   val placeholder: Boolean = false // Placeholder for future config
@@ -35,7 +26,7 @@ fun projectHashServiceModules(
   return module {
     single<HashingEventStream> {
       RealHashingEventStream(
-        eventstream = get<Eventstream>(named(EVENT_STREAM_NAME)),
+        eventstream = get<Eventstream>(),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
       )
     }

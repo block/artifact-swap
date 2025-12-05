@@ -15,7 +15,6 @@ dependencies {
   // Implementation
   implementation(libs.jackson.core)
   implementation(libs.jackson.module.kotlin)
-  implementation(libs.koin.core)
   implementation(libs.kotlinxCoroutines)
   implementation(libs.log4j.kotlin)
   implementation(libs.okhttp)

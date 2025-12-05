@@ -5,13 +5,13 @@ import org.koin.core.KoinApplication
 import picocli.CommandLine
 import picocli.CommandLine.Mixin
 import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
+import xyz.block.artifactswap.cli.di.BomPublisherConfig
+import xyz.block.artifactswap.cli.di.bomPublisher
+import xyz.block.artifactswap.cli.di.bomPublisherModules
 import xyz.block.artifactswap.cli.options.BomPublishingOptions
 import xyz.block.artifactswap.cli.options.CiConfigurationOptions
 import xyz.block.artifactswap.core.publisher.BomPublisher
 import xyz.block.artifactswap.core.publisher.CiMetadata
-import xyz.block.artifactswap.core.publisher.di.BomPublisherConfig
-import xyz.block.artifactswap.core.publisher.di.bomPublisher
-import xyz.block.artifactswap.core.publisher.di.bomPublisherModules
 
 @CommandLine.Command(
   name = "bom-publisher",
