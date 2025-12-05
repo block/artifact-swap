@@ -1,5 +1,8 @@
 package xyz.block.artifactswap.core.shared_services.git
 
+import java.nio.file.Path
+import kotlin.coroutines.CoroutineContext
+import kotlin.io.path.absolute
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -17,9 +20,6 @@ import org.eclipse.jgit.revwalk.filter.RevFilter
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.slf4j.LoggerFactory
-import java.nio.file.Path
-import kotlin.coroutines.CoroutineContext
-import kotlin.io.path.absolute
 
 /** Helper class to access git information via JGit */
 interface SquareGit {
