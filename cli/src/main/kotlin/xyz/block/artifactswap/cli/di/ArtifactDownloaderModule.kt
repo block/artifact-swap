@@ -1,4 +1,4 @@
-package xyz.block.artifactswap.core.download.di
+package xyz.block.artifactswap.cli.di
 
 import java.nio.file.Path
 import java.util.Properties
@@ -25,16 +25,6 @@ import xyz.block.artifactswap.core.gradle.RealGradlePropertiesProvider
 import xyz.block.artifactswap.core.gradle.SettingsGradleHashingProjectsProvider
 import xyz.block.artifactswap.core.network.ArtifactoryService
 
-// Extension properties for accessing common values from KoinApplication
-// These can be provided by the CLI or test modules
-val KoinApplication.directory: Path
-  get() = koin.get(named("directory"))
-
-val KoinApplication.ioDispatcher: CoroutineDispatcher
-  get() = koin.get(named("IO"))
-
-internal const val EVENT_STREAM_NAME = "analyticsModuleEventStream"
-
 /** Configuration options for the artifact downloader module. */
 data class ArtifactDownloaderConfig(
   val bomVersion: String = "",
@@ -49,7 +39,7 @@ fun artifactDownloaderModules(
   return module {
     single<ArtifactDownloaderEventStream> {
       RealEventStream(
-        eventstream = get<Eventstream>(named(EVENT_STREAM_NAME)),
+        eventstream = get<Eventstream>(named("analyticsModuleEventStream")),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
       )
     }
