@@ -21,7 +21,7 @@ fun taskFinderServiceModules(
   return module {
     single<TaskFinderEventStream> {
       RealTaskFinderEventStream(
-        eventstream = get<Eventstream>(named("analyticsModuleEventStream")),
+        eventstream = get<Eventstream>(),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
       )
     }

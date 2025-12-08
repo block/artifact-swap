@@ -80,7 +80,7 @@ class ArtifactCheckerCommandTest {
           single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("directory")) { Path(tempDir.absolutePath) }
-          single<Eventstream>(named("analyticsModuleEventStream")) {
+          single<Eventstream>() {
             Eventstream(eventstreamService = mock<EventstreamService>())
           }
         }
@@ -145,7 +145,7 @@ class ArtifactCheckerCommandTest {
         single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("directory")) { Path(tempDir.absolutePath) }
-        single<Eventstream>(named("analyticsModuleEventStream")) {
+        single<Eventstream>() {
           Eventstream(eventstreamService = mock<EventstreamService>())
         }
       }
@@ -203,7 +203,7 @@ class ArtifactCheckerCommandTest {
           single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("directory")) { Path(tempDir.absolutePath) }
-          single<Eventstream>(named("analyticsModuleEventStream")) {
+          single<Eventstream>() {
             Eventstream(eventstreamService = mock<EventstreamService>())
           }
         }
@@ -257,7 +257,7 @@ class ArtifactCheckerCommandTest {
         single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("directory")) { Path(tempDir.absolutePath) }
-        single<Eventstream>(named("analyticsModuleEventStream")) {
+        single<Eventstream>() {
           Eventstream(eventstreamService = mock<EventstreamService>())
         }
       }
