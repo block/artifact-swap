@@ -15,8 +15,6 @@ import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
 import xyz.block.artifactswap.core.download.services.RealArtifactRepository
 import xyz.block.artifactswap.core.download.services.RealArtifactSyncBomLoader
 import xyz.block.artifactswap.core.download.services.RealEventStream
-import xyz.block.artifactswap.core.download.services.RealSquareGit
-import xyz.block.artifactswap.core.download.services.SquareGit
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
 import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
@@ -24,6 +22,8 @@ import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
 import xyz.block.artifactswap.core.gradle.RealGradlePropertiesProvider
 import xyz.block.artifactswap.core.gradle.SettingsGradleHashingProjectsProvider
 import xyz.block.artifactswap.core.network.ArtifactoryService
+import xyz.block.artifactswap.core.shared_services.git.RealSquareGit
+import xyz.block.artifactswap.core.shared_services.git.SquareGit
 
 /** Configuration options for the artifact downloader module. */
 data class ArtifactDownloaderConfig(
