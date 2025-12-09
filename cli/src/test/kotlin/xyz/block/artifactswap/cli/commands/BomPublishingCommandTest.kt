@@ -190,6 +190,6 @@ class BomPublishingCommandTest {
       val pushedPom = fakeArtifactoryEndpoints.pushedPoms.first()
       assertEquals("bom", pushedPom.artifactId)
       assertEquals("2.0.0", pushedPom.version)
-      assertEquals(2, pushedPom.dependencyManagement.dependencies.dependency.size)
+      assertEquals(2, pushedPom.dependencyManagement?.dependencies?.dependency?.size)
     }
 }

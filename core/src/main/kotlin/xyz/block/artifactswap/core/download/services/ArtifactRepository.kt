@@ -150,7 +150,11 @@ class RealArtifactRepository(
           objectMapper.writeValue(bomFile.toFile(), project)
         }
       }
-      project.dependencyManagement.dependencies.dependency.map { dependency ->
+      requireNotNull(project.dependencyManagement) {
+        "BOM should declare all artifacts in <dependencyManagement> section, but none was found " +
+          "for BOM version $bomVersion."
+      }
+      project.artifactDependencies(config.primaryArtifactsMavenGroup).map { dependency ->
         Artifact(
           groupId = dependency.groupId,
           artifactId = dependency.artifactId,
