@@ -3,6 +3,8 @@
 package xyz.block.artifactswap
 
 import com.android.build.api.dsl.LibraryExtension
+import java.net.InetAddress
+import java.net.URI
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
@@ -67,6 +69,8 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
       return repositories.maven { repo ->
         repo.name = "artifactSwap"
         repo.url = uri(sandbagsUrl)
+        // To support testing against non-https localhost
+        repo.isAllowInsecureProtocol = isInsecureLocal(sandbagsUrl)
 
         getSandbagCredentials()?.apply {
           repo.credentials(PasswordCredentials::class.java) { creds ->
@@ -76,6 +80,31 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
         }
       }
     }
+
+  private fun isInsecureLocal(url: String): Boolean {
+    return try {
+      val uri = URI(url.trim())
+
+      // Only care about insecure protocol
+      if (!uri.scheme.equals("http", ignoreCase = true)) {
+        return false
+      }
+
+      val host = uri.host ?: return false
+
+      // Fast path for localhost literal
+      if (host.equals("localhost", ignoreCase = true)) {
+        return true
+      }
+
+      // Resolve and check for loopback (covers 127.0.0.1, 127.x.x.x, ::1, etc.)
+      val address = InetAddress.getByName(host)
+      address.isLoopbackAddress
+    } catch (e: Exception) {
+      // If the URL is malformed, don't treat it as local/insecure
+      false
+    }
+  }
 
   private fun Project.configureArtifactSwapPublication(
     mavenPublishing: PublishingExtension,
