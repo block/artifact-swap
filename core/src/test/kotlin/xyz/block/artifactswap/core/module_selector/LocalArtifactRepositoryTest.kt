@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.maven.Dependencies
 import xyz.block.artifactswap.core.maven.Dependency
 import xyz.block.artifactswap.core.maven.DependencyManagement
@@ -63,6 +64,8 @@ class LocalArtifactRepositoryTest {
       "features_open-tickets-v2_home_fake",
       "features_open-tickets-v2_home_impl",
     )
+  private val testMavenGroup = "com.squareup.register.sandbags"
+  private val config = ArtifactSwapConfig(primaryArtifactsMavenGroup = testMavenGroup)
 
   @BeforeEach
   fun setUp() {
@@ -79,6 +82,7 @@ class LocalArtifactRepositoryTest {
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
           mavenDirectory = fakeM2Root,
+          config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(fakeBom)
       assertTrue(installedArtifacts.getOrThrow().isEmpty())
@@ -94,12 +98,12 @@ class LocalArtifactRepositoryTest {
           dependentProjects =
             listOf(
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = "features_open-tickets-v2_create-ticket_impl-tablet",
                 version = "asdf1132",
               ),
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = "features_open-tickets-v2_create-ticket_anvil-wiring",
                 version = "a23kh1",
               ),
@@ -111,6 +115,7 @@ class LocalArtifactRepositoryTest {
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
           mavenDirectory = fakeM2Root,
+          config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
       assertTrue(installedArtifacts.getOrThrow().isEmpty())
@@ -126,12 +131,12 @@ class LocalArtifactRepositoryTest {
           dependentProjects =
             listOf(
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[0],
                 version = "asdf1132",
               ),
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[1],
                 version = "a23kh1",
               ),
@@ -158,6 +163,7 @@ class LocalArtifactRepositoryTest {
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
           mavenDirectory = fakeM2Root,
+          config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
       assertTrue(installedArtifacts.getOrThrow().isEmpty())
@@ -173,12 +179,12 @@ class LocalArtifactRepositoryTest {
           dependentProjects =
             listOf(
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[0],
                 version = "hash1",
               ),
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[1],
                 version = "hash2",
               ),
@@ -194,6 +200,7 @@ class LocalArtifactRepositoryTest {
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
           mavenDirectory = fakeM2Root,
+          config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
       val expected =
@@ -211,17 +218,17 @@ class LocalArtifactRepositoryTest {
           dependentProjects =
             listOf(
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[0],
                 version = "hash1",
               ),
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[1],
                 version = "hash2",
               ),
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[2],
                 version = "hash3",
               ),
@@ -244,6 +251,7 @@ class LocalArtifactRepositoryTest {
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
           mavenDirectory = fakeM2Root,
+          config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
       val expected =
@@ -264,12 +272,12 @@ class LocalArtifactRepositoryTest {
           dependentProjects =
             listOf(
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[0],
                 version = "hash1",
               ),
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[1],
                 version = "hash2",
               ),
@@ -295,6 +303,7 @@ class LocalArtifactRepositoryTest {
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
           mavenDirectory = fakeM2Root,
+          config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
       val expected =
@@ -312,7 +321,7 @@ class LocalArtifactRepositoryTest {
           dependentProjects =
             listOf(
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[0],
                 version = "hash1",
               )
@@ -333,6 +342,7 @@ class LocalArtifactRepositoryTest {
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
           mavenDirectory = fakeM2Root,
+          config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
       val expected =
@@ -350,12 +360,12 @@ class LocalArtifactRepositoryTest {
           dependentProjects =
             listOf(
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[0],
                 version = "hash1",
               ),
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[1],
                 version = "hash2",
               ),
@@ -371,6 +381,7 @@ class LocalArtifactRepositoryTest {
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
           mavenDirectory = fakeM2Root,
+          config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
       assertTrue(installedArtifacts.getOrThrow().all { it.projectPath.startsWith(":") })
@@ -386,12 +397,12 @@ class LocalArtifactRepositoryTest {
           dependentProjects =
             listOf(
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[0],
                 version = "hash1",
               ),
               Dependency(
-                groupId = "com.squareup.register.sandbags",
+                groupId = testMavenGroup,
                 artifactId = fakeArtifactDirectoryNames[1],
                 version = "hash2",
               ),
@@ -403,12 +414,12 @@ class LocalArtifactRepositoryTest {
         dependentProjects =
           listOf(
             Dependency(
-              groupId = "com.squareup.register.sandbags",
+              groupId = testMavenGroup,
               artifactId = fakeArtifactDirectoryNames[0],
               version = "hash3",
             ),
             Dependency(
-              groupId = "com.squareup.register.sandbags",
+              groupId = testMavenGroup,
               artifactId = fakeArtifactDirectoryNames[1],
               version = "hash4",
             ),
@@ -439,6 +450,7 @@ class LocalArtifactRepositoryTest {
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
           mavenDirectory = fakeM2Root,
+          config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
       val expected =
@@ -457,7 +469,7 @@ class LocalArtifactRepositoryTest {
   ): Result<Project> = runCatching {
     val mavenPom =
       Project(
-        groupId = "com.squareup.register.sandbags",
+        groupId = testMavenGroup,
         artifactId = "features_open-tickets-v2_create-ticket_impl-tablet",
         version = bomVersion,
         name = "features_open-tickets-v2_create-ticket_impl-tablet",

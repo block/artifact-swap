@@ -146,7 +146,11 @@ class BomPublisherTest {
     val pushedPom = fakeArtifactoryEndpoints.pushedPoms.first()
     assertEquals("bom", pushedPom.artifactId)
     assertEquals("1.0.0", pushedPom.version)
-    assertEquals(2, pushedPom.dependencyManagement.dependencies.dependency.size)
+    val depManagement =
+      requireNotNull(pushedPom.dependencyManagement) {
+        "Dependency management should not be null in published BOM, that's where declared versions of artifacts go!"
+      }
+    assertEquals(2, depManagement.dependencies.dependency.size)
   }
 
   @Test
