@@ -93,9 +93,7 @@ class BomPublishingCommandTest {
         module {
           single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("dryRun")) { false }
-          single<Eventstream>(named("analyticsModuleEventStream")) {
-            Eventstream(eventstreamService = mock<EventstreamService>())
-          }
+          single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
           single<ArtifactoryEndpoints> { fakeArtifactoryEndpoints }
           single<ArtifactSwapConfig> { ArtifactSwapConfig() }
         }
@@ -172,9 +170,7 @@ class BomPublishingCommandTest {
         module {
           single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("dryRun")) { false }
-          single<Eventstream>(named("analyticsModuleEventStream")) {
-            Eventstream(eventstreamService = mock<EventstreamService>())
-          }
+          single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
           single<ArtifactoryEndpoints> { fakeArtifactoryEndpoints }
           single<ArtifactSwapConfig> { ArtifactSwapConfig() }
         }

@@ -67,9 +67,7 @@ class TaskFinderCommandTest {
         single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("directory")) { Path(tempDir.absolutePath) }
-        single<Eventstream>(named("analyticsModuleEventStream")) {
-          Eventstream(eventstreamService = mock<EventstreamService>())
-        }
+        single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
         single(named("gradleArgs")) { emptyList<String>() }
         single(named("jvmArgs")) { emptyList<String>() }
       }
@@ -126,9 +124,7 @@ class TaskFinderCommandTest {
           single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("directory")) { Path(tempDir.absolutePath) }
-          single<Eventstream>(named("analyticsModuleEventStream")) {
-            Eventstream(eventstreamService = mock<EventstreamService>())
-          }
+          single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
           single(named("gradleArgs")) { emptyList<String>() }
           single(named("jvmArgs")) { emptyList<String>() }
         }
@@ -189,9 +185,7 @@ class TaskFinderCommandTest {
         single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("directory")) { Path(tempDir.absolutePath) }
-        single<Eventstream>(named("analyticsModuleEventStream")) {
-          Eventstream(eventstreamService = mock<EventstreamService>())
-        }
+        single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
         single(named("gradleArgs")) { emptyList<String>() }
         single(named("jvmArgs")) { emptyList<String>() }
       }

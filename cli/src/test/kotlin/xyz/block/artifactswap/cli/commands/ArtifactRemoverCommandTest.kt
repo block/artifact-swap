@@ -58,9 +58,7 @@ class ArtifactRemoverCommandTest {
     testApplication.modules(
       module {
         single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
-        single<Eventstream>(named("analyticsModuleEventStream")) {
-          Eventstream(eventstreamService = mock<EventstreamService>())
-        }
+        single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
         single<com.fasterxml.jackson.databind.ObjectMapper> {
           com.fasterxml.jackson.dataformat.xml.XmlMapper.builder().defaultUseWrapper(false).build()
         }
@@ -110,9 +108,7 @@ class ArtifactRemoverCommandTest {
     testApplication.modules(
       module {
         single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
-        single<Eventstream>(named("analyticsModuleEventStream")) {
-          Eventstream(eventstreamService = mock<EventstreamService>())
-        }
+        single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
         single<com.fasterxml.jackson.databind.ObjectMapper> {
           com.fasterxml.jackson.dataformat.xml.XmlMapper.builder().defaultUseWrapper(false).build()
         }

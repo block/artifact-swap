@@ -21,7 +21,7 @@ fun artifactCheckerServiceModules(
   return module {
     single<ArtifactCheckerEventStream> {
       RealArtifactCheckerEventStream(
-        eventstream = get<Eventstream>(named("analyticsModuleEventStream")),
+        eventstream = get<Eventstream>(),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
       )
     }
