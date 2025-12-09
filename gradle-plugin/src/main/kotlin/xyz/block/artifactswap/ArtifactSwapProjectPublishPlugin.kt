@@ -155,21 +155,25 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
 
   private fun Project.getArtifactRepositoryUrl() {
     // Support legacy property name to ease migrations
-    providers.gradleProperty("artifactswap.artifactRepo.url")
-      .getOrElse(providers.gradleProperty("square.sandbagsUrl").orNull ?:
-      throw RuntimeException("No artifact repository URL provided. Please set " +
+    providers
+      .gradleProperty("artifactswap.artifactRepo.url")
+      .getOrElse(
+        providers.gradleProperty("square.sandbagsUrl").orNull
+          ?: throw RuntimeException(
+            "No artifact repository URL provided. Please set " +
               "`artifactswap.artifactRepoUrl` in your root gradle.properties file."
-      ))
+          )
+      )
   }
 
   private fun Project.getArtifactRepoPassword(): String? {
-    return providers.gradleProperty("artifactswap.artifactRepo.password").orNull ?:
-      providers.gradleProperty("square.artifactory.password").orNull
+    return providers.gradleProperty("artifactswap.artifactRepo.password").orNull
+      ?: providers.gradleProperty("square.artifactory.password").orNull
   }
 
   private fun Project.getArtifactRepoUsername(): String? {
-    return providers.gradleProperty("artifactswap.artifactRepo.username").orNull ?:
-      providers.gradleProperty("square.artifactory.username").orNull
+    return providers.gradleProperty("artifactswap.artifactRepo.username").orNull
+      ?: providers.gradleProperty("square.artifactory.username").orNull
   }
 
   private fun Project.createPublishAliasTask(
