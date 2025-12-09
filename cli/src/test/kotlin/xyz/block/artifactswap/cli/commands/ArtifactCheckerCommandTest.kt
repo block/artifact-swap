@@ -80,9 +80,7 @@ class ArtifactCheckerCommandTest {
           single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("directory")) { Path(tempDir.absolutePath) }
-          single<Eventstream>() {
-            Eventstream(eventstreamService = mock<EventstreamService>())
-          }
+          single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
         }
       )
       command.init(testApplication)
@@ -145,9 +143,7 @@ class ArtifactCheckerCommandTest {
         single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("directory")) { Path(tempDir.absolutePath) }
-        single<Eventstream>() {
-          Eventstream(eventstreamService = mock<EventstreamService>())
-        }
+        single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
       }
     )
     command.init(testApplication)
@@ -203,9 +199,7 @@ class ArtifactCheckerCommandTest {
           single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("directory")) { Path(tempDir.absolutePath) }
-          single<Eventstream>() {
-            Eventstream(eventstreamService = mock<EventstreamService>())
-          }
+          single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
         }
       )
       command.init(testApplication)
@@ -257,9 +251,7 @@ class ArtifactCheckerCommandTest {
         single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("Default")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("directory")) { Path(tempDir.absolutePath) }
-        single<Eventstream>() {
-          Eventstream(eventstreamService = mock<EventstreamService>())
-        }
+        single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
       }
     )
     command.init(testApplication)
