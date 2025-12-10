@@ -63,7 +63,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     mavenPublishing: PublishingExtension
   ): MavenArtifactRepository =
     with(mavenPublishing) {
-      val sandbagsUrl = providers.gradleProperty("square.sandbagsUrl").get()
+      val sandbagsUrl = getArtifactRepositoryUrl()
       return repositories.maven { repo ->
         repo.name = "artifactSwap"
         repo.url = uri(sandbagsUrl)
@@ -144,13 +144,39 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
   }
 
   private fun Project.getSandbagCredentials(): SandbagCredentials? {
-    val username = providers.gradleProperty("square.artifactory.username").orNull
-    val password = providers.gradleProperty("square.artifactory.password").orNull
+    val username = getArtifactRepoUsername()
+    val password = getArtifactRepoPassword()
     return if (username != null && password != null) {
       SandbagCredentials(username, password)
     } else {
       null
     }
+  }
+
+  private fun Project.getArtifactRepositoryUrl() {
+    // Support legacy property name to ease migrations
+    providers
+      .gradleProperty("artifactswap.artifactRepo.url")
+      .orElse(providers.gradleProperty("square.sandbagsUrl"))
+      .orNull
+      ?: throw RuntimeException(
+        "No artifact repository URL provided. Please set " +
+          "`artifactswap.artifactRepoUrl` in your root gradle.properties file."
+      )
+  }
+
+  private fun Project.getArtifactRepoPassword(): String? {
+    return providers
+      .gradleProperty("artifactswap.artifactRepo.password")
+      .orElse(providers.gradleProperty("square.artifactory.password"))
+      .orNull
+  }
+
+  private fun Project.getArtifactRepoUsername(): String? {
+    return providers
+      .gradleProperty("artifactswap.artifactRepo.username")
+      .orElse(providers.gradleProperty("square.artifactory.username"))
+      .orNull
   }
 
   private fun Project.createPublishAliasTask(
