@@ -23,6 +23,7 @@ internal class ArtifactSwapProjectPlugin : Plugin<Project> {
   override fun apply(target: Project) =
     target.run {
       val map = gradle.services.artifactSyncBomService.bomVersionMap
+      val artifactSwapMavenGroupId = artifactSwapConfig.primaryArtifactsMavenGroup
       substituteAllDependencies {
         val requested = requested as? ModuleComponentSelector ?: return@substituteAllDependencies
 
@@ -41,7 +42,7 @@ internal class ArtifactSwapProjectPlugin : Plugin<Project> {
         //   `com.squareup.sandbags:mordor`, which is a published representation of a project that
         // is currently `include`-ed in the build. This needs to be rewritten via dependency
         // substitution to `project(':mordor')`.
-        if (requested.group == ARTIFACT_SWAP_MAVEN_GROUP) {
+        if (requested.group == artifactSwapMavenGroupId) {
           when (val p = allprojects.firstOrNull { it.isolated.path == requested.asProjectPath }) {
             null -> {
               // Force Gradle to use the BOM specified version for this artifact.
