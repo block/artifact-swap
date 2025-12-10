@@ -31,6 +31,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.logging.log4j.kotlin.logger
 import org.slf4j.Logger
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.maven.Dependency
 import xyz.block.artifactswap.core.maven.Project
 
 /** Information about an artifact installed locally with its project path and versions. */
@@ -116,6 +118,7 @@ class RealLocalArtifactRepository(
   private val ioContext: CoroutineContext,
   private val mavenDirectory: Path = DEFAULT_LOCAL_MAVEN_DIRECTORY,
   private val slf4jLogger: Logger? = null,
+  private val config: ArtifactSwapConfig,
 ) : LocalArtifactRepository {
 
   companion object {
@@ -139,7 +142,8 @@ class RealLocalArtifactRepository(
       kotlinx.coroutines.coroutineScope {
         val (result, duration) =
           measureTimedValue {
-            bom.dependencyManagement.dependencies.dependency
+            bom
+              .artifactDependencies(config.primaryArtifactsMavenGroup)
               .map { dependency ->
                 async(ioContext) {
                   // no version present means we won't be able to find an artifact
@@ -338,7 +342,8 @@ class RealLocalArtifactRepository(
                   bomFile
                     .inputStream()
                     .use { xmlMapper.readValue<Project>(it) }
-                    .toInstalledProjects(baseGroupDir),
+                    .artifactDependencies(config.primaryArtifactsMavenGroup)
+                    .map { it.toInstalledProject(baseGroupDir) },
               )
             }
           } else {
@@ -415,15 +420,13 @@ class RealLocalArtifactRepository(
   }
 }
 
-private fun Project.toInstalledProjects(baseGroupDir: Path): List<InstalledProject> {
-  return dependencyManagement.dependencies.dependency.map {
-    val projectRepositoryPath = baseGroupDir.resolve(artifactId)
-    InstalledProject(
-      projectPath = it.artifactId.artifactIdToProjectPath(),
-      repositoryPath = projectRepositoryPath,
-      versions = setOf(it.version),
-    )
-  }
+private fun Dependency.toInstalledProject(baseGroupDir: Path): InstalledProject {
+  val projectRepositoryPath = baseGroupDir.resolve(artifactId)
+  return InstalledProject(
+    projectPath = artifactId.artifactIdToProjectPath(),
+    repositoryPath = projectRepositoryPath,
+    versions = setOf(version),
+  )
 }
 
 @OptIn(ExperimentalPathApi::class)

@@ -30,6 +30,7 @@ fun artifactRemoverModules(application: KoinApplication, config: ArtifactRemover
         mavenDirectory = config.mavenLocalPath,
         xmlMapper = get(),
         ioContext = get<CoroutineDispatcher>(named("IO")),
+        config = get(),
       )
     }
 
