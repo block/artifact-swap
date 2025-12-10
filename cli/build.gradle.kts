@@ -1,11 +1,11 @@
 plugins {
-    application
-    id("com.gradleup.shadow")
+  application
+  id("com.gradleup.shadow")
 }
 
 application {
-    mainClass = "xyz.block.artifactswap.cli.MainKt"
-    applicationName = "artifactswap"
+  mainClass = "xyz.block.artifactswap.cli.MainKt"
+  applicationName = "artifactswap"
 }
 
 dependencies {
@@ -22,8 +22,8 @@ dependencies {
   implementation(libs.okhttp)
   implementation(libs.okhttp.logging)
   implementation(libs.picocli.core)
-  implementation(libs.retrofit.core)
   implementation(libs.retrofit.converter.jackson)
+  implementation(libs.retrofit.core)
   implementation(libs.retrofit.wire)
   implementation(libs.slf4j.api)
 
@@ -31,14 +31,14 @@ dependencies {
     because("JGit uses SLF4J for logging")
   }
 
-  // Test dependencies
   testImplementation(platform(libs.junit.bom))
+  testImplementation(testFixtures(project(":core")))
   testImplementation(libs.junit.jupiter.api)
   testImplementation(libs.kotlin.test)
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.mockito.core)
   testImplementation(libs.mockito.kotlin)
-  testImplementation(testFixtures(project(":core")))
+
   testRuntimeOnly(libs.junit.launcher)
 }
 

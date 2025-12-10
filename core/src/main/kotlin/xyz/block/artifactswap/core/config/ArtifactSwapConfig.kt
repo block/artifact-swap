@@ -1,5 +1,7 @@
 package xyz.block.artifactswap.core.config
 
+import java.io.Serializable
+
 /**
  * Central configuration for all artifact swap operations.
  *
@@ -115,6 +117,6 @@ data class ArtifactSwapConfig(
   // Artifactory
   // ============================================================================
   val artifactoryBaseUrl: String = "https://artifactory.example.com",
-) {
+) : Serializable {
   val primaryArtifactsMavenGroupArtifactoryPath = primaryArtifactsMavenGroup.replace('.', '/')
 }

@@ -1,7 +1,8 @@
 package xyz.block.artifactswap.core.module_selector
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
-import kotlin.collections.map
+import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
+import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.TimedValue
@@ -9,22 +10,13 @@ import kotlin.time.measureTimedValue
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.repository.InstalledArtifact
 import xyz.block.artifactswap.core.repository.LocalArtifactRepository
 import xyz.block.artifactswap.core.shared_services.git.SquareGit
-
-private val LOGGER = LoggerFactory.getLogger(RealArtifactSwapModuleSelector::class.java)
-
-/** Result of project selection with metrics about why projects were included. */
-data class ModuleSelectionResult(
-  val selectedProjects: Set<GradlePath>,
-  val metrics: SelectionMetrics,
-  val bomVersion: String,
-  val event: ModuleSelectionEvent,
-)
 
 /** Metrics about project selection decisions. */
 data class SelectionMetrics(
@@ -37,8 +29,7 @@ data class SelectionMetrics(
   val excludedDueToArtifactAvailable: Int,
 )
 
-/** Internal result data for module selection computation. */
-internal data class SelectionComputationResult(
+data class ModuleSelectionResult(
   val selectedProjects: Set<GradlePath>,
   val metrics: SelectionMetrics,
   val bomVersionToUse: String,
@@ -51,10 +42,13 @@ internal data class SelectionComputationResult(
 )
 
 interface ArtifactSwapModuleSelector {
-  fun selectProjects(
-    candidates: Set<GradlePath>,
-    requestedProjects: Set<GradlePath>,
-  ): ModuleSelectionResult
+  /**
+   * Selects which projects should be included in the build.
+   *
+   * @param requestedProjects Projects explicitly requested by the user
+   * @return Selection result with included projects and metrics
+   */
+  fun selectProjects(requestedProjects: Set<GradlePath>): ModuleSelectionResult
 }
 
 class RealArtifactSwapModuleSelector(
@@ -63,72 +57,72 @@ class RealArtifactSwapModuleSelector(
   private val bomLoader: ArtifactSyncBomLoader,
   private val ioDispatcher: CoroutineContext,
   private val eventstream: Eventstream,
+  private val spotlightRules: Set<DependencyRule>,
   private val alwaysKeepProjects: Set<GradlePath> = emptySet(),
 ) : ArtifactSwapModuleSelector {
+  private companion object {
+    val LOGGER: Logger = LoggerFactory.getLogger(RealArtifactSwapModuleSelector::class.java)
+  }
 
-  override fun selectProjects(
-    candidates: Set<GradlePath>,
-    requestedProjects: Set<GradlePath>,
-  ): ModuleSelectionResult {
+  override fun selectProjects(requestedProjects: Set<GradlePath>): ModuleSelectionResult {
     var selectionEvent = ModuleSelectionEvent()
-    try {
+    return try {
       val (result, totalDuration) =
-        measureTimedValue { runBlocking { computeSelection(candidates, requestedProjects) } }
+        measureTimedValue { runBlocking { computeSelection(requestedProjects) } }
 
       selectionEvent = ModuleSelectionEvent(result, totalDuration)
-      return ModuleSelectionResult(
-        selectedProjects = result.selectedProjects,
-        metrics = result.metrics,
-        bomVersion = result.bomVersionToUse,
-        event = selectionEvent,
-      )
+      result
     } catch (e: Exception) {
+      LOGGER.error("Project selection failed", e)
       val failureResult =
-        if (e is ModuleSelectorException) {
-          when (e) {
-            is ModuleSelectorException.FailedDeterminingBomVersionException ->
-              ModuleSelectionEventResult.FAILED_DETERMINING_BOM_VERSION
-            is ModuleSelectorException.FailedDeterminingLocalGitChangesException ->
-              ModuleSelectionEventResult.FAILED_READING_LOCAL_GIT_CHANGES
-            is ModuleSelectorException.FailedReadingLocalArtifactStateException ->
-              ModuleSelectionEventResult.FAILED_READING_LOCAL_ARTIFACTS
-          }
-        } else {
-          ModuleSelectionEventResult.UNKNOWN_FAILURE
+        when (e) {
+          is ModuleSelectorException -> e.result
+          else -> ModuleSelectionEventResult.UNKNOWN_FAILURE
         }
-      selectionEvent = selectionEvent.copy(result = failureResult)
+
+      selectionEvent = ModuleSelectionEvent(failureResult)
       throw e
     } finally {
       eventstream.sendEvents(listOf(selectionEvent.toEventStreamEvent()))
     }
   }
 
-  private suspend fun computeSelection(
-    candidates: Set<GradlePath>,
-    requestedProjects: Set<GradlePath>,
-  ): SelectionComputationResult {
-    val (bomVersion, bomDuration) = determineBomVersion()
-    // run these two operations concurrently, performance often important when running this
-    // method as it runs before/blocks usage of IDE until it completes
-    val deferredLocalGitChanges = coroutineScope {
-      async(ioDispatcher) { findLocalGitChanges(bomVersion, candidates) }
-    }
-    val deferredLocalArtifacts = coroutineScope {
-      async(ioDispatcher) { loadLocalArtifacts(bomVersion) }
-    }
+  /**
+   * This method wraps all of the various IO operations that need to happen in parallel and computes
+   * the actual selection result.
+   */
+  private suspend fun computeSelection(requestedProjects: Set<GradlePath>): ModuleSelectionResult =
+    coroutineScope {
+      // First step is to locate a compatible artifact BOM
+      val bomJob = async(ioDispatcher) { determineBomVersion() }
+      // Determine the range of projects that could possibly need to be included for the user's
+      // requested projects.
+      // This can run in parallel with finding the BOM
+      val candidatesJob =
+        async(ioDispatcher) { BreadthFirstSearch.flatten(requestedProjects, spotlightRules) }
 
-    val (projectsWithChanges, changedFilesCount, gitDuration) = deferredLocalGitChanges.await()
-    val (swappableArtifacts, artifactsDuration) = deferredLocalArtifacts.await()
+      val (bomVersion, bomDuration) = bomJob.await()
+      val candidates = candidatesJob.await()
 
-    val (selectedProjects, metrics, selectionDuration) =
-      selectProjectsAndComputeMetrics(
-        candidates,
-        requestedProjects,
-        projectsWithChanges,
-        swappableArtifacts,
-      )
-    val result =
-      SelectionComputationResult(
+      // Next, determine what local git changes have invalidated artifacts provided by the BOM
+      val gitJob = async(ioDispatcher) { findLocalGitChanges(bomVersion, candidates) }
+      // And at the same time, determine what artifacts from the BOM are actually available locally
+      val artifactsJob = async(ioDispatcher) { loadLocalArtifacts(bomVersion) }
+
+      val (gitResult, gitDuration) = gitJob.await()
+      val (installedArtifacts, artifactsDuration) = artifactsJob.await()
+
+      val (changedProjects, changedFilesCount) = gitResult
+      val (selectionResult, selectionDuration) =
+        selectProjectsAndComputeMetrics(
+          candidates,
+          requestedProjects,
+          changedProjects,
+          installedArtifacts,
+        )
+      val (selectedProjects, metrics) = selectionResult
+
+      ModuleSelectionResult(
         selectedProjects = selectedProjects,
         metrics = metrics,
         bomVersionToUse = bomVersion,
@@ -136,48 +130,44 @@ class RealArtifactSwapModuleSelector(
         gitDuration = gitDuration,
         locallyChangedFilesCount = changedFilesCount,
         artifactsDuration = artifactsDuration,
-        swappableArtifactsCount = swappableArtifacts.size,
+        swappableArtifactsCount = installedArtifacts.size,
         selectionDuration = selectionDuration,
       )
-    return result
-  }
+    }
 
-  private suspend fun determineBomVersion(): TimedValue<String> = measureTimedValue {
-    try {
-      bomLoader.findBestBomVersion().getOrThrow()
-    } catch (e: Exception) {
-      LOGGER.error("Failed to determine BOM version", e)
-      throw ModuleSelectorException.FailedDeterminingBomVersionException(e)
+  private suspend fun determineBomVersion(): TimedValue<String> {
+    return measureTimedValue {
+      try {
+        bomLoader.findBestBomVersion().getOrThrow()
+      } catch (e: Exception) {
+        throw ModuleSelectorException.FailedDeterminingBomVersionException(e)
+      }
     }
   }
 
   private suspend fun findLocalGitChanges(
     bomVersion: String,
     candidates: Set<GradlePath>,
-  ): Triple<Set<GradlePath>, Int, Duration> {
-    val (result, duration) =
-      measureTimedValue {
-        try {
-          val files = squareGit.findChangedFiles(baseRef = bomVersion).getOrThrow()
-          // Convert changed files to the projects that contain them
-          val projectsWithChanges =
-            candidates
-              .filter { project -> files.any { file -> file.startsWith(project.projectDir) } }
-              .toSet()
-          projectsWithChanges to files.size
-        } catch (e: Exception) {
-          LOGGER.error("Failed to determine local git changes", e)
-          throw ModuleSelectorException.FailedDeterminingLocalGitChangesException(e)
-        }
+  ): TimedValue<Pair<Set<GradlePath>, Int>> {
+    return measureTimedValue {
+      try {
+        val files = squareGit.findChangedFiles(baseRef = bomVersion).getOrThrow()
+
+        // Convert changed files to the projects that contain them
+        val projectsWithChanges =
+          candidates
+            .filter { project -> files.any { file -> file.startsWith(project.projectDir) } }
+            .toSet()
+
+        projectsWithChanges to files.size
+      } catch (e: Exception) {
+        throw ModuleSelectorException.FailedDeterminingLocalGitChangesException(e)
       }
-    val (projectsWithChanges, fileCount) = result
-    return Triple(projectsWithChanges, fileCount, duration)
+    }
   }
 
-  private suspend fun loadLocalArtifacts(
-    bomVersion: String
-  ): Pair<Set<InstalledArtifact>, Duration> {
-    val timedValue = measureTimedValue {
+  private suspend fun loadLocalArtifacts(bomVersion: String): TimedValue<Set<InstalledArtifact>> {
+    return measureTimedValue {
       try {
         bomLoader
           .loadBom(bomVersion)
@@ -186,11 +176,9 @@ class RealArtifactSwapModuleSelector(
           }
           .getOrThrow()
       } catch (e: Exception) {
-        LOGGER.error("Failed to determine local artifacts", e)
         throw ModuleSelectorException.FailedReadingLocalArtifactStateException(e)
       }
     }
-    return timedValue.value to timedValue.duration
   }
 
   private fun selectProjectsAndComputeMetrics(
@@ -198,23 +186,21 @@ class RealArtifactSwapModuleSelector(
     requestedProjects: Set<GradlePath>,
     projectsWithChanges: Set<GradlePath>,
     swappableArtifacts: Set<InstalledArtifact>,
-  ): Triple<Set<GradlePath>, SelectionMetrics, Duration> {
+  ): TimedValue<Pair<Set<GradlePath>, SelectionMetrics>> = measureTimedValue {
     val root = candidates.first().root
     val locallyInstalledArtifacts =
       swappableArtifacts.map { GradlePath(root, it.projectPath) }.toSet()
 
-    val (projectDecisions, selectionDuration) =
-      measureTimedValue {
-        candidates.map { project ->
-          project to
-            when (project) {
-              in requestedProjects -> InclusionReason.EXPLICITLY_REQUESTED
-              in alwaysKeepProjects -> InclusionReason.ALWAYS_KEEP
-              in projectsWithChanges -> InclusionReason.LOCAL_CHANGES
-              !in locallyInstalledArtifacts -> InclusionReason.MISSING_ARTIFACT
-              else -> InclusionReason.EXCLUDED
-            }
-        }
+    val projectDecisions =
+      candidates.map { project ->
+        project to
+          when (project) {
+            in requestedProjects -> InclusionReason.EXPLICITLY_REQUESTED
+            in alwaysKeepProjects -> InclusionReason.ALWAYS_KEEP
+            in projectsWithChanges -> InclusionReason.LOCAL_CHANGES
+            !in locallyInstalledArtifacts -> InclusionReason.MISSING_ARTIFACT
+            else -> InclusionReason.EXCLUDED
+          }
       }
 
     val decisionCounts = projectDecisions.groupingBy { it.second }.eachCount()
@@ -232,7 +218,7 @@ class RealArtifactSwapModuleSelector(
         excludedDueToArtifactAvailable = decisionCounts[InclusionReason.EXCLUDED] ?: 0,
       )
 
-    return Triple(selectedProjects, metrics, selectionDuration)
+    selectedProjects to metrics
   }
 
   private enum class InclusionReason {
@@ -243,15 +229,30 @@ class RealArtifactSwapModuleSelector(
     EXCLUDED,
   }
 
-  sealed class ModuleSelectorException(message: String, cause: Exception) :
-    Exception(message, cause) {
+  sealed class ModuleSelectorException(
+    val result: ModuleSelectionEventResult,
+    message: String,
+    cause: Exception,
+  ) : Exception(message, cause) {
     class FailedDeterminingBomVersionException(cause: Exception) :
-      ModuleSelectorException("Failed to determine BOM version", cause)
+      ModuleSelectorException(
+        ModuleSelectionEventResult.FAILED_DETERMINING_BOM_VERSION,
+        "Failed to determine BOM version",
+        cause,
+      )
 
     class FailedDeterminingLocalGitChangesException(cause: Exception) :
-      ModuleSelectorException("Failed to determine local git changes", cause)
+      ModuleSelectorException(
+        ModuleSelectionEventResult.FAILED_READING_LOCAL_GIT_CHANGES,
+        "Failed to determine local git changes",
+        cause,
+      )
 
     class FailedReadingLocalArtifactStateException(cause: Exception) :
-      ModuleSelectorException("Failed to read local artifact state", cause)
+      ModuleSelectorException(
+        ModuleSelectionEventResult.FAILED_READING_LOCAL_ARTIFACTS,
+        "Failed to read local artifact state",
+        cause,
+      )
   }
 }

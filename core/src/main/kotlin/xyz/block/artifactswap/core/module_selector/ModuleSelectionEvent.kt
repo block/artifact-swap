@@ -46,13 +46,13 @@ data class ModuleSelectionEvent(
   @Json(name = "user_ldap") val userLdap: String = System.getProperty("user.name"),
 ) {
   /**
-   * Convenience constructor to create a success event from selection computation result.
+   * Convenience constructor to create a success event from selection result.
    *
-   * @param result The selection computation result containing all selection data
+   * @param result The selection result containing all selection data
    * @param totalDuration Total duration of the entire selection process
    */
   internal constructor(
-    result: SelectionComputationResult,
+    result: ModuleSelectionResult,
     totalDuration: Duration,
   ) : this(
     result = ModuleSelectionEventResult.SUCCESS,

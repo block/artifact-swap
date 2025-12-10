@@ -7,10 +7,11 @@ dependencies {
   implementation(libs.log4j.kotlin)
 
   testImplementation(platform(libs.junit.bom))
+  testImplementation(testFixtures(project(":core")))
   testImplementation(libs.junit.jupiter.api)
   testImplementation(libs.kotlin.test)
   testImplementation(libs.kotlinx.coroutines.test)
-  testImplementation(testFixtures(project(":core")))
+
   testRuntimeOnly(libs.junit.launcher)
 
   lintChecks(libs.androidx.lintGradle)

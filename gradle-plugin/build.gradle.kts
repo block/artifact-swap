@@ -27,10 +27,36 @@ gradlePlugin {
 }
 
 dependencies {
+  implementation(project(":core"))
   implementation(gradleApi())
+  implementation(libs.jackson.databind)
+  implementation(libs.jackson.dataformat.xml)
+  implementation(libs.jackson.module.kotlin)
   implementation(libs.kotlin.utilio)
+  implementation(libs.kotlinxCoroutines)
+  implementation(libs.moshi)
+  implementation(libs.okhttp)
+  implementation(libs.retrofit.converter.jackson)
+  implementation(libs.retrofit.core)
+  implementation(libs.slf4j.api)
+  implementation(libs.spotlight.buildscriptUtils)
+  implementation(libs.spotlight.gradle)
 
   compileOnly(libs.android.gradle.api)
 
+  runtimeOnly(libs.jackson.core)
+  runtimeOnly(libs.jackson.module.kotlin)
+
   lintChecks(libs.androidx.lintGradle)
+}
+
+listOf("runtimeElements", "apiElements").forEach { configurationName ->
+  configurations.named(configurationName).configure {
+    attributes {
+      attribute(
+        GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+        objects.named(libs.versions.minGradle.get())
+      )
+    }
+  }
 }
