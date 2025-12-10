@@ -182,7 +182,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     }
   }
 
-  private fun Project.getArtifactRepositoryUrl() {
+  private fun Project.getArtifactRepositoryUrl(): String {
     // Support legacy property name to ease migrations
     providers
       .gradleProperty("artifactswap.artifactRepo.url")
