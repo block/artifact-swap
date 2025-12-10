@@ -23,6 +23,7 @@ abstract class ArtifactSwapBomService : BuildService<Parameters> {
 
   interface Parameters : BuildServiceParameters {
     val bomVersion: Property<String>
+    val artifactSwapMavenGroup: Property<String>
   }
 
   internal object KEY : SharedServiceKey<ArtifactSwapBomService, Parameters>("artifactSyncBom")
@@ -32,7 +33,7 @@ abstract class ArtifactSwapBomService : BuildService<Parameters> {
       val bomVersion = parameters.bomVersion.get()
       return Path(System.getProperty("user.home"))
         .resolve(".m2/repository")
-        .resolve(ARTIFACT_SWAP_MAVEN_GROUP.replace(".", "/"))
+        .resolve(parameters.artifactSwapMavenGroup.get().replace(".", "/"))
         .resolve("bom/$bomVersion/bom-$bomVersion.pom")
     }
 

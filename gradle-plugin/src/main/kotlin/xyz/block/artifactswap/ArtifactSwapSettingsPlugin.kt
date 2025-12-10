@@ -97,11 +97,14 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
       // IDE sync
       gradle.services.register(ArtifactSwapBomService.KEY, ArtifactSwapBomService::class.java) {
         it.parameters.bomVersion.set(bomVersion)
+        it.parameters.artifactSwapMavenGroup.set(artifactSwapConfig.primaryArtifactsMavenGroup)
       }
     }
 
     // Force Gradle to only look for swapped artifacts in maven local
-    dependencyResolutionManagement.setupArtifactRepository()
+    dependencyResolutionManagement.setupArtifactRepository(
+      artifactSwapConfig.primaryArtifactsMavenGroup
+    )
 
     // Apply artifact swap plugins to all projects
     gradle.lifecycle.beforeProject {
@@ -132,11 +135,13 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
    * maven local to avoid having Gradle waste time searching for or refreshing metadata for these
    * from remote repos where we already know they don't exist.
    */
-  private fun DependencyResolutionManagement.setupArtifactRepository() {
+  private fun DependencyResolutionManagement.setupArtifactRepository(
+    artifactSwapMavenGroupId: String
+  ) {
     repositories.let { repos ->
       repos.exclusiveContent { ex ->
         ex.forRepositories(repos.mavenLocal())
-        ex.filter { config -> config.includeGroup(ARTIFACT_SWAP_MAVEN_GROUP) }
+        ex.filter { config -> config.includeGroup(artifactSwapMavenGroupId) }
       }
     }
   }

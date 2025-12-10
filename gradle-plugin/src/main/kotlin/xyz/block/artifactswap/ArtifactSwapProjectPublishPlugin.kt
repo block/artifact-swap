@@ -51,7 +51,12 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
         // Other plugins configure the components to be published, so we have to configure them
         // after those plugins run
         afterEvaluate {
-          val publication = configureArtifactSwapPublication(mavenPublishing, version)
+          val publication =
+            configureArtifactSwapPublication(
+              mavenPublishing,
+              version,
+              artifactSwapConfig.primaryArtifactsMavenGroup,
+            )
           createPublishAliasTask(repo, publication)
         }
       }
@@ -109,12 +114,13 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
   private fun Project.configureArtifactSwapPublication(
     mavenPublishing: PublishingExtension,
     version: String,
+    artifactPublishGroup: String,
   ): MavenPublication {
     val publication =
       mavenPublishing.publications.maybeCreate("projectArtifact", MavenPublication::class.java)
 
     // Automatically configure maven coordinates for sandbag
-    publication.groupId = ARTIFACT_SWAP_MAVEN_GROUP
+    publication.groupId = artifactPublishGroup
     publication.artifactId = artifactSwapCoordinates
     publication.version = version
 
