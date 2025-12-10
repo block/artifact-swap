@@ -184,7 +184,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
 
   private fun Project.getArtifactRepositoryUrl(): String {
     // Support legacy property name to ease migrations
-    providers
+    return providers
       .gradleProperty("artifactswap.artifactRepo.url")
       .orElse(providers.gradleProperty("square.sandbagsUrl"))
       .orNull
