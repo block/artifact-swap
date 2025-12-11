@@ -3,6 +3,7 @@
 package xyz.block.artifactswap
 
 import com.android.build.api.dsl.LibraryExtension
+import java.io.IOException
 import java.net.InetAddress
 import java.net.URI
 import org.gradle.api.Plugin
@@ -204,7 +205,46 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     return providers
       .gradleProperty("artifactswap.artifactRepo.password")
       .orElse(providers.gradleProperty("square.artifactory.password"))
+      .orElse(
+        providers.provider {
+          readArtifactoryTokenFromFile(
+            tokenFileName = artifactSwapConfig.artifactoryPublisherTokenFileName
+          )
+        }
+      )
       .orNull
+  }
+
+  private fun Project.readArtifactoryTokenFromFile(tokenFileName: String): String? {
+    // Missing or null env var → just treat as "no token"
+    val secretsPath: String = providers.environmentVariable("SECRETS_PATH").orNull ?: return null
+
+    val tokenFile = file(secretsPath).resolve(tokenFileName)
+
+    // Missing file / not a regular file → also "no token"
+    if (!tokenFile.isFile)
+      throw IllegalArgumentException(
+        "Artifactory token file name is set but file is not found. Verify `SECRETS_PATH` env var is set and points to a valid directory, and token file name in that directory is correct. Searched path: $tokenFile"
+      )
+
+    return try {
+      tokenFile.useLines { lines ->
+        lines
+          .firstOrNull() // empty file → null
+          ?.trim()
+          ?.takeIf { it.isNotEmpty() } // whitespace-only → null
+      }
+    } catch (e: IOException) {
+      throw IOException(
+        "Failed to read Artifactory token file from $tokenFile, verify file contains a single line with the token.",
+        e,
+      )
+    } catch (e: SecurityException) {
+      throw SecurityException(
+        "Failed to read Artifactory token file from $tokenFile, check file permissions.",
+        e,
+      )
+    }
   }
 
   private fun Project.getArtifactRepoUsername(): String? {
