@@ -49,9 +49,11 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
     logger.lifecycle(
       "You can disable this by setting $ARTIFACT_SWAP_ENABLED=false in your gradle properties"
     )
-    val selectionResult = selectProjectsForArtifactSwap()
-    selectionResult.selectedProjects.forEach { include(it) }
-    setupArtifactSwapInfrastructure(selectionResult.bomVersion)
+    gradle.settingsEvaluated {
+      val selectionResult = selectProjectsForArtifactSwap()
+      selectionResult.selectedProjects.forEach { include(it) }
+      setupArtifactSwapInfrastructure(selectionResult.bomVersion)
+    }
   }
 
   private fun Settings.applySpotlight() {
