@@ -12,6 +12,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.provider.Provider
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.MavenPublication
@@ -170,14 +171,29 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     with(pom) {
       name.set(project.name)
       description.set("Sandbag for ${project.name} in build ${project.isolated.rootProject.name}")
-      url.set(providers.gradleProperty("square.repoUrl"))
+      url.set(repoUrl())
       scm { scm ->
-        scm.connection.set(providers.gradleProperty("square.scmConnectionUrl"))
-        scm.developerConnection.set(providers.gradleProperty("square.scmDeveloperConnectionUrl"))
-        scm.url.set(providers.gradleProperty("square.repoUrl"))
+        scm.connection.set(scmConnectionUrl())
+        scm.developerConnection.set(scmDeveloperConnectionUrl())
+        scm.url.set(repoUrl())
       }
     }
   }
+
+  private fun Project.repoUrl(): Provider<String> =
+    providers
+      .gradleProperty("artifactswap.repoUrl")
+      .orElse(providers.gradleProperty("square.repoUrl"))
+
+  private fun Project.scmDeveloperConnectionUrl(): Provider<String> =
+    providers
+      .gradleProperty("artifactswap.scmDeveloperConnectionUrl")
+      .orElse(providers.gradleProperty("square.scmDeveloperConnectionUrl"))
+
+  private fun Project.scmConnectionUrl(): Provider<String> =
+    providers
+      .gradleProperty("artifactswap.scmConnectionUrl")
+      .orElse(providers.gradleProperty("square.scmConnectionUrl"))
 
   private fun Project.getSandbagCredentials(): SandbagCredentials? {
     val username = getArtifactRepoUsername()
