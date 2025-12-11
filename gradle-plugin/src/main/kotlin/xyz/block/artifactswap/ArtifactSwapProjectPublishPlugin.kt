@@ -222,7 +222,10 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     val tokenFile = file(secretsPath).resolve(tokenFileName)
 
     // Missing file / not a regular file → also "no token"
-    if (!tokenFile.isFile) return null
+    if (!tokenFile.isFile)
+      throw IllegalArgumentException(
+        "Artifactory token file name is set but file is not found. Verify `SECRETS_PATH` env var is set and points to a valid directory, and token file name in that directory is correct. Searched path: $tokenFile"
+      )
 
     return try {
       tokenFile.useLines { lines ->
@@ -232,9 +235,15 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
           ?.takeIf { it.isNotEmpty() } // whitespace-only → null
       }
     } catch (e: IOException) {
-      null
+      throw IOException(
+        "Failed to read Artifactory token file from $tokenFile, verify file contains a single line with the token.",
+        e,
+      )
     } catch (e: SecurityException) {
-      null
+      throw SecurityException(
+        "Failed to read Artifactory token file from $tokenFile, check file permissions.",
+        e,
+      )
     }
   }
 
