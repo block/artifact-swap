@@ -213,7 +213,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
       .orNull
       ?: throw RuntimeException(
         "No artifact repository URL provided. Please set " +
-          "`artifactswap.artifactRepoUrl` in your root gradle.properties file."
+          "`artifactswap.artifactRepo.url` in your root gradle.properties file."
       )
   }
 
