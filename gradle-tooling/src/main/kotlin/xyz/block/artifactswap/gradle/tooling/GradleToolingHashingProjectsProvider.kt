@@ -21,7 +21,9 @@ class GradleToolingHashingProjectsProvider(
 
   companion object {
     private const val GRADLE_BUILD_FILE_NAME = "build.gradle"
+    private const val GRADLE_BUILD_FILE_KTS_NAME = "build.gradle.kts"
     private const val SETTINGS_GRADLE_FILE_NAME = "settings.gradle"
+    private const val SETTINGS_GRADLE_FILE_KTS_NAME = "settings.gradle.kts"
     private val TYPES_TO_IGNORE = setOf(".txt", ".yaml", ".yml", ".md")
   }
 
@@ -39,8 +41,10 @@ class GradleToolingHashingProjectsProvider(
 
           buildModel.projects
             .filter {
-              it.projectDirectory.resolve(GRADLE_BUILD_FILE_NAME).exists() &&
-                !it.projectDirectory.resolve(SETTINGS_GRADLE_FILE_NAME).exists()
+              (it.projectDirectory.resolve(GRADLE_BUILD_FILE_NAME).exists() ||
+                it.projectDirectory.resolve(GRADLE_BUILD_FILE_KTS_NAME).exists()) &&
+                !it.projectDirectory.resolve(SETTINGS_GRADLE_FILE_NAME).exists() &&
+                !it.projectDirectory.resolve(SETTINGS_GRADLE_FILE_KTS_NAME).exists()
             }
             .filterNot { it.path == ":" }
             .map {
