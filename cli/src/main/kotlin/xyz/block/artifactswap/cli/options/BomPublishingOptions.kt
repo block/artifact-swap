@@ -13,4 +13,11 @@ class BomPublishingOptions {
   @Option(names = ["--hash-file-location"], description = ["Location of the hash file"])
   var hashPath: Path = Path(".")
     internal set
+
+  @Option(
+    names = ["--local"],
+    description = ["Load artifacts from and publish BOM to local Maven repository"],
+  )
+  var local: Boolean = false
+    internal set
 }
