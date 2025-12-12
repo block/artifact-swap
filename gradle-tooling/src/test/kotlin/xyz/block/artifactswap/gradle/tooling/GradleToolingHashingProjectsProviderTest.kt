@@ -491,4 +491,170 @@ class GradleToolingHashingProjectsProviderTest {
 
     moduleDir.resolve("notes.txt").writeText("should be ignored")
   }
+
+  @Test
+  fun `getProjectHashingInfos includes projects with build gradle kts`() = runTest {
+    val projectDir = tempDir.resolve("sample-project").also { it.createDirectories() }
+    projectDir
+      .resolve("settings.gradle.kts")
+      .writeText(
+        """
+        rootProject.name = "sample-project"
+        include(":app", ":lib")
+        """
+          .trimIndent()
+      )
+    projectDir
+      .resolve("build.gradle.kts")
+      .writeText(
+        """
+        plugins { id("base") }
+        """
+          .trimIndent()
+      )
+
+    // Create app module with Kotlin DSL
+    val appDir = projectDir.resolve("app")
+    appDir.createDirectories()
+    appDir
+      .resolve("build.gradle.kts")
+      .writeText(
+        """
+        plugins { id("java") }
+        """
+          .trimIndent()
+      )
+    appDir.resolve("src/main/java/App.java").also { path ->
+      path.parent.createDirectories()
+      path.writeText("public class App {}")
+    }
+
+    // Create lib module with Groovy DSL
+    val libDir = projectDir.resolve("lib")
+    libDir.createDirectories()
+    libDir
+      .resolve("build.gradle")
+      .writeText(
+        """
+        plugins { id 'java-library' }
+        """
+          .trimIndent()
+      )
+    libDir.resolve("src/main/kotlin/Lib.kt").also { path ->
+      path.parent.createDirectories()
+      path.writeText("class Lib")
+    }
+
+    val connector =
+      GradleConnector.newConnector().forProjectDirectory(projectDir.toFile()).useBuildDistribution()
+    val cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+    val connection = connector.connect()
+    val provider =
+      GradleToolingHashingProjectsProvider(
+        cancellationTokenSource = cancellationTokenSource,
+        projectConnection = connection,
+        gradleArgs = emptyList(),
+        gradleJvmArgs = emptyList(),
+      )
+
+    try {
+      val hashingInfos = provider.getProjectHashingInfos().getOrThrow()
+      // Both Kotlin DSL and Groovy DSL modules should be included
+      assertTrue(hashingInfos.any { it.projectPath == ":app" })
+      assertTrue(hashingInfos.any { it.projectPath == ":lib" })
+
+      // Verify files are detected for Kotlin DSL module
+      val appInfo = hashingInfos.single { it.projectPath == ":app" }
+      val appFiles =
+        appInfo.filesToHash
+          .map { appInfo.projectDirectory.relativize(it).pathString.replace('\\', '/') }
+          .toList()
+      assertTrue(appFiles.contains("build.gradle.kts"))
+      assertTrue(appFiles.contains("src/main/java/App.java"))
+    } finally {
+      provider.cleanup()
+    }
+  }
+
+  @Test
+  fun `getProjectHashingInfos excludes projects with settings gradle kts`() = runTest {
+    val projectDir = tempDir.resolve("sample-project").also { it.createDirectories() }
+    projectDir
+      .resolve("settings.gradle.kts")
+      .writeText(
+        """
+        rootProject.name = "sample-project"
+        include(":app", ":projectThatHasSettingsFile")
+        """
+          .trimIndent()
+      )
+    projectDir
+      .resolve("build.gradle.kts")
+      .writeText(
+        """
+        plugins { id("base") }
+        """
+          .trimIndent()
+      )
+
+    // Create regular module
+    val appDir = projectDir.resolve("app")
+    appDir.createDirectories()
+    appDir
+      .resolve("build.gradle.kts")
+      .writeText(
+        """
+        plugins { id("java") }
+        """
+          .trimIndent()
+      )
+    appDir.resolve("src/main/java/App.java").also { path ->
+      path.parent.createDirectories()
+      path.writeText("public class App {}")
+    }
+
+    // Create projectThatHasSettingsFile with its own settings.gradle.kts (should be excluded)
+    val projectThatHasSettingsFileDir = projectDir.resolve("projectThatHasSettingsFile")
+    projectThatHasSettingsFileDir.createDirectories()
+    projectThatHasSettingsFileDir
+      .resolve("build.gradle.kts")
+      .writeText(
+        """
+        plugins { `kotlin-dsl` }
+        """
+          .trimIndent()
+      )
+    projectThatHasSettingsFileDir
+      .resolve("settings.gradle.kts")
+      .writeText(
+        """
+        rootProject.name = "projectThatHasSettingsFile"
+        """
+          .trimIndent()
+      )
+    projectThatHasSettingsFileDir.resolve("src/main/kotlin/MyPlugin.kt").also { path ->
+      path.parent.createDirectories()
+      path.writeText("class MyPlugin")
+    }
+
+    val connector =
+      GradleConnector.newConnector().forProjectDirectory(projectDir.toFile()).useBuildDistribution()
+    val cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+    val connection = connector.connect()
+    val provider =
+      GradleToolingHashingProjectsProvider(
+        cancellationTokenSource = cancellationTokenSource,
+        projectConnection = connection,
+        gradleArgs = emptyList(),
+        gradleJvmArgs = emptyList(),
+      )
+
+    try {
+      val hashingInfos = provider.getProjectHashingInfos().getOrThrow()
+      assertTrue(hashingInfos.any { it.projectPath == ":app" })
+      assertFalse(hashingInfos.any { it.projectPath == ":projectThatHasSettingsFile" })
+    } finally {
+      provider.cleanup()
+    }
+  }
 }
