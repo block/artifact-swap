@@ -11,6 +11,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
+import org.gradle.api.file.FileTree
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.Provider
 import org.gradle.api.publish.PublishingExtension
@@ -18,6 +19,7 @@ import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.bundling.Jar
+import xyz.block.gradle.ARTIFACT_SWAP_HASH_SEED
 import xyz.block.gradle.artifactSwapCoordinates
 import xyz.block.gradle.isAndroidLibrary
 import xyz.block.gradle.isKotlin
@@ -36,8 +38,6 @@ import xyz.block.gradle.projectArtifactVersion
 class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
   override fun apply(target: Project): Unit =
     target.run {
-      val version = projectArtifactVersion ?: return@run
-
       pluginManager.apply("maven-publish")
 
       // Configure android projects to publish a single debug variant library
@@ -53,10 +53,13 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
         // Other plugins configure the components to be published, so we have to configure them
         // after those plugins run
         afterEvaluate {
+          // Compute version: either from file (legacy) or from sourcesets (new)
+          val versionProvider = computeProjectVersion()
+
           val publication =
             configureArtifactSwapPublication(
               mavenPublishing,
-              version,
+              versionProvider,
               artifactSwapConfig.primaryArtifactsMavenGroup,
             )
           createPublishAliasTask(repo, publication)
@@ -67,6 +70,59 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
         it.notCompatibleWithConfigurationCache("See https://github.com/gradle/gradle/issues/13468")
       }
     }
+
+  /**
+   * Computes the project version either from a file (legacy) or by hashing the project's sourcesets
+   * (new approach).
+   */
+  private fun Project.computeProjectVersion(): Provider<String> {
+    // First, try to get the version from file (for backward compatibility)
+    val versionFromFile = projectArtifactVersion
+    if (versionFromFile != null) {
+      return providers.provider { versionFromFile }
+    }
+
+    // Otherwise, compute version from sourcesets by registering a hash task
+    val hashTask =
+      tasks.register("computeProjectVersionHash", ProjectVersionHashTask::class.java) { task ->
+        task.sourceFiles.from(artifactSourceFiles)
+
+        // Include hash seed if configured
+        val hashSeedProperty = providers.gradleProperty(ARTIFACT_SWAP_HASH_SEED)
+        if (hashSeedProperty.isPresent) {
+          task.hashSeed.set(hashSeedProperty)
+        }
+
+        task.outputFile.set(layout.buildDirectory.file("artifactswap/version.txt"))
+      }
+
+    return hashTask.flatMap { it.outputFile }.map { it.asFile.readText().trim() }
+  }
+
+  /**
+   * Gets all source files from the project directory using Gradle's fileTree API.
+   *
+   * This includes source files and excludes build outputs, test code, and certain file types.
+   */
+  private val Project.artifactSourceFiles: FileTree get() {
+    return fileTree(projectDir) {
+      // Include source directories
+      it.include("**/src/**")
+
+      // Exclude build outputs
+      it.exclude("**/build/**")
+
+      // Exclude test code
+      it.exclude("**/src/test/**")
+      it.exclude("**/src/androidTest/**")
+
+      // Exclude documentation and configuration files
+      it.exclude("**/*.txt")
+      it.exclude("**/*.yaml")
+      it.exclude("**/*.yml")
+      it.exclude("**/*.md")
+    }
+  }
 
   private fun Project.configureArtifactSwapRepository(
     mavenPublishing: PublishingExtension
@@ -115,7 +171,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
 
   private fun Project.configureArtifactSwapPublication(
     mavenPublishing: PublishingExtension,
-    version: String,
+    version: Provider<String>,
     artifactPublishGroup: String,
   ): MavenPublication {
     val publication =
@@ -124,7 +180,7 @@ class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
     // Automatically configure maven coordinates for sandbag
     publication.groupId = artifactPublishGroup
     publication.artifactId = artifactSwapCoordinates
-    publication.version = version
+    publication.version = version.get()
 
     when {
       isAndroidLibrary -> publishAndroidLibrary(publication)
