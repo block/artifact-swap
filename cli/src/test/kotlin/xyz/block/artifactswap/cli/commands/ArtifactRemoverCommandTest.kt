@@ -1,12 +1,8 @@
 package xyz.block.artifactswap.cli.commands
 
 import java.io.File
-import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.test.assertEquals
-import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,13 +14,12 @@ import org.mockito.kotlin.mock
 import picocli.CommandLine
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
-import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.remover.models.ArtifactRemoverEventResult
 import xyz.block.artifactswap.core.remover.services.ArtifactRemoverEventStream
+import xyz.block.artifactswap.core.repository.FakeLocalArtifactRepository
 import xyz.block.artifactswap.core.repository.InstalledBom
 import xyz.block.artifactswap.core.repository.InstalledProject
 import xyz.block.artifactswap.core.repository.LocalArtifactRepository
-import xyz.block.artifactswap.core.repository.RepositoryStats
 
 /**
  * Integration tests for the CLI command that verify picocli argument parsing and proper wiring with
@@ -141,57 +136,5 @@ internal class FakeArtifactRemoverEventStream : ArtifactRemoverEventStream {
   ): Boolean {
     receivedResults.addAll(results)
     return true
-  }
-}
-
-internal class FakeLocalArtifactRepository : LocalArtifactRepository {
-  var installedProjects: List<InstalledProject> = emptyList()
-  var installedBoms: List<InstalledBom> = emptyList()
-
-  val deletedProjects = mutableListOf<InstalledProject>()
-  val deletedBoms = mutableListOf<InstalledBom>()
-
-  override suspend fun getInstalledArtifacts(
-    bom: Project
-  ): Result<Set<xyz.block.artifactswap.core.repository.InstalledArtifact>> {
-    return Result.success(emptySet())
-  }
-
-  override suspend fun getInstalledBom(bomVersion: String): Result<Project> {
-    return Result.failure(NoSuchElementException("BOM not found"))
-  }
-
-  override fun getAllInstalledProjects(): Flow<InstalledProject> {
-    return installedProjects.asFlow()
-  }
-
-  override suspend fun getInstalledBomsByRecency(count: Int): List<InstalledBom> {
-    return installedBoms.take(count)
-  }
-
-  override suspend fun deleteInstalledProjectVersions(
-    installedProject: InstalledProject
-  ): List<String> {
-    deletedProjects.add(installedProject)
-    return installedProject.versions.toList()
-  }
-
-  override suspend fun deleteInstalledBom(installedBom: InstalledBom): Boolean {
-    deletedBoms.add(installedBom)
-    return true
-  }
-
-  override suspend fun measureRepository(): RepositoryStats {
-    return RepositoryStats(
-      countInstalledProjects = installedProjects.size.toLong(),
-      countInstalledArtifacts = installedProjects.sumOf { it.versions.size }.toLong(),
-      countInstalledBoms = installedBoms.size.toLong(),
-      sizeOfInstalledArtifactsBytes = 1024L,
-      sizeOfInstalledBomsBytes = 1024L,
-      overallRepoSizeBytes = 2048L,
-      installedArtifactsMeasurementDuration = 10.milliseconds,
-      installedBomsMeasurementDuration = 10.milliseconds,
-      measurementDuration = 20.milliseconds,
-    )
   }
 }
