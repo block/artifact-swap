@@ -33,8 +33,8 @@ import xyz.block.gradle.projectArtifactVersion
  * For reference and searchability, the ID of this plugin is `xyz.block.artifactswap.publish`.
  */
 @Suppress("unused")
-class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
-  override fun apply(target: Project): Unit =
+public class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
+  public override fun apply(target: Project): Unit =
     target.run {
       val version = projectArtifactVersion ?: return@run
 

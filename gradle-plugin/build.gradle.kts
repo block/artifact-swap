@@ -26,6 +26,10 @@ gradlePlugin {
   }
 }
 
+kotlin {
+  explicitApi()
+}
+
 dependencies {
   implementation(project(":core"))
   implementation(gradleApi())

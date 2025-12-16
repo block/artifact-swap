@@ -9,7 +9,7 @@ import xyz.block.artifactswap.ArtifactSwapProjectPlugin
 private const val SQUARE_GENERATED_PROTOS_VERSION = "square.protosGeneratedVersion"
 private const val SQUARE_PROTOS_SCHEMA_VERSION = "square.protosSchemaVersion"
 internal const val LOCAL_PROTOS_ARTIFACTS = "square.useLocalProtos"
-const val ARTIFACT_SWAP_ENABLED = "artifactswap.enabled"
+public const val ARTIFACT_SWAP_ENABLED: String = "artifactswap.enabled"
 private const val IS_ARTIFACT_SWAP_PUBLISHING_ENABLED = "artifactswap.publishingEnabled"
 private const val ARTIFACT_VERSION_FILE = "artifactswap.artifactVersionFile"
 internal val Settings.useLocalProtos: Boolean
@@ -22,7 +22,7 @@ internal val Project.protosSchemaVersion
   get() = providers.gradleProperty(SQUARE_PROTOS_SCHEMA_VERSION).get()
 
 /** Indicates if Artifact Sync should be enabled */
-val Settings.useArtifactSwap: Boolean
+public val Settings.useArtifactSwap: Boolean
   get() = providers.gradleProperty(ARTIFACT_SWAP_ENABLED).getOrElse("true").toBoolean()
 
 /** Indicates if artifact swap is currently active */
@@ -33,11 +33,11 @@ internal val Settings.isArtifactPublishingEnabled: Boolean
   get() =
     providers.gradleProperty(IS_ARTIFACT_SWAP_PUBLISHING_ENABLED).getOrElse("false").toBoolean()
 
-val Project.projectVersionsFile: File
+internal val Project.projectVersionsFile: File
   get() = File(rootDir, providers.gradleProperty(ARTIFACT_VERSION_FILE).get())
 
 /** Gets the project artifact version for this project from the project versions file. */
-val Project.projectArtifactVersion: String?
+internal val Project.projectArtifactVersion: String?
   get() {
     if (!projectVersionsFile.exists()) {
       throw GradleException(
