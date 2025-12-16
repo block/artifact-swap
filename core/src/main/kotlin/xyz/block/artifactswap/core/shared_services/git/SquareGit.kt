@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 interface SquareGit {
 
   /** Returns the commit hash of the youngest ancestor between HEAD and the base branch. */
-  suspend fun findRecentSharedCommits(baseRef: String, count: Int = 50): List<ObjectId>?
+  suspend fun findRecentSharedCommits(baseRef: String, count: Int = 50): List<ObjectId>
 
   /**
    * Returns the list of file paths (relative to the repository root) that have changed between the
@@ -70,26 +70,25 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
       .toSet()
   }
 
-  override suspend fun findRecentSharedCommits(baseRef: String, count: Int): List<ObjectId>? {
-    LOGGER.debug("Finding merge base between $baseRef and ${Constants.HEAD}")
-    val baseCommit = repository.resolve(baseRef)
-    val headCommit = repository.resolve(Constants.HEAD)
+  override suspend fun findRecentSharedCommits(baseRef: String, count: Int): List<ObjectId> {
+    LOGGER.info("Finding merge base between $baseRef and ${Constants.HEAD}")
+    val baseCommit =
+      repository.resolve(baseRef) ?: throw IllegalStateException("$baseRef could not be resolved")
+    val headCommit =
+      repository.resolve(Constants.HEAD)
+        ?: throw IllegalStateException("${Constants.HEAD} could not be resolved")
     val mergeBase =
       RevWalk(repository).use { walk ->
         try {
           val revCommit1 = walk.parseCommit(baseCommit)
           val revCommit2 = walk.parseCommit(headCommit)
           walk.findMergeBase(revCommit1, revCommit2)
-        } catch (e: Exception) {
-          LOGGER.error("Error finding recent shared commits", e)
-          return null
         } finally {
           walk.dispose()
         }
       }
     if (mergeBase == null) {
-      LOGGER.warn("No merge base found between $baseRef and HEAD")
-      return null
+      throw IllegalStateException("No merge base found between $baseRef and ${Constants.HEAD}")
     }
     val commits = git.log().add(mergeBase).call().take(count).map { it.id }
     return commits

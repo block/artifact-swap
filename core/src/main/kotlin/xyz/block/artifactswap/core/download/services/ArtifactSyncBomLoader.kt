@@ -47,9 +47,6 @@ class RealArtifactSyncBomLoader(
         baseRef = config.bomSourceBranchName,
         count = COUNT_SHARED_COMMITS_TO_CHECK_FOR_BOM,
       )
-        ?: throw IllegalStateException(
-          "Unable to determine bom version, failed to fetch possible bom versions from git."
-        )
 
     val matchingBom =
       recentSharedCommits.firstOrNull { commit ->
