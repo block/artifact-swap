@@ -92,18 +92,9 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
    */
   private fun Settings.setupArtifactSwapInfrastructure(bomVersion: String) {
     logger.info("Artifact Swap BOM version: {}", bomVersion)
-
-    gradle.settingsEvaluated {
-      // This has to run after settings are evaluated. It ensures that the project descriptor
-      // registry contains the full list of projects that are `include`-ed by the applied settings
-      // script.
-
-      // Service should only be registered and retrieved when using artifact sync and during an
-      // IDE sync
-      gradle.services.register(ArtifactSwapBomService.KEY, ArtifactSwapBomService::class.java) {
-        it.parameters.bomVersion.set(bomVersion)
-        it.parameters.artifactSwapMavenGroup.set(artifactSwapConfig.primaryArtifactsMavenGroup)
-      }
+    gradle.services.register(ArtifactSwapBomService.KEY, ArtifactSwapBomService::class.java) {
+      it.parameters.bomVersion.set(bomVersion)
+      it.parameters.artifactSwapMavenGroup.set(artifactSwapConfig.primaryArtifactsMavenGroup)
     }
 
     // Force Gradle to only look for swapped artifacts in maven local
