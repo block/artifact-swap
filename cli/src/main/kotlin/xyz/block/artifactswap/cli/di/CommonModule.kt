@@ -19,42 +19,46 @@ internal fun commonModule(commonOptions: CommonOptions) = module {
   }
 }
 
-// Creates ArtifactSwapConfig from gradle properties with appropriate defaults
+// Creates ArtifactSwapConfig from gradle properties
 private fun createArtifactSwapConfig(properties: Properties): ArtifactSwapConfig {
-  val defaults = ArtifactSwapConfig()
-
   fun getProperty(key: String, default: String): String = properties.getProperty(key) ?: default
+  fun getProperty(key: String): String =
+    properties.getProperty(key)
+      ?: throw IllegalStateException(
+        "Required gradle property '$key' is not set. Please define it in gradle.properties."
+      )
 
   return ArtifactSwapConfig(
-    primaryRepositoryName =
-      getProperty("artifactswap.primaryRepositoryName", defaults.primaryRepositoryName),
+    primaryRepositoryName = getProperty("artifactswap.primaryRepositoryName"),
     secondaryRepositoryName =
-      getProperty("artifactswap.secondaryRepositoryName", defaults.secondaryRepositoryName),
-    primaryArtifactsMavenGroup =
-      getProperty("artifactswap.primaryArtifactsMavenGroup", defaults.primaryArtifactsMavenGroup),
+      getProperty(
+        "artifactswap.secondaryRepositoryName",
+        ArtifactSwapConfig.SECONDARY_REPOSITORY_NAME,
+      ),
+    primaryArtifactsMavenGroup = getProperty("artifactswap.primaryArtifactsMavenGroup"),
     secondaryArtifactsMavenGroup =
       getProperty(
         "artifactswap.secondaryArtifactsMavenGroup",
-        defaults.secondaryArtifactsMavenGroup,
+        ArtifactSwapConfig.SECONDARY_ARTIFACTS_MAVEN_GROUP,
       ),
     eventstreamBaseUrl =
-      getProperty("artifactswap.eventstreamBaseUrl", defaults.eventstreamBaseUrl),
+      getProperty("artifactswap.eventstreamBaseUrl", ArtifactSwapConfig.EVENTSTREAM_BASE_URL),
     artifactoryPublisherTokenFileName =
-      getProperty(
-        "artifactswap.artifactoryPublisherTokenFileName",
-        defaults.artifactoryPublisherTokenFileName,
-      ),
+      getProperty("artifactswap.artifactoryPublisherTokenFileName"),
     protosGeneratedVersionProperty =
       getProperty(
         "artifactswap.protosGeneratedVersionProperty",
-        defaults.protosGeneratedVersionProperty,
+        ArtifactSwapConfig.PROTOS_GENERATED_VERSION_PROPERTY,
       ),
     protosSchemaVersionProperty =
-      getProperty("artifactswap.protosSchemaVersionProperty", defaults.protosSchemaVersionProperty),
+      getProperty(
+        "artifactswap.protosSchemaVersionProperty",
+        ArtifactSwapConfig.PROTOS_SCHEMA_VERSION_PROPERTY,
+      ),
+    excludeGradleProjects = emptyList(),
     artifactoryBaseUrl =
-      getProperty("artifactswap.artifactoryBaseUrl", defaults.artifactoryBaseUrl),
-    bomSourceBranchName =
-      getProperty("artifactswap.bomSourceBranchName", defaults.bomSourceBranchName),
+      getProperty("artifactswap.artifactoryBaseUrl", ArtifactSwapConfig.ARTIFACTORY_BASE_URL),
+    bomSourceBranchName = getProperty("artifactswap.bomSourceBranchName"),
   )
 }
 

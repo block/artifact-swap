@@ -22,7 +22,7 @@ import retrofit2.Response
 import xyz.block.artifactswap.core.artifact_checker.FakeArtifactCheckerEventStream
 import xyz.block.artifactswap.core.artifact_checker.models.ArtifactCheckerResult
 import xyz.block.artifactswap.core.artifact_checker.services.ArtifactCheckerEventStream
-import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.config.testArtifactSwapConfig
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
 import xyz.block.artifactswap.core.network.ArtifactoryService
@@ -361,5 +361,5 @@ fun createFakeArtifactoryServiceForCli(
 ): ArtifactoryService {
   val fakeEndpoints =
     FakeArtifactoryEndpointsForCli().apply { this.existingArtifacts = existingArtifacts }
-  return ArtifactoryService(fakeEndpoints, ArtifactSwapConfig())
+  return ArtifactoryService(fakeEndpoints, testArtifactSwapConfig())
 }

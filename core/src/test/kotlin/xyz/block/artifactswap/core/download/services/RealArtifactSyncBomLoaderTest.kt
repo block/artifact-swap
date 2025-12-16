@@ -11,7 +11,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.wheneverBlocking
-import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.config.testArtifactSwapConfig
 import xyz.block.artifactswap.core.maven.Dependencies
 import xyz.block.artifactswap.core.maven.Dependency
 import xyz.block.artifactswap.core.maven.DependencyManagement
@@ -22,7 +22,7 @@ import xyz.block.artifactswap.core.shared_services.git.SquareGit
 class RealArtifactSyncBomLoaderTest {
 
   companion object {
-    private val TEST_CONFIG = ArtifactSwapConfig()
+    private val TEST_CONFIG = testArtifactSwapConfig()
 
     private val DEFAULT_MAVEN_POM =
       Project(

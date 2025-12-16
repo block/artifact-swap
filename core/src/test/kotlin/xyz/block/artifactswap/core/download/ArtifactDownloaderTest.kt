@@ -13,7 +13,7 @@ import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.wheneverBlocking
-import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.config.testArtifactSwapConfig
 import xyz.block.artifactswap.core.download.models.Artifact
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult.FAILED_TO_DOWNLOAD_BOM
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult.FAILED_TO_FIND_VALID_BOM_VERSION
@@ -37,7 +37,7 @@ class ArtifactDownloaderTest {
   lateinit var projectsProvider: GradleProjectsProvider
   lateinit var propertiesProvider: GradlePropertiesProvider
   lateinit var downloader: ArtifactDownloader
-  val testConfig = ArtifactSwapConfig() // Use default config for tests
+  val testConfig = testArtifactSwapConfig() // Use test config for tests
 
   @BeforeEach
   fun setUp() {
@@ -72,8 +72,8 @@ class ArtifactDownloaderTest {
 
     const val FAKE_BOM_VERSION = "abdcd12345"
 
-    // Use the default config's secondary artifacts group for protos
-    val SQUARE_PROTOS_ARTIFACT_GROUP = ArtifactSwapConfig().secondaryArtifactsMavenGroup
+    // Use the test config's secondary artifacts group for protos
+    val SQUARE_PROTOS_ARTIFACT_GROUP = testArtifactSwapConfig().secondaryArtifactsMavenGroup
   }
 
   @Test

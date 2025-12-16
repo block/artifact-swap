@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.mockito.kotlin.mock
-import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.config.testArtifactSwapConfig
 import xyz.block.artifactswap.core.download.models.Artifact
 import xyz.block.artifactswap.core.download.models.DownloadFileType
 import xyz.block.artifactswap.core.download.models.DownloadedArtifactFileResult
@@ -33,7 +33,7 @@ class RealArtifactRepositoryTest {
   private lateinit var repository: RealArtifactRepository
   private lateinit var mockArtifactoryService: ArtifactoryEndpoints
   private lateinit var objectMapper: ObjectMapper
-  private val testConfig = ArtifactSwapConfig()
+  private val testConfig = testArtifactSwapConfig()
 
   @BeforeEach
   fun setUp() {
