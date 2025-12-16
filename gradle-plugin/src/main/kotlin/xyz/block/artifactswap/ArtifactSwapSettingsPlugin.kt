@@ -9,6 +9,7 @@ import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import xyz.block.gradle.ARTIFACT_SWAP_ENABLED
+import xyz.block.gradle.ArtifactSwapDependencyHandler
 import xyz.block.gradle.LOCAL_PROTOS_ARTIFACTS
 import xyz.block.gradle.hasPublishableComponent
 import xyz.block.gradle.isArtifactPublishingEnabled
@@ -36,10 +37,12 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
 
   override fun apply(target: Settings) =
     target.run {
+      val artifactSwapIsActive = isIdeSync && useArtifactSwap
       when {
-        isIdeSync && useArtifactSwap -> applyArtifactSwap()
+        artifactSwapIsActive -> applyArtifactSwap()
         else -> applySpotlight()
       }
+      setupKtsDependencyHandlerOverride(artifactSwapIsActive)
       maybeApplyPublishPlugin()
       maybeUseLocalProtos()
     }
@@ -116,6 +119,14 @@ class ArtifactSwapSettingsPlugin : Plugin<Settings> {
       // Apply sub-plugin to all projects that swaps artifact references back to gradle projects
       // if applicable.
       it.plugins.apply(ArtifactSwapProjectPlugin::class.java)
+    }
+  }
+
+  private fun Settings.setupKtsDependencyHandlerOverride(artifactSwapIsActive: Boolean) {
+    // We need to do this for all builds, because our new DependencyHandler.project() function
+    // will ALWAYS be on the classpath (visible to build scripts).
+    gradle.lifecycle.beforeProject { p ->
+      ArtifactSwapDependencyHandler.create(p, artifactSwapIsActive)
     }
   }
 

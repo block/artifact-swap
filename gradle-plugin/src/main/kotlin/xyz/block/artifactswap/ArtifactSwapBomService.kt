@@ -37,7 +37,7 @@ abstract class ArtifactSwapBomService : BuildService<Parameters> {
         .resolve("bom/$bomVersion/bom-$bomVersion.pom")
     }
 
-  val bomVersionMap by lazy {
+  val bomVersionMap: Map<String, String> by lazy {
     if (bomFile.exists()) {
       val pom = bomFile.inputStream().use { XmlSlurper().parse(it) }
       // https://maven.apache.org/pom.html
