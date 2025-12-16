@@ -2,21 +2,25 @@ package xyz.block.artifactswap
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Groovy-specific plugin that overrides the project() function using metaclass manipulation.
+ * Groovy-specific plugin that overrides the project() function and project accessors using metaclass manipulation.
  *
- * The plugin uses Groovy's metaClass to intercept and redirect project() calls to artifact
- * dependencies.
+ * The plugin uses Groovy's metaClass to intercept and redirect project() calls and type-safe
+ * project accessors (like projects.di.scoping) to artifact dependencies.
  */
 @SuppressWarnings('unused')
 class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
+  // Track which project accessor classes have been modified to avoid redundant modifications
+  private static final ConcurrentHashMap<Class<?>, Boolean> modifiedClasses = new ConcurrentHashMap<>()
 
   @Override
   void apply(Project target) {
     def artifactsGroup = target.providers.gradleProperty("artifactswap.primaryArtifactsMavenGroup").get()
     // This plugin is not applied when artifact sync is inactive
     installProjectOverride(target, artifactsGroup)
+    installProjectAccessorOverride(target, artifactsGroup)
   }
 
   /**
@@ -55,6 +59,44 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
     // Override the project(Map) method for map-style project declarations
     project.dependencies.metaClass.project = { Map notation ->
       return delegate.create(toArtifactNotation(artifactsGroup, notation.path))
+    }
+  }
+
+  /**
+   * Installs the project accessor override to handle type-safe accessors like projects.di.scoping.
+   * Since the 'projects' extension doesn't exist when the plugin is applied, we intercept
+   * property access on the Project itself and wrap the extension when it's accessed.
+   *
+   * Note on IDE behavior: This metaclass modification will cause IDE autocomplete to not suggest
+   * excluded project accessors. However, if you manually write a reference to an excluded project
+   * (e.g., projects.di.scoping), it will still resolve correctly at build time to the published
+   * artifact. This is expected behavior - the IDE can only autocomplete accessors for projects
+   * that are actually included in settings.gradle.
+   */
+  private static void installProjectAccessorOverride(Project project, String artifactsGroup) {
+    def group = artifactsGroup
+    def originalGetProjects = project.metaClass.getMetaMethod('getProjects', [] as Class[])
+
+    // Intercept the getProjects() getter on the project to wrap the extension
+    project.metaClass.getProjects = {
+      // Get the original projects extension (created by Gradle)
+      def originalProjects = originalGetProjects?.invoke(delegate) ?: delegate.extensions.findByName('projects')
+      if (originalProjects == null) {
+        return null
+      }
+
+      // Modify the extension's metaclass on first access
+      def projectsClass = originalProjects.getClass()
+      modifiedClasses.computeIfAbsent(projectsClass) { clazz ->
+        // Override propertyMissing for the projects extension class
+        clazz.metaClass.propertyMissing = { String name ->
+          // Return our delegate that acts as a CharSequence with the artifact notation
+          return new ProjectAccessorDelegate(group, [name])
+        }
+        return true
+      }
+
+      return originalProjects
     }
   }
 }
