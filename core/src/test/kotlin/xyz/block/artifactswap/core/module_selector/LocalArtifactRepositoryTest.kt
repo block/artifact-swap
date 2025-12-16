@@ -16,7 +16,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.config.testArtifactSwapConfig
 import xyz.block.artifactswap.core.maven.Dependencies
 import xyz.block.artifactswap.core.maven.Dependency
 import xyz.block.artifactswap.core.maven.DependencyManagement
@@ -65,7 +65,7 @@ class LocalArtifactRepositoryTest {
       "features_open-tickets-v2_home_impl",
     )
   private val testMavenGroup = "com.squareup.register.sandbags"
-  private val config = ArtifactSwapConfig(primaryArtifactsMavenGroup = testMavenGroup)
+  private val config = testArtifactSwapConfig(primaryArtifactsMavenGroup = testMavenGroup)
 
   @BeforeEach
   fun setUp() {

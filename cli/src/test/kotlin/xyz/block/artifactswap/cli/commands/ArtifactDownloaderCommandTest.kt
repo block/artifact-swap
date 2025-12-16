@@ -17,6 +17,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.wheneverBlocking
 import picocli.CommandLine
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.config.testArtifactSwapConfig
 import xyz.block.artifactswap.core.download.FakeArtifactRepository
 import xyz.block.artifactswap.core.download.FakeEventStream
 import xyz.block.artifactswap.core.download.FakeGradleProjectsProvider
@@ -80,7 +81,7 @@ class ArtifactDownloaderCommandTest {
         module {
           single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
           single(named("gradleProperties")) { Properties() }
-          single<ArtifactSwapConfig> { ArtifactSwapConfig() }
+          single<ArtifactSwapConfig> { testArtifactSwapConfig() }
           single<ArtifactSyncBomLoader> { mockArtifactSyncBomLoader }
           single<ArtifactRepository> { fakeArtifactRepository }
           single<ArtifactDownloaderEventStream> { fakeEventStream }
@@ -116,7 +117,7 @@ class ArtifactDownloaderCommandTest {
       module {
         single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
         single(named("gradleProperties")) { Properties() }
-        single<ArtifactSwapConfig> { ArtifactSwapConfig() }
+        single<ArtifactSwapConfig> { testArtifactSwapConfig() }
         single<ArtifactSyncBomLoader> { mockArtifactSyncBomLoader }
         single<ArtifactRepository> { fakeArtifactRepository }
         single<ArtifactDownloaderEventStream> { fakeEventStream }

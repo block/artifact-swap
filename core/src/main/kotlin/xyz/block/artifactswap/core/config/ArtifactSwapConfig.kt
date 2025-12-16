@@ -21,14 +21,14 @@ data class ArtifactSwapConfig(
    *
    * Example: "my-company-artifacts"
    */
-  val primaryRepositoryName: String = "artifact-swap-demo",
+  val primaryRepositoryName: String,
 
   /**
    * Name of the secondary Artifactory/Maven repository if not all are present in primary.
    *
    * Example: "my-company-public-protos"
    */
-  val secondaryRepositoryName: String = "demo-secondary-repo",
+  val secondaryRepositoryName: String,
 
   // ============================================================================
   // Maven Group ID Configuration
@@ -40,7 +40,7 @@ data class ArtifactSwapConfig(
    *
    * Example: "com.demo.artifactswap.artifacts"
    */
-  val primaryArtifactsMavenGroup: String = "com.demo.artifactswap.artifacts",
+  val primaryArtifactsMavenGroup: String,
 
   /**
    * Maven group ID for artifacts in secondary repository (e.g. if your org publishes artifacts
@@ -48,7 +48,7 @@ data class ArtifactSwapConfig(
    *
    * Example: "com.mycompany.publicprotos"
    */
-  val secondaryArtifactsMavenGroup: String = "com.demo.artifactswap.secondary",
+  val secondaryArtifactsMavenGroup: String,
 
   // ============================================================================
   // API Endpoints
@@ -60,7 +60,7 @@ data class ArtifactSwapConfig(
    *
    * Example: "https://analytics.mycompany.com"
    */
-  val eventstreamBaseUrl: String = "https://analytics.example.com",
+  val eventstreamBaseUrl: String,
 
   // ============================================================================
   // Authentication & Credentials
@@ -72,7 +72,7 @@ data class ArtifactSwapConfig(
    *
    * Example: "secrets.txt"
    */
-  val artifactoryPublisherTokenFileName: String = "secret-file-name-that-lives-in-ci",
+  val artifactoryPublisherTokenFileName: String,
 
   // ============================================================================
   // Gradle Properties
@@ -84,7 +84,7 @@ data class ArtifactSwapConfig(
    *
    * Example: "square.protosGeneratedVersion" or "mycompany.protosGeneratedVersion"
    */
-  val protosGeneratedVersionProperty: String = "square.protosGeneratedVersion",
+  val protosGeneratedVersionProperty: String,
 
   /**
    * Gradle property key for the protos schema version. Used to specify which version of the
@@ -92,14 +92,14 @@ data class ArtifactSwapConfig(
    *
    * Example: "square.protosSchemaVersion" or "mycompany.protosSchemaVersion"
    */
-  val protosSchemaVersionProperty: String = "square.protosSchemaVersion",
+  val protosSchemaVersionProperty: String,
 
   // ============================================================================
   // Gradle Projects Settings
   // ============================================================================
 
   /** List of Gradle project paths to exclude from artifact swapping. */
-  val excludeGradleProjects: List<String> = emptyList(),
+  val excludeGradleProjects: List<String>,
 
   // ============================================================================
   // BOM Configuration
@@ -111,12 +111,21 @@ data class ArtifactSwapConfig(
    *
    * Example: "origin/main" or "origin/artifact-sync-green-main"
    */
-  val bomSourceBranchName: String = "origin/artifact-sync-green-main",
+  val bomSourceBranchName: String,
 
   // ============================================================================
   // Artifactory
   // ============================================================================
-  val artifactoryBaseUrl: String = "https://artifactory.example.com",
+  val artifactoryBaseUrl: String,
 ) : Serializable {
   val primaryArtifactsMavenGroupArtifactoryPath = primaryArtifactsMavenGroup.replace('.', '/')
+
+  companion object Defaults {
+    const val SECONDARY_REPOSITORY_NAME = "demo-secondary-repo"
+    const val SECONDARY_ARTIFACTS_MAVEN_GROUP = "com.demo.artifactswap.secondary"
+    const val EVENTSTREAM_BASE_URL = "https://analytics.example.com"
+    const val PROTOS_GENERATED_VERSION_PROPERTY = "square.protosGeneratedVersion"
+    const val PROTOS_SCHEMA_VERSION_PROPERTY = "square.protosSchemaVersion"
+    const val ARTIFACTORY_BASE_URL = "https://artifactory.example.com"
+  }
 }
