@@ -16,10 +16,14 @@ import xyz.block.gradle.services.services
  * substitution
  *
  * Do not apply this plugin directly! It is auto-applied by [ArtifactSwapSettingsPlugin]. For
- * reference and searchability, the ID of this plugin is `xyz.block.artifactsync`.
+ * reference and searchability, the ID of this plugin is `xyz.block.artifactswap`.
  */
 @Suppress("unused")
 internal class ArtifactSwapProjectPlugin : Plugin<Project> {
+  companion object {
+    const val ID = "xyz.block.artifactswap"
+  }
+
   override fun apply(target: Project) =
     target.run {
       val map = gradle.services.artifactSyncBomService.bomVersionMap
