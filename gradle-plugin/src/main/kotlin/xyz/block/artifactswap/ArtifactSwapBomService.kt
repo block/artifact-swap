@@ -16,14 +16,14 @@ import xyz.block.gradle.services.SharedServiceKey
 import xyz.block.gradle.services.SharedServices
 
 // Service to parse local BOM file once per sync
-abstract class ArtifactSwapBomService : BuildService<Parameters> {
+public abstract class ArtifactSwapBomService : BuildService<Parameters> {
   private companion object {
     val logger: Logger = Logging.getLogger(ArtifactSwapBomService::class.java)
   }
 
-  interface Parameters : BuildServiceParameters {
-    val bomVersion: Property<String>
-    val artifactSwapMavenGroup: Property<String>
+  public interface Parameters : BuildServiceParameters {
+    public val bomVersion: Property<String>
+    public val artifactSwapMavenGroup: Property<String>
   }
 
   internal object KEY : SharedServiceKey<ArtifactSwapBomService, Parameters>("artifactSyncBom")
@@ -37,7 +37,7 @@ abstract class ArtifactSwapBomService : BuildService<Parameters> {
         .resolve("bom/$bomVersion/bom-$bomVersion.pom")
     }
 
-  val bomVersionMap: Map<String, String> by lazy {
+  public val bomVersionMap: Map<String, String> by lazy {
     if (bomFile.exists()) {
       val pom = bomFile.inputStream().use { XmlSlurper().parse(it) }
       // https://maven.apache.org/pom.html

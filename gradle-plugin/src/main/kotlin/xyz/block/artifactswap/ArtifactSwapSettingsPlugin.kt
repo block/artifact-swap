@@ -33,9 +33,9 @@ import xyz.block.ide.isIdeSync
  * ```
  */
 @Suppress("unused")
-class ArtifactSwapSettingsPlugin : Plugin<Settings> {
+public class ArtifactSwapSettingsPlugin : Plugin<Settings> {
 
-  override fun apply(target: Settings) =
+  public override fun apply(target: Settings): Unit =
     target.run {
       val artifactSwapIsActive = isIdeSync && useArtifactSwap
       when {

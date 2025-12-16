@@ -7,16 +7,16 @@ import xyz.block.artifactswap.artifactSyncBomService
 import xyz.block.gradle.services.services
 
 /** Checks if this is an Android project. */
-val Project.isAndroidLibrary: Boolean
+internal val Project.isAndroidLibrary: Boolean
   get() = pluginManager.hasPlugin("com.android.base")
 
 /** Checks if this is a Kotlin project. */
-val Project.isKotlin: Boolean
+internal val Project.isKotlin: Boolean
   get() =
     pluginManager.hasPlugin("org.jetbrains.kotlin.android") ||
       pluginManager.hasPlugin("org.jetbrains.kotlin.jvm")
 
-val Project.hasPublishableComponent: Boolean
+internal val Project.hasPublishableComponent: Boolean
   get() =
     pluginManager.hasPlugin("com.android.library") ||
       pluginManager.hasPlugin("org.jetbrains.kotlin.jvm") ||
@@ -26,7 +26,7 @@ val Project.hasPublishableComponent: Boolean
 /**
  * Converts a project path to a sandbag artifact name. Example: ":hobbits:frodo" -> "hobbits_frodo"
  */
-val Project.artifactSwapCoordinates: String
+public val Project.artifactSwapCoordinates: String
   get() = path.removePrefix(":").replace(":", "_")
 
 internal val String.artifactSwapCoordinates: String
