@@ -71,9 +71,11 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
   }
 
   override suspend fun findRecentSharedCommits(baseRef: String, count: Int): List<ObjectId> {
-    LOGGER.info("Finding merge base between $baseRef and ${Constants.HEAD}")
+    val originRef = if (baseRef.startsWith("origin/")) baseRef else "origin/$baseRef"
+    LOGGER.info("Finding merge base between $originRef and ${Constants.HEAD}")
     val baseCommit =
-      repository.resolve(baseRef) ?: throw IllegalStateException("$baseRef could not be resolved")
+      repository.resolve(originRef)
+        ?: throw IllegalStateException("$originRef could not be resolved")
     val headCommit =
       repository.resolve(Constants.HEAD)
         ?: throw IllegalStateException("${Constants.HEAD} could not be resolved")
@@ -88,7 +90,7 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
         }
       }
     if (mergeBase == null) {
-      throw IllegalStateException("No merge base found between $baseRef and ${Constants.HEAD}")
+      throw IllegalStateException("No merge base found between $originRef and ${Constants.HEAD}")
     }
     val commits = git.log().add(mergeBase).call().take(count).map { it.id }
     return commits
