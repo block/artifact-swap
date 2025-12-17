@@ -79,6 +79,7 @@ class ArtifactCheckerService(
 
   /** Logs the result to the event stream. */
   suspend fun logResult(result: ArtifactCheckerServiceResult) {
+    logger.info { "Sending artifact checker results to event stream: $result" }
     eventStream.sendResults(listOf(result))
   }
 
