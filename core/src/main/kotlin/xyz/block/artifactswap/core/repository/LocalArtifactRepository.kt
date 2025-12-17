@@ -122,11 +122,15 @@ class RealLocalArtifactRepository(
 ) : LocalArtifactRepository {
 
   companion object {
-    private const val BASE_GROUP_ID = "com.squareup.register.sandbags"
     private val DEFAULT_LOCAL_MAVEN_DIRECTORY: Path =
       Path.of(System.getProperty("user.home")).resolve(".m2/repository")
     private val logger = logger("RealLocalArtifactRepository")
   }
+
+  private val primaryGroupDirectory: Path =
+    mavenDirectory.resolve(
+      Path.of(config.primaryArtifactsMavenGroup.replace('.', File.separatorChar))
+    )
 
   /**
    * Checks local .m2 cache for installed maven artifacts that line up with what is expected from a
@@ -193,11 +197,7 @@ class RealLocalArtifactRepository(
   override suspend fun getInstalledBom(bomVersion: String): Result<Project> {
     val expectedBomFileName = "bom-$bomVersion.pom"
     val expectedBomLocation =
-      mavenDirectory
-        .resolve(Path.of(BASE_GROUP_ID.replace('.', File.separatorChar)))
-        .resolve("bom")
-        .resolve(bomVersion)
-        .resolve(expectedBomFileName)
+      primaryGroupDirectory.resolve("bom").resolve(bomVersion).resolve(expectedBomFileName)
 
     return runCatching {
       return@runCatching withContext(ioContext) {
@@ -248,10 +248,7 @@ class RealLocalArtifactRepository(
   private suspend fun getInstalledBomsStats(): RepositoryStats {
     val (bomStats, bomStatsDuration) =
       measureTimedValue {
-        val bomDirectory =
-          mavenDirectory
-            .resolve(Path.of(BASE_GROUP_ID.replace('.', File.separatorChar)))
-            .resolve("bom")
+        val bomDirectory = primaryGroupDirectory.resolve("bom")
         // hitting file system potentially many times (100s or 1000s expected)
         // ensure running in background context
         withContext(ioContext) {
@@ -311,9 +308,7 @@ class RealLocalArtifactRepository(
    */
   override suspend fun getInstalledBomsByRecency(count: Int): List<InstalledBom> {
     return withContext(ioContext) {
-      val baseGroupDir =
-        mavenDirectory.resolve(Path.of(BASE_GROUP_ID.replace('.', File.separatorChar)))
-      val bomDirectory = baseGroupDir.resolve("bom")
+      val bomDirectory = primaryGroupDirectory.resolve("bom")
       val bomVersionDirectories = bomDirectory.listDirectoryEntries().filter { it.isDirectory() }
       bomVersionDirectories
         .map {
@@ -343,7 +338,7 @@ class RealLocalArtifactRepository(
                     .inputStream()
                     .use { xmlMapper.readValue<Project>(it) }
                     .artifactDependencies(config.primaryArtifactsMavenGroup)
-                    .map { it.toInstalledProject(baseGroupDir) },
+                    .map { it.toInstalledProject(primaryGroupDirectory) },
               )
             }
           } else {
@@ -374,10 +369,9 @@ class RealLocalArtifactRepository(
     channelFlow {
         val bomDirectoryName = "bom"
         val moduleArtifactDirectories =
-          mavenDirectory
-            .resolve(Path.of(BASE_GROUP_ID.replace('.', File.separatorChar)))
-            .listDirectoryEntries()
-            .filter { it.isDirectory() && it.name != bomDirectoryName }
+          primaryGroupDirectory.listDirectoryEntries().filter {
+            it.isDirectory() && it.name != bomDirectoryName
+          }
         val count = moduleArtifactDirectories.count()
         logger.debug { "Found $count installed projects" }
         launch {
