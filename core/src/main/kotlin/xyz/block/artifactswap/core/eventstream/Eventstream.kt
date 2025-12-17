@@ -104,7 +104,7 @@ public class Eventstream(
     }
 
     if ((response.failure_count ?: 0) > 0) {
-      logger.info("Events failed to be published: ${response.failure_count}")
+      logger.info("Events failed to be published. Response: $response")
       return null
     }
 
