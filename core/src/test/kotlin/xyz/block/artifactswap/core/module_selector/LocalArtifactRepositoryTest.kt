@@ -388,6 +388,113 @@ class LocalArtifactRepositoryTest {
     }
 
   @Test
+  fun `GIVEN custom primary artifacts maven group WHEN getting installed bom THEN uses configured group path`() =
+    runTest {
+      // Use a different maven group than the default to verify config is used
+      val customMavenGroup = "org.acme.custom"
+      val customConfig = testArtifactSwapConfig(primaryArtifactsMavenGroup = customMavenGroup)
+      val customArtifactsDirectory = fakeM2Root.resolve("org").resolve("acme").resolve("custom")
+      customArtifactsDirectory.createDirectories()
+
+      val bomVersion = "test-123"
+      val bom =
+        Project(
+          groupId = customMavenGroup,
+          artifactId = "bom",
+          version = bomVersion,
+          name = "bom",
+          dependencyManagement =
+            DependencyManagement(
+              dependencies =
+                Dependencies(
+                  dependency =
+                    listOf(
+                      Dependency(
+                        groupId = customMavenGroup,
+                        artifactId = "test-artifact",
+                        version = "1.0.0",
+                      )
+                    )
+                )
+            ),
+        )
+
+      // Create BOM in the custom group path
+      val bomPath =
+        customArtifactsDirectory.resolve("bom").resolve(bomVersion).resolve("bom-$bomVersion.pom")
+      bomPath.parent.createDirectories()
+      bomPath.writeText(xmlMapper.writeValueAsString(bom))
+
+      val localArtifactRepository =
+        RealLocalArtifactRepository(
+          xmlMapper = xmlMapper,
+          ioContext = EmptyCoroutineContext,
+          mavenDirectory = fakeM2Root,
+          config = customConfig,
+        )
+
+      val installedBom = localArtifactRepository.getInstalledBom(bomVersion)
+      assertTrue(
+        installedBom.isSuccess,
+        "Expected BOM to be found: ${installedBom.exceptionOrNull()}",
+      )
+      assertEquals(bomVersion, installedBom.getOrThrow().version)
+    }
+
+  @Test
+  fun `GIVEN custom primary artifacts maven group WHEN getting installed artifacts THEN uses configured group path`() =
+    runTest {
+      // Use a different maven group than the default to verify config is used
+      val customMavenGroup = "com.example.test.artifacts"
+      val customConfig = testArtifactSwapConfig(primaryArtifactsMavenGroup = customMavenGroup)
+      val customArtifactsDirectory =
+        fakeM2Root.resolve("com").resolve("example").resolve("test").resolve("artifacts")
+      customArtifactsDirectory.createDirectories()
+
+      val bom =
+        Project(
+          groupId = customMavenGroup,
+          artifactId = "test-bom",
+          version = "1.0.0",
+          name = "test-bom",
+          dependencyManagement =
+            DependencyManagement(
+              dependencies =
+                Dependencies(
+                  dependency =
+                    listOf(
+                      Dependency(
+                        groupId = customMavenGroup,
+                        artifactId = fakeArtifactDirectoryNames[0],
+                        version = "hash1",
+                      )
+                    )
+                )
+            ),
+        )
+
+      // Create artifacts in the custom group path
+      customArtifactsDirectory.addFakeArtifacts(
+        fakeArtifactDirectoryNames[0],
+        "hash1",
+        ArtifactType.entries,
+      )
+
+      val localArtifactRepository =
+        RealLocalArtifactRepository(
+          xmlMapper = xmlMapper,
+          ioContext = EmptyCoroutineContext,
+          mavenDirectory = fakeM2Root,
+          config = customConfig,
+        )
+
+      val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom)
+      val expected =
+        setOf(InstalledArtifact(fakeArtifactDirectoryNames[0].toProjectPath(), setOf("hash1")))
+      assertEquals(expected, installedArtifacts.getOrThrow())
+    }
+
+  @Test
   fun `GIVEN multiple boms installed WHEN getting list of installed artifacts THEN only returns artifacts from requested bom`() =
     runTest {
       val bom =
