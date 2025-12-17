@@ -3,17 +3,32 @@ package xyz.block.artifactswap.core.eventstream
 import com.squareup.moshi.Moshi
 import java.io.IOException
 import java.util.concurrent.TimeUnit.MILLISECONDS
+import org.apache.logging.log4j.kotlin.loggerOf
 
 private const val DEFAULT_RETRY_COUNT = 2
+
+private val EVENTSTREAM_LOGGER = loggerOf(Eventstream::class.java)
+
+private val EVENTSTREAM_DEFAULT_LOGGER =
+  object : Logger {
+    override fun info(message: String) {
+      EVENTSTREAM_LOGGER.info(message)
+    }
+
+    override fun error(message: String, throwable: Throwable) {
+      EVENTSTREAM_LOGGER.error(message, throwable)
+    }
+  }
 
 public class Eventstream(
   private val eventstreamService: EventstreamService,
   private val moshi: Moshi = defaultMoshi,
+  val defaultLogger: Logger = EVENTSTREAM_DEFAULT_LOGGER,
 ) {
   /** Sends the given events to Eventstream. Returns whether the request was sent successfully. */
   public fun sendEvents(
     events: List<EventstreamEvent>,
-    logger: Logger = Logger.NO_OP,
+    logger: Logger? = null,
     retryCount: Int = DEFAULT_RETRY_COUNT,
   ): Boolean {
     check(retryCount >= 1)
@@ -23,7 +38,7 @@ public class Eventstream(
       val success =
         sendBatch(
           batch = batch,
-          logger = logger,
+          logger = logger ?: defaultLogger,
           retryCount = retryCount,
           batchNumber = index + 1,
           batchCount = batches.size,
@@ -89,7 +104,7 @@ public class Eventstream(
     }
 
     if ((response.failure_count ?: 0) > 0) {
-      logger.info("Events failed to be published: ${response.failure_count}")
+      logger.info("Events failed to be published. Response: $response")
       return null
     }
 
@@ -112,20 +127,5 @@ public class Eventstream(
 
   public companion object {
     public const val EVENTSTREAM_BATCH_SIZE: Int = 3_000
-  }
-}
-
-/**
- * Sends the given events to Eventstream. If any of the potentially multiple requests fails, then
- * this method throws an error unlike [Eventstream.sendEvents].
- */
-@Suppress("unused")
-public fun Eventstream.sendEventsOrFail(
-  events: List<EventstreamEvent>,
-  logger: Logger = Logger.NO_OP,
-  retryCount: Int = DEFAULT_RETRY_COUNT,
-) {
-  if (!sendEvents(events, logger, retryCount)) {
-    throw RuntimeException("Sending events to Eventstream failed.")
   }
 }

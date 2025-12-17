@@ -73,6 +73,7 @@ public class LogEventStreamV2Response(
     if (success_count != null) result += """success_count=$success_count"""
     if (failure_count != null) result += """failure_count=$failure_count"""
     if (invalid_count != null) result += """invalid_count=$invalid_count"""
+    if (unknownFields.size > 0) result += """unknownFields=${unknownFields.hex()}"""
     return result.joinToString(
       prefix = "LogEventStreamV2Response{",
       separator = ", ",
