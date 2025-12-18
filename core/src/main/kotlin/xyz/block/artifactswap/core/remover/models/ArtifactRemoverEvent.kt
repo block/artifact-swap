@@ -7,6 +7,7 @@ import xyz.block.artifactswap.core.eventstream.EventstreamEvent
 import xyz.block.artifactswap.core.repository.InstalledBom
 import xyz.block.artifactswap.core.repository.InstalledProject
 import xyz.block.artifactswap.core.repository.RepositoryStats
+import xyz.block.artifactswap.core.utils.RepoNameProvider
 import xyz.block.artifactswap.core.utils.inWholeMillisecondsIfFinite
 
 enum class ArtifactRemoverEventResult(val exitCode: Int) {
@@ -132,7 +133,7 @@ data class ArtifactRemoverEvent(
   @Json(name = "delete_old_boms_duration_ms") val deleteOldBomsDurationMs: Long = -1,
   @Json(name = "total_duration_ms") val totalDurationMs: Long = -1,
   @Json(name = "user_ldap") val userLdap: String = System.getProperty("user.name"),
-  @Json(name = "repo_name") val repoName: String = "",
+  @Json(name = "repo_name") val repoName: String = RepoNameProvider.default.repoName,
 ) {
 
   fun toEventStreamEvent(): EventstreamEvent {

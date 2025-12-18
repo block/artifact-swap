@@ -3,6 +3,7 @@ package xyz.block.artifactswap.core.publisher.models
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import xyz.block.artifactswap.core.eventstream.EventstreamEvent
+import xyz.block.artifactswap.core.utils.RepoNameProvider
 
 /**
  * Documents final task status.
@@ -58,7 +59,7 @@ data class BomPublishingEvent(
   @Json(name = "ci_build_step_id") val buildStepId: String,
   @Json(name = "ci_build_job_id") val buildJobId: String,
   @Json(name = "ci_type") val ciType: String,
-  @Json(name = "repo_name") val repoName: String = "",
+  @Json(name = "repo_name") val repoName: String = RepoNameProvider.default.repoName,
 ) {
   fun toEventStreamEvent(): EventstreamEvent {
     return EventstreamEvent(

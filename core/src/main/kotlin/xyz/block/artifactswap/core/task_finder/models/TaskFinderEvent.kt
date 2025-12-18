@@ -2,6 +2,7 @@ package xyz.block.artifactswap.core.task_finder.models
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import xyz.block.artifactswap.core.utils.RepoNameProvider
 
 /** Result of task finder operation. */
 enum class TaskFinderResult(val exitCode: Int) {
@@ -46,7 +47,7 @@ data class TaskFinderExecutionEvent(
   @Json(name = "ci_build_step_id") val buildStepId: String = "",
   @Json(name = "ci_build_job_id") val buildJobId: String = "",
   @Json(name = "ci_type") val ciType: String = "",
-  @Json(name = "repo_name") val repoName: String = "",
+  @Json(name = "repo_name") val repoName: String = RepoNameProvider.default.repoName,
 )
 
 /** Converts a service result to an execution event. */
