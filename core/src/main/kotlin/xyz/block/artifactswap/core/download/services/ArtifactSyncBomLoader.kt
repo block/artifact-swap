@@ -42,9 +42,11 @@ class RealArtifactSyncBomLoader(
   }
 
   override suspend fun findBestBomVersion(checkRemote: Boolean): Result<String> = runCatching {
+    val bomBranch = config.bomSourceBranchName
+    val originRef = if (bomBranch.startsWith("origin/")) bomBranch else "origin/$bomBranch"
     val recentSharedCommits =
       squareGit.findRecentSharedCommits(
-        baseRef = config.bomSourceBranchName,
+        baseRef = originRef,
         count = COUNT_SHARED_COMMITS_TO_CHECK_FOR_BOM,
       )
 
@@ -54,7 +56,7 @@ class RealArtifactSyncBomLoader(
       }
         ?: throw IllegalStateException(
           "Traversed $COUNT_SHARED_COMMITS_TO_CHECK_FOR_BOM commits " +
-            "from ${config.bomSourceBranchName} and found no matching BOMs"
+            "from $originRef and found no matching BOMs"
         )
     matchingBom.name
   }
