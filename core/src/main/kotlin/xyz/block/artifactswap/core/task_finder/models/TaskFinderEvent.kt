@@ -46,6 +46,7 @@ data class TaskFinderExecutionEvent(
   @Json(name = "ci_build_step_id") val buildStepId: String = "",
   @Json(name = "ci_build_job_id") val buildJobId: String = "",
   @Json(name = "ci_type") val ciType: String = "",
+  @Json(name = "repo_name") val repoName: String = "",
 )
 
 /** Converts a service result to an execution event. */

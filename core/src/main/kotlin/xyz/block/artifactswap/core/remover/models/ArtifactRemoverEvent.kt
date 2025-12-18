@@ -132,6 +132,7 @@ data class ArtifactRemoverEvent(
   @Json(name = "delete_old_boms_duration_ms") val deleteOldBomsDurationMs: Long = -1,
   @Json(name = "total_duration_ms") val totalDurationMs: Long = -1,
   @Json(name = "user_ldap") val userLdap: String = System.getProperty("user.name"),
+  @Json(name = "repo_name") val repoName: String = "",
 ) {
 
   fun toEventStreamEvent(): EventstreamEvent {

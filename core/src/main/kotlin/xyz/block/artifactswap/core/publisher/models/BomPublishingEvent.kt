@@ -58,6 +58,7 @@ data class BomPublishingEvent(
   @Json(name = "ci_build_step_id") val buildStepId: String,
   @Json(name = "ci_build_job_id") val buildJobId: String,
   @Json(name = "ci_type") val ciType: String,
+  @Json(name = "repo_name") val repoName: String = "",
 ) {
   fun toEventStreamEvent(): EventstreamEvent {
     return EventstreamEvent(
