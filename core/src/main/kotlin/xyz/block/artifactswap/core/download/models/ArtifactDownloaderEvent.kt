@@ -3,6 +3,7 @@ package xyz.block.artifactswap.core.download.models
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import xyz.block.artifactswap.core.eventstream.EventstreamEvent
+import xyz.block.artifactswap.core.utils.RepoNameProvider
 
 @JsonClass(generateAdapter = true)
 data class ArtifactDownloaderEvent(
@@ -41,6 +42,7 @@ data class ArtifactDownloaderEvent(
   @Json(name = "base_build_job_id") val buildJobId: String = "",
   @Json(name = "base_ci_type") val ciType: String = "",
   @Json(name = "user_ldap") val userLdap: String = System.getProperty("user.name"),
+  @Json(name = "repo_name") val repoName: String = RepoNameProvider.default.repoName,
 ) {
 
   fun toEventStreamEvent(): EventstreamEvent {

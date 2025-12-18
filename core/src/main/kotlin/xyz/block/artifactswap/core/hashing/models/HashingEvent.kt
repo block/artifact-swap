@@ -4,6 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlin.time.Duration
 import xyz.block.artifactswap.core.eventstream.EventstreamEvent
+import xyz.block.artifactswap.core.utils.RepoNameProvider
 
 /** Result of hashing a single project. */
 data class ProjectHashingResult(
@@ -51,6 +52,7 @@ data class HashingExecutionEvent(
   @Json(name = "base_build_job_id") val buildJobId: String = "",
   @Json(name = "base_ci_type") val ciType: String = "",
   @Json(name = "user_ldap") val userLdap: String = System.getProperty("user.name"),
+  @Json(name = "repo_name") val repoName: String = RepoNameProvider.default.repoName,
 ) {
   fun toEventStreamEvent(): EventstreamEvent {
     return EventstreamEvent(

@@ -2,6 +2,7 @@ package xyz.block.artifactswap.core.artifact_checker.models
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import xyz.block.artifactswap.core.utils.RepoNameProvider
 
 /** Result of artifact checker operation. */
 enum class ArtifactCheckerResult(val exitCode: Int) {
@@ -46,6 +47,7 @@ data class ArtifactCheckerExecutionEvent(
   @Json(name = "ci_build_step_id") val buildStepId: String = "",
   @Json(name = "ci_build_job_id") val buildJobId: String = "",
   @Json(name = "ci_type") val ciType: String = "",
+  @Json(name = "repo_name") val repoName: String = RepoNameProvider.default.repoName,
 )
 
 /** Converts a service result to an execution event. */
