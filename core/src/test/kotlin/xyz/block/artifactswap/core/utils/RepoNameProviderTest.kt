@@ -75,4 +75,40 @@ class RepoNameProviderTest {
     val actualRepoName = repoNameProvider.repoName
     assertEquals(expectedRepoName, actualRepoName)
   }
+
+  @Test
+  fun `repo name is correct for standard GitHub HTTPS URL`() {
+    val expectedRepoName = "artifact-swap"
+    val repoRoot =
+      tempDir.resolve("github-repo").also { repoRoot ->
+        Git.init().setDirectory(repoRoot.toFile()).call().use { git ->
+          git
+            .remoteAdd()
+            .setName("origin")
+            .setUri(URIish("https://github.com/block/artifact-swap.git"))
+            .call()
+        }
+      }
+    val repoNameProvider = RepoNameProvider(repoRoot)
+    val actualRepoName = repoNameProvider.repoName
+    assertEquals(expectedRepoName, actualRepoName)
+  }
+
+  @Test
+  fun `repo name is correct for GitHub Enterprise SSH-style URL`() {
+    val expectedRepoName = "artifact-swap"
+    val repoRoot =
+      tempDir.resolve("github-enterprise-repo").also { repoRoot ->
+        Git.init().setDirectory(repoRoot.toFile()).call().use { git ->
+          git
+            .remoteAdd()
+            .setName("origin")
+            .setUri(URIish("org-123123123@github.com:block/artifact-swap.git"))
+            .call()
+        }
+      }
+    val repoNameProvider = RepoNameProvider(repoRoot)
+    val actualRepoName = repoNameProvider.repoName
+    assertEquals(expectedRepoName, actualRepoName)
+  }
 }
