@@ -2,9 +2,10 @@
 
 package xyz.block.artifactswap
 
+import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList
-import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import java.io.Serializable
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.logging.Logging
@@ -54,7 +55,8 @@ internal abstract class ArtifactSwapModuleSelectionValueSource :
     val config = parameters.config.get()
 
     // Read project lists
-    val ideProjectsList = SpotlightProjectList.ideProjects(rootDir).read()
+    val allProjectsList = SpotlightProjectList.allProjects(rootDir).read()
+    val ideProjectsList = SpotlightProjectList.ideProjects(rootDir) { allProjectsList }.read()
     val requestedProjects =
       ideProjectsList.ifEmpty {
         // If empty, load all projects
@@ -71,7 +73,9 @@ internal abstract class ArtifactSwapModuleSelectionValueSource :
 
     // Read spotlight rules
     val spotlightRules = SpotlightRulesList(rootDir).read()
-    val typeSafeAccessorRule = StrictModeTypeSafeProjectAccessorRule(rootProjectName)
+    val rootProjectAccessor = GradlePath(rootDir, rootProjectName).typeSafeAccessorName
+    val typeSafeAccessorMap = allProjectsList.associateBy { it.typeSafeAccessorName }
+    val typeSafeAccessorRule = TypeSafeProjectAccessorRule(rootProjectAccessor, typeSafeAccessorMap)
     val allRules = spotlightRules.implicitRules + typeSafeAccessorRule
 
     val selector = ArtifactSwapModuleSelectorFactory.create(rootDir, config, allRules)
