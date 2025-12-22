@@ -3,11 +3,12 @@ package xyz.block.artifactswap.cli.options
 import java.nio.file.Path
 import kotlin.io.path.Path
 import picocli.CommandLine.Option
+import xyz.block.artifactswap.core.repository.DEFAULT_LOCAL_MAVEN_DIRECTORY
 
 class ArtifactDownloaderOptions(
   bomVersion: String = "",
   settingsGradleFile: Path? = null,
-  mavenLocalPath: Path = Path(System.getProperty("user.home")).resolve(".m2/repository"),
+  mavenLocalPath: Path = DEFAULT_LOCAL_MAVEN_DIRECTORY,
 ) {
 
   @Option(
