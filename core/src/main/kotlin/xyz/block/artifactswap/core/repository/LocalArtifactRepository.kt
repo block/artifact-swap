@@ -112,6 +112,9 @@ interface LocalArtifactRepository {
   suspend fun measureRepository(): RepositoryStats?
 }
 
+val DEFAULT_LOCAL_MAVEN_DIRECTORY: Path =
+  Path.of(System.getProperty("user.home")).resolve(".m2/repository")
+
 /** Checks local .m2 cache for installed maven artifacts that match the artifact sync structure. */
 class RealLocalArtifactRepository(
   private val xmlMapper: ObjectMapper,
@@ -122,8 +125,6 @@ class RealLocalArtifactRepository(
 ) : LocalArtifactRepository {
 
   companion object {
-    private val DEFAULT_LOCAL_MAVEN_DIRECTORY: Path =
-      Path.of(System.getProperty("user.home")).resolve(".m2/repository")
     private val logger = logger("RealLocalArtifactRepository")
   }
 

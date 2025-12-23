@@ -5,7 +5,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import java.nio.file.Path
-import java.nio.file.Paths
 import kotlin.jvm.java
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -25,6 +24,7 @@ import xyz.block.artifactswap.core.module_selector.ArtifactSwapModuleSelector
 import xyz.block.artifactswap.core.module_selector.RealArtifactSwapModuleSelector
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.network.ArtifactoryService
+import xyz.block.artifactswap.core.repository.DEFAULT_LOCAL_MAVEN_DIRECTORY
 import xyz.block.artifactswap.core.repository.RealLocalArtifactRepository
 import xyz.block.artifactswap.core.shared_services.git.RealSquareGit
 
@@ -64,7 +64,7 @@ internal object ArtifactSwapModuleSelectorFactory {
 
     // Create download package instances for BOM loading
     val downloadSquareGit = RealSquareGit(rootDir, Dispatchers.IO)
-    val localMavenPath = Paths.get(System.getProperty("user.home")).resolve(".m2/repository")
+    val localMavenPath = DEFAULT_LOCAL_MAVEN_DIRECTORY
     val downloadArtifactRepository =
       RealArtifactRepository(
         localMavenPath,
