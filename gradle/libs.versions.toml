@@ -6,7 +6,7 @@
 agp = "8.9.1"
 gradle-tapi = "8.14.3"
 jackson = "2.20.1"
-jgit = "7.4.0.202509020913-r"
+jgit = "7.5.0.202512021534-r"
 koin = "4.1.1"
 kotlin = "2.2.21"
 kotlinxDatetime = "0.7.1"
@@ -29,7 +29,7 @@ ktfmt = "0.59"
 ktfmt-gradle = "0.25.0"
 vanniktech = "0.35.0"
 dagp = "3.5.1"
-develocity = "4.2.2"
+develocity = "4.3"
 
 [libraries]
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
