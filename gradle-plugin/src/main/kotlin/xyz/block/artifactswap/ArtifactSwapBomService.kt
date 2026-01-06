@@ -3,7 +3,6 @@ package xyz.block.artifactswap
 import groovy.xml.XmlSlurper
 import groovy.xml.slurpersupport.GPathResult
 import java.nio.file.Path
-import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.inputStream
 import org.gradle.api.logging.Logger
