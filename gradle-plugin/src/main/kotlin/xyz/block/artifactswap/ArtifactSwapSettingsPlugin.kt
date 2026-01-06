@@ -8,43 +8,57 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import xyz.block.artifactswap.dsl.ArtifactSwapDslService
+import xyz.block.artifactswap.dsl.ArtifactSwapExtension
 import xyz.block.gradle.ARTIFACT_SWAP_ENABLED
 import xyz.block.gradle.ArtifactSwapDependencyHandler
 import xyz.block.gradle.LOCAL_PROTOS_ARTIFACTS
 import xyz.block.gradle.hasPublishableComponent
 import xyz.block.gradle.isArtifactPublishingEnabled
 import xyz.block.gradle.services.services
-import xyz.block.gradle.useArtifactSwap
 import xyz.block.gradle.useLocalProtos
 import xyz.block.ide.isIdeSync
 
 /**
- * Main Artifact Sync settings plugin. This plugin is responsible for:
- * 1. Applying the right settings_modules_*.gradle file to `include` projects (even when artifact
- *    sync is not used)
- * 2. Mangling build files to redirect `project()` references to artifacts
- * 3. Setting up the local maven repo where those artifacts may be found
- * 4. Applying [ArtifactSwapProjectPlugin] to each project
+ * Main Artifact Swap settings plugin. This plugin selects which projects to include in the build
+ * during IDE sync, swapping out unchanged projects with their published artifacts.
  *
- * ```
+ * When artifact swap is active (during IDE sync with the feature enabled):
+ * 1. Selects projects based on local changes, user requests, and transitive dependencies
+ * 2. Configures maven local repository to resolve swapped artifacts
+ * 3. Sets up Groovy/Kotlin DSL overrides to intercept `project()` dependency references
+ * 4. Applies [ArtifactSwapProjectPlugin] to each included project
+ *
+ * When artifact swap is inactive, delegates to [SpotlightSettingsPlugin] for standard project
+ * selection.
+ *
+ * Usage in settings.gradle(.kts):
+ * ```kotlin
  * plugins {
- *   id 'xyz.block.artifactswap.settings'
+ *   id("xyz.block.artifactswap.settings")
  * }
  * ```
  */
 @Suppress("unused")
 public class ArtifactSwapSettingsPlugin : Plugin<Settings> {
 
+  private lateinit var extension: ArtifactSwapExtension
+  private lateinit var dslService: ArtifactSwapDslService
+
   public override fun apply(target: Settings): Unit =
     target.run {
-      val artifactSwapIsActive = isIdeSync && useArtifactSwap
-      when {
-        artifactSwapIsActive -> applyArtifactSwap()
-        else -> applySpotlight()
+      dslService = ArtifactSwapDslService.of(settings).get()
+      extension = ArtifactSwapExtension.create(settings, dslService)
+      gradle.settingsEvaluated {
+        val artifactSwapIsActive = isIdeSync && dslService.enabled
+        when {
+          artifactSwapIsActive -> applyArtifactSwap()
+          else -> applySpotlight()
+        }
+        setupKtsDependencyHandlerOverride(artifactSwapIsActive)
+        maybeApplyPublishPlugin()
+        maybeUseLocalProtos()
       }
-      setupKtsDependencyHandlerOverride(artifactSwapIsActive)
-      maybeApplyPublishPlugin()
-      maybeUseLocalProtos()
     }
 
   private fun Settings.applyArtifactSwap() {
@@ -52,11 +66,9 @@ public class ArtifactSwapSettingsPlugin : Plugin<Settings> {
     logger.lifecycle(
       "You can disable this by setting $ARTIFACT_SWAP_ENABLED=false in your gradle properties"
     )
-    gradle.settingsEvaluated {
-      val selectionResult = selectProjectsForArtifactSwap()
-      selectionResult.selectedProjects.forEach { include(it) }
-      setupArtifactSwapInfrastructure(selectionResult.bomVersion)
-    }
+    val selectionResult = selectProjectsForArtifactSwap()
+    selectionResult.selectedProjects.forEach { include(it) }
+    setupArtifactSwapInfrastructure(selectionResult.bomVersion)
   }
 
   private fun Settings.applySpotlight() {
@@ -151,7 +163,7 @@ public class ArtifactSwapSettingsPlugin : Plugin<Settings> {
   }
 
   private fun Settings.maybeUseLocalProtos() {
-    if (useArtifactSwap || useLocalProtos) {
+    if (dslService.enabled || useLocalProtos) {
       logger.warn(
         "Using locally synced protos artifacts! " +
           "If you have issues set $LOCAL_PROTOS_ARTIFACTS=false"

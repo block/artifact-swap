@@ -4,6 +4,8 @@ import java.io.File
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import xyz.block.artifactswap.ArtifactSwapProjectPlugin
 
 private const val SQUARE_GENERATED_PROTOS_VERSION = "square.protosGeneratedVersion"
@@ -21,9 +23,8 @@ internal val Project.generatedProtosVersion
 internal val Project.protosSchemaVersion
   get() = providers.gradleProperty(SQUARE_PROTOS_SCHEMA_VERSION).get()
 
-/** Indicates if Artifact Sync should be enabled */
-public val Settings.useArtifactSwap: Boolean
-  get() = providers.gradleProperty(ARTIFACT_SWAP_ENABLED).getOrElse("true").toBoolean()
+internal val ProviderFactory.isArtifactSwapEnabledByGradleProperty: Provider<Boolean>
+  get() = gradleProperty(ARTIFACT_SWAP_ENABLED).map { it.toBoolean() }
 
 /** Indicates if artifact swap is currently active */
 public val Project.isArtifactSwapActive: Boolean
