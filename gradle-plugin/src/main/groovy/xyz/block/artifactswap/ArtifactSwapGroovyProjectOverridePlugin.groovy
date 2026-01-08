@@ -77,6 +77,8 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
     def group = artifactsGroup
     def originalGetProjects = project.metaClass.getMetaMethod('getProjects', [] as Class[])
 
+    println("${project.path} installProjectAccessorOverride")
+
     // Intercept the getProjects() getter on the project to wrap the extension
     project.metaClass.getProjects = {
       // Get the original projects extension (created by Gradle)
@@ -86,16 +88,14 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
       }
 
       // Modify the extension's metaclass on first access
-      def projectsClass = originalProjects.getClass()
-      modifiedClasses.computeIfAbsent(projectsClass) { clazz ->
-        // Override propertyMissing for the projects extension class
-        clazz.metaClass.propertyMissing = { String name ->
-          // Return our delegate that acts as a CharSequence with the artifact notation
-          return new ProjectAccessorDelegate(group, [name])
-        }
-        return true
+//      def projectsClass = originalProjects.getClass()
+      clazz.metaClass.propertyMissing = { String name ->
+        println("${project.path} propertyMissing $name")
+        // Return our delegate that acts as a CharSequence with the artifact notation
+        return new ProjectAccessorDelegate(group, [name])
       }
 
+//      println("originalProjects")
       return originalProjects
     }
   }

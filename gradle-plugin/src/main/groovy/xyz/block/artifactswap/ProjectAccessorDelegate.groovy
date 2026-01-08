@@ -41,6 +41,7 @@ class ProjectAccessorDelegate implements CharSequence {
     
     String artifactName = convertedSegments.join('_')
     this.notation = "${artifactsGroup}:${artifactName}"
+    println(notation)
   }
 
   /**
@@ -48,6 +49,7 @@ class ProjectAccessorDelegate implements CharSequence {
    * https://groovy-lang.org/metaprogramming.html#_propertymissing
    */
   def propertyMissing(String name) {
+    println("$pathSegments propertyMissing $name")
     return new ProjectAccessorDelegate(artifactsGroup, pathSegments + [name])
   }
   
