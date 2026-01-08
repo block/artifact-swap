@@ -82,7 +82,7 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
         return null
       }
 
-      // Return a wrapper that tracks path segments per-instance
+      // Return a proxy that converts project accessors to artifact dependencies
       return new ProjectAccessorWrapper(originalProjects, group, [])
     }
   }

@@ -113,7 +113,6 @@ class RealArtifactSwapModuleSelector(
       val (installedArtifacts, artifactsDuration) = artifactsJob.await()
 
       val (changedProjects, changedFilesCount) = gitResult
-      LOGGER.warn("git changed projects: ${changedProjects.joinToString { it.path }}")
       val (selectionResult, selectionDuration) =
         selectProjectsAndComputeMetrics(
           candidates,
@@ -205,12 +204,13 @@ class RealArtifactSwapModuleSelector(
       }
 
     val decisionCounts = projectDecisions.groupingBy { it.second }.eachCount()
-    val selectedProjects =
-      projectDecisions.filter { it.second != InclusionReason.EXCLUDED }.map { it.first }.toSet()
+    val selectedProjects = projectDecisions.filter { it.second != InclusionReason.EXCLUDED }.toSet()
 
-    projectDecisions.forEach { (project, reason) ->
-      LOGGER.warn("${project.path} ${reason}")
+    // Log decisions except for excluded projects
+    selectedProjects.forEach { (project, reason) ->
+      LOGGER.info("${project.path} included because $reason")
     }
+
     val metrics =
       SelectionMetrics(
         totalCandidates = candidates.size,
@@ -222,7 +222,7 @@ class RealArtifactSwapModuleSelector(
         excludedDueToArtifactAvailable = decisionCounts[InclusionReason.EXCLUDED] ?: 0,
       )
 
-    selectedProjects to metrics
+    selectedProjects.map { it.first }.toSet() to metrics
   }
 
   private enum class InclusionReason {

@@ -52,6 +52,11 @@ dependencies {
   runtimeOnly(libs.jackson.module.kotlin)
 
   lintChecks(libs.androidx.lintGradle)
+
+  testImplementation(platform(libs.junit.bom))
+  testImplementation(libs.junit.jupiter.api)
+  testRuntimeOnly(libs.junit.jupiter)
+  testRuntimeOnly(libs.junit.launcher)
 }
 
 listOf("runtimeElements", "apiElements").forEach { configurationName ->
