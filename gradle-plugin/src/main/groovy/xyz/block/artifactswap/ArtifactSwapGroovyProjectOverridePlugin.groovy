@@ -2,7 +2,6 @@ package xyz.block.artifactswap
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Groovy-specific plugin that overrides the project() function and project accessors using metaclass manipulation.
@@ -12,8 +11,6 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @SuppressWarnings('unused')
 class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
-  // Track which project accessor classes have been modified to avoid redundant modifications
-  private static final ConcurrentHashMap<Class<?>, Boolean> modifiedClasses = new ConcurrentHashMap<>()
 
   @Override
   void apply(Project target) {
@@ -79,24 +76,20 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
 
     println("${project.path} installProjectAccessorOverride")
 
-    // Intercept the getProjects() getter on the project to wrap the extension
+    // Intercept the getProjects() getter on the project to return a wrapper
     project.metaClass.getProjects = {
       // Get the original projects extension (created by Gradle)
       def originalProjects = originalGetProjects?.invoke(delegate) ?: delegate.extensions.findByName('projects')
+      println("originalProjects: $originalProjects")
       if (originalProjects == null) {
+        println("returning early since `originalProjects` is null")
         return null
       }
 
-      // Modify the extension's metaclass on first access
-//      def projectsClass = originalProjects.getClass()
-      clazz.metaClass.propertyMissing = { String name ->
-        println("${project.path} propertyMissing $name")
-        // Return our delegate that acts as a CharSequence with the artifact notation
-        return new ProjectAccessorDelegate(group, [name])
-      }
-
-//      println("originalProjects")
-      return originalProjects
+      // Return a wrapper that intercepts all property access
+      // This is more reliable than metaclass modification on Gradle's generated Java classes
+      println("Returning ProjectsAccessorWrapper for ${project.path}")
+      return new ProjectAccessorDelegate(originalProjects, group)
     }
   }
 }
