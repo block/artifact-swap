@@ -2,7 +2,6 @@ package xyz.block.artifactswap
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Groovy-specific plugin that overrides the project() function and project accessors using metaclass manipulation.
@@ -12,8 +11,6 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @SuppressWarnings('unused')
 class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
-  // Track which project accessor classes have been modified to avoid redundant modifications
-  private static final ConcurrentHashMap<Class<?>, Boolean> modifiedClasses = new ConcurrentHashMap<>()
 
   @Override
   void apply(Project target) {
@@ -77,8 +74,6 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
     def group = artifactsGroup
     def originalGetProjects = project.metaClass.getMetaMethod('getProjects', [] as Class[])
 
-    println("${project.path} installProjectAccessorOverride")
-
     // Intercept the getProjects() getter on the project to wrap the extension
     project.metaClass.getProjects = {
       // Get the original projects extension (created by Gradle)
@@ -87,16 +82,8 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
         return null
       }
 
-      // Modify the extension's metaclass on first access
-//      def projectsClass = originalProjects.getClass()
-      clazz.metaClass.propertyMissing = { String name ->
-        println("${project.path} propertyMissing $name")
-        // Return our delegate that acts as a CharSequence with the artifact notation
-        return new ProjectAccessorDelegate(group, [name])
-      }
-
-//      println("originalProjects")
-      return originalProjects
+      // Return a wrapper that tracks path segments per-instance
+      return new ProjectAccessorWrapper(originalProjects, group, [])
     }
   }
 }
