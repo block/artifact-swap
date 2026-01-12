@@ -74,21 +74,16 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
     def group = artifactsGroup
     def originalGetProjects = project.metaClass.getMetaMethod('getProjects', [] as Class[])
 
-    println("${project.path} installProjectAccessorOverride")
-
     // Intercept the getProjects() getter on the project to return a wrapper
     project.metaClass.getProjects = {
       // Get the original projects extension (created by Gradle)
       def originalProjects = originalGetProjects?.invoke(delegate) ?: delegate.extensions.findByName('projects')
-      println("originalProjects: $originalProjects")
       if (originalProjects == null) {
-        println("returning early since `originalProjects` is null")
         return null
       }
 
       // Return a wrapper that intercepts all property access
       // This is more reliable than metaclass modification on Gradle's generated Java classes
-      println("Returning ProjectsAccessorWrapper for ${project.path}")
       return new ProjectAccessorDelegate(originalProjects, group)
     }
   }

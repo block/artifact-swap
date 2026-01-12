@@ -113,7 +113,6 @@ class RealArtifactSwapModuleSelector(
       val (installedArtifacts, artifactsDuration) = artifactsJob.await()
 
       val (changedProjects, changedFilesCount) = gitResult
-      LOGGER.warn("git changed projects: ${changedProjects.joinToString { it.path }}")
       val (selectionResult, selectionDuration) =
         selectProjectsAndComputeMetrics(
           candidates,
@@ -208,9 +207,6 @@ class RealArtifactSwapModuleSelector(
     val selectedProjects =
       projectDecisions.filter { it.second != InclusionReason.EXCLUDED }.map { it.first }.toSet()
 
-    projectDecisions.forEach { (project, reason) ->
-      LOGGER.warn("${project.path} ${reason}")
-    }
     val metrics =
       SelectionMetrics(
         totalCandidates = candidates.size,

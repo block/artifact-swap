@@ -46,13 +46,10 @@ class ProjectAccessorDelegate implements CharSequence {
   }
 
   def propertyMissing(String name) {
-    println("ProjectsAccessorWrapper propertyMissing: $name (pathSegments: $pathSegments)")
     return accessProperty(name)
   }
 
   def getProperty(String name) {
-    println("ProjectsAccessorWrapper getProperty: $name (pathSegments: $pathSegments)")
-    
     // Skip internal Groovy properties - return from this instance, not original
     if (name in ['class', 'metaClass']) {
       return this.getClass()."$name"
@@ -66,8 +63,6 @@ class ProjectAccessorDelegate implements CharSequence {
    * Gradle's generated accessors use getter methods, so we need to intercept these too.
    */
   def methodMissing(String name, def args) {
-    println("ProjectsAccessorWrapper methodMissing: $name (pathSegments: $pathSegments)")
-    
     // Check if this is a getter method (getXxx with no args)
     if (name.startsWith('get') && name.length() > 3 && (args == null || args.length == 0)) {
       // Convert getter name to property name: getAccount -> account
@@ -92,33 +87,27 @@ class ProjectAccessorDelegate implements CharSequence {
   private def accessProperty(String name) {
     // Delegate mode: no original to try, just extend the path
     if (original == null) {
-      println("ProjectsAccessorWrapper (delegate mode) extending path with: $name")
       return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
     }
-    
+
     // Wrapper mode: try the original accessor first
     try {
       def result = original."$name"
-      println("ProjectsAccessorWrapper got result from original: $result (class: ${result?.getClass()})")
-      
+
       // Wrap the result to handle chained access (e.g., projects.account.backend)
       if (result != null) {
-        println("ProjectsAccessorWrapper returning wrapper for result so chained access works properly")
         return new ProjectAccessorDelegate(result, artifactsGroup, pathSegments + [name])
       }
       return result
     } catch (MissingPropertyException e) {
       // Property doesn't exist - switch to delegate mode (null original)
-      println("ProjectsAccessorWrapper caught MissingPropertyException for $name, switching to delegate mode")
       return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
     } catch (MissingMethodException e) {
       // Method doesn't exist - switch to delegate mode
-      println("ProjectsAccessorWrapper caught MissingMethodException for $name, switching to delegate mode")
       return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
     } catch (Exception e) {
       // Catch any other exception that might indicate a missing property
       // This includes Gradle's UnknownDomainObjectException and similar
-      println("ProjectsAccessorWrapper caught ${e.getClass().simpleName} for $name: ${e.message}, switching to delegate mode")
       return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
     }
   }
