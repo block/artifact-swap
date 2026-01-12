@@ -69,14 +69,10 @@ class ProjectAccessorDelegate implements CharSequence {
       def propertyName = name[3].toLowerCase() + name.substring(4)
       return accessProperty(propertyName)
     }
-    
+
     // For non-getter methods, try to invoke on the original (if we have one)
     if (original != null) {
-      try {
-        return original."$name"(*args)
-      } catch (Exception e) {
-        // Fall through to throw MissingMethodException
-      }
+      return original."$name"(*args)
     }
     throw new MissingMethodException(name, this.class, args as Object[])
   }
@@ -104,10 +100,6 @@ class ProjectAccessorDelegate implements CharSequence {
       return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
     } catch (MissingMethodException e) {
       // Method doesn't exist - switch to delegate mode
-      return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
-    } catch (Exception e) {
-      // Catch any other exception that might indicate a missing property
-      // This includes Gradle's UnknownDomainObjectException and similar
       return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
     }
   }
