@@ -3,6 +3,7 @@
 package xyz.block.artifactswap
 
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
+import com.fueledbycaffeine.spotlight.applySpotlightConfiguration
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
@@ -74,6 +75,10 @@ public class ArtifactSwapSettingsPlugin : Plugin<Settings> {
   private fun Settings.applySpotlight() {
     logger.info("Artifact Sync is inactive. Delegating to Spotlight.")
     pluginManager.apply(SpotlightSettingsPlugin::class.java)
+    // The spotlight setup has to be applied manually since by default it also uses a
+    // settingsEvaluated callback, which cannot be nested:
+    // https://github.com/gradle/gradle/issues/17914
+    applySpotlightConfiguration()
   }
 
   /**

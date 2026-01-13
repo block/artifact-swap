@@ -46,6 +46,7 @@ internal class ArtifactSwapProjectPlugin : Plugin<Project> {
         //   `com.squareup.sandbags:mordor`, which is a published representation of a project that
         // is currently `include`-ed in the build. This needs to be rewritten via dependency
         // substitution to `project(':mordor')`.
+
         if (requested.group == artifactSwapMavenGroupId) {
           @Suppress("GradleProjectIsolation")
           when (val p = findProject(requested.asProjectPath)) {
