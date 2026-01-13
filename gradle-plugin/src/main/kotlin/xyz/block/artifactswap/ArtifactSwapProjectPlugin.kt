@@ -48,7 +48,7 @@ internal class ArtifactSwapProjectPlugin : Plugin<Project> {
         // substitution to `project(':mordor')`.
         if (requested.group == artifactSwapMavenGroupId) {
           @Suppress("GradleProjectIsolation")
-          when (val p = project(requested.asProjectPath)) {
+          when (val p = findProject(requested.asProjectPath)) {
             null -> {
               // Force Gradle to use the BOM specified version for this artifact.
               // Artifacts are only published when their source changes, so their POM references the
