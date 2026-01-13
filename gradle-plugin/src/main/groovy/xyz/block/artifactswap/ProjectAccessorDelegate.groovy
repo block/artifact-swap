@@ -95,10 +95,10 @@ class ProjectAccessorDelegate implements CharSequence {
         return new ProjectAccessorDelegate(result, artifactsGroup, pathSegments + [name])
       }
       return result
-    } catch (MissingPropertyException e) {
+    } catch (MissingPropertyException ignored) {
       // Property doesn't exist - switch to delegate mode (null original)
       return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
-    } catch (MissingMethodException e) {
+    } catch (MissingMethodException ignored) {
       // Method doesn't exist - switch to delegate mode
       return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
     }
