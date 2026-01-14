@@ -11,10 +11,11 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import xyz.block.artifactswap.dsl.ArtifactSwapDslService
 import xyz.block.artifactswap.dsl.ArtifactSwapExtension
+import xyz.block.artifactswap.gradle.internal.artifactSwapConfig
+import xyz.block.artifactswap.gradle.internal.hasPublishableComponent
 import xyz.block.gradle.ARTIFACT_SWAP_ENABLED
 import xyz.block.gradle.ArtifactSwapDependencyHandler
 import xyz.block.gradle.LOCAL_PROTOS_ARTIFACTS
-import xyz.block.gradle.hasPublishableComponent
 import xyz.block.gradle.isArtifactPublishingEnabled
 import xyz.block.gradle.services.services
 import xyz.block.gradle.useLocalProtos

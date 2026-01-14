@@ -6,6 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import xyz.block.artifactswap.gradle.internal.artifactSwapConfig
 import xyz.block.gradle.asProjectPath
 import xyz.block.gradle.generatedProtosVersion
 import xyz.block.gradle.protosSchemaVersion

@@ -15,10 +15,6 @@ gradlePlugin {
       id = "xyz.block.artifactswap"
       implementationClass = "xyz.block.artifactswap.ArtifactSwapProjectPlugin"
     }
-    create("artifactSwapProjectPublishPlugin") {
-      id = "xyz.block.artifactswap.publish"
-      implementationClass = "xyz.block.artifactswap.ArtifactSwapProjectPublishPlugin"
-    }
     create("groovyProjectOverridePlugin") {
       id = "xyz.block.artifactswap.groovy-override"
       implementationClass = "xyz.block.artifactswap.ArtifactSwapGroovyProjectOverridePlugin"
@@ -32,6 +28,7 @@ kotlin {
 
 dependencies {
   implementation(project(":core"))
+  implementation(project(":gradle-utils"))
   implementation(gradleApi())
   implementation(libs.jackson.databind)
   implementation(libs.jackson.dataformat.xml)
@@ -46,6 +43,7 @@ dependencies {
   implementation(libs.spotlight.buildscriptUtils)
   implementation(libs.spotlight.gradle)
 
+  compileOnly(project(":gradle-publish-plugin"))
   compileOnly(libs.android.gradle.api)
 
   runtimeOnly(libs.jackson.core)

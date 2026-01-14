@@ -1,14 +1,14 @@
-package xyz.block.artifactswap
+package xyz.block.artifactswap.gradle.internal
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.provider.ProviderFactory
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 
-internal val Settings.artifactSwapConfig: ArtifactSwapConfig
+public val Settings.artifactSwapConfig: ArtifactSwapConfig
   get() = readArtifactSwapConfig(providers)
 
-internal val Project.artifactSwapConfig: ArtifactSwapConfig
+public val Project.artifactSwapConfig: ArtifactSwapConfig
   get() = readArtifactSwapConfig(providers)
 
 private fun readArtifactSwapConfig(providers: ProviderFactory): ArtifactSwapConfig {
