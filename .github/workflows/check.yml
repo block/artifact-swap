@@ -54,7 +54,7 @@ jobs:
           cd ~/.m2/repository/xyz/block/artifactswap/cli/${VERSION}
           unzip -q cli-${VERSION}.zip
           # Test the CLI from the extracted distribution (end-to-end test)
-          ./artifactswap-shadow-${VERSION}/bin/artifactswap --help
+          ./artifactswap-${VERSION}/bin/artifactswap --help
 
 #  ide-plugin:
 #    runs-on: ubuntu-latest

@@ -18,7 +18,7 @@ This repository contains Artifact Swap, a Gradle tooling suite that accelerates 
   1) `./gradlew :cli:publishToMavenLocal`
   2) `VERSION=$(grep "^version=" gradle.properties | cut -d'=' -f2)`
   3) `cd ~/.m2/repository/xyz/block/artifactswap/cli/$VERSION && unzip -q cli-$VERSION.zip`
-  4) `./artifactswap-shadow-$VERSION/bin/artifactswap --help`
+  4) `./artifactswap-$VERSION/bin/artifactswap --help`
 - Publishing: `./gradlew publishAllPublicationsToMavenCentralRepository` with credentials set via Gradle properties (see GitHub workflow and `PublishPlugin`).
 
 ## Coding Style & Naming Conventions

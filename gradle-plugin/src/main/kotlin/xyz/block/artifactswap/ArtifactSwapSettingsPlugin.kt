@@ -70,7 +70,9 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
     }
 
   private fun Settings.applyArtifactSwap() {
-    logger.lifecycle("Using Artifact Swap! See https://go/artifact-sync for docs.")
+    logger.lifecycle(
+      "Using Artifact Swap! See https://github.com/block/artifact-swap#usage for docs."
+    )
     logger.lifecycle(
       "You can disable this by setting $ARTIFACT_SWAP_ENABLED=false in your gradle properties"
     )
