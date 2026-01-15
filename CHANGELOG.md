@@ -1,3 +1,6 @@
+## Unreleased
+- Add SocketTimeoutException retries with a backoff
+
 ## 0.1.6
 - Add DSL handler for enabling/disabling artifact swapping
 
