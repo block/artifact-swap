@@ -2,35 +2,10 @@ package xyz.block.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
-import xyz.block.artifactswap.artifactSwapConfig
 import xyz.block.artifactswap.artifactSyncBomService
+import xyz.block.artifactswap.gradle.artifactSwapCoordinates
+import xyz.block.artifactswap.gradle.internal.artifactSwapConfig
 import xyz.block.gradle.services.services
-
-/** Checks if this is an Android project. */
-internal val Project.isAndroidLibrary: Boolean
-  get() = pluginManager.hasPlugin("com.android.base")
-
-/** Checks if this is a Kotlin project. */
-internal val Project.isKotlin: Boolean
-  get() =
-    pluginManager.hasPlugin("org.jetbrains.kotlin.android") ||
-      pluginManager.hasPlugin("org.jetbrains.kotlin.jvm")
-
-internal val Project.hasPublishableComponent: Boolean
-  get() =
-    pluginManager.hasPlugin("com.android.library") ||
-      pluginManager.hasPlugin("org.jetbrains.kotlin.jvm") ||
-      pluginManager.hasPlugin("java") ||
-      pluginManager.hasPlugin("java-library")
-
-/**
- * Converts a project path to a sandbag artifact name. Example: ":hobbits:frodo" -> "hobbits_frodo"
- */
-public val Project.artifactSwapCoordinates: String
-  get() = path.removePrefix(":").replace(":", "_")
-
-internal val String.artifactSwapCoordinates: String
-  get() = this.removePrefix(":").replace(":", "_")
 
 /**
  * Returns a dependency that will resolve to either a project dependency or a maven artifact

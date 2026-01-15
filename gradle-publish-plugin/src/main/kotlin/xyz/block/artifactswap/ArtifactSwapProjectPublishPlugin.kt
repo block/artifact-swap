@@ -18,10 +18,10 @@ import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.bundling.Jar
-import xyz.block.gradle.artifactSwapCoordinates
-import xyz.block.gradle.isAndroidLibrary
-import xyz.block.gradle.isKotlin
-import xyz.block.gradle.projectArtifactVersion
+import xyz.block.artifactswap.gradle.artifactSwapCoordinates
+import xyz.block.artifactswap.gradle.internal.artifactSwapConfig
+import xyz.block.artifactswap.gradle.internal.isAndroidLibrary
+import xyz.block.artifactswap.gradle.internal.isKotlin
 
 /**
  * Artifact Swap project publish plugin for sandbags. This plugin is responsible for configuring
