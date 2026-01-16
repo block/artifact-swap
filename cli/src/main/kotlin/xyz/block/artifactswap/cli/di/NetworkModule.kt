@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import java.io.File
+import java.io.IOException
+import java.net.SocketTimeoutException
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
 import kotlin.time.Duration.Companion.seconds
@@ -29,6 +31,7 @@ import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.network.ArtifactoryService
 
 private val UNAUTHENTICATED_HTTP_METHODS = listOf("GET", "HEAD")
+private const val MAX_RETRY_ATTEMPTS = 3
 
 internal fun artifactoryNetworkModule() = module {
   // HTTP cache for OkHttp client (10MB)
@@ -91,6 +94,19 @@ internal fun artifactoryNetworkModule() = module {
         }
       )
       .addInterceptor(get<HttpLoggingInterceptor>())
+      .addInterceptor { chain ->
+        var lastException: IOException? = null
+        repeat(MAX_RETRY_ATTEMPTS) { attempt ->
+          try {
+            return@addInterceptor chain.proceed(chain.request())
+          } catch (e: IOException) {
+            lastException = e
+            if (e !is SocketTimeoutException) throw e
+            if (attempt < MAX_RETRY_ATTEMPTS - 1) Thread.sleep(1000L * (1 shl attempt))
+          }
+        }
+        throw lastException!!
+      }
       .addNetworkInterceptor(get<Interceptor>(named("cache404Interceptor")))
       .addInterceptor { chain ->
         // GET/HEAD methods don't require authentication
