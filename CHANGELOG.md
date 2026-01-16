@@ -1,5 +1,11 @@
 ## Unreleased
+- Move publish plugin to a new artifact to support projects with classpath issues
 - Add SocketTimeoutException retries with a backoff
+
+## 0.1.7
+- Force configure spotlight to work around Gradle nested callback issue
+- Fix finding project to swap from artifact id (allprojects scope issue)
+- Improve ProjectAccessorDelegate to handle missing property and method calls
 
 ## 0.1.6
 - Add DSL handler for enabling/disabling artifact swapping
