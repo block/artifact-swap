@@ -6,6 +6,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
 import com.intellij.openapi.project.Project
+import xyz.block.artifactswap.idea.navigation.ArtifactSwapGotoDeclarationHandler
 import xyz.block.artifactswap.model.ArtifactSwapModel
 
 /**
@@ -23,6 +24,9 @@ class ArtifactSwapModelDataService : AbstractProjectDataService<ArtifactSwapMode
     project: Project,
     modelsProvider: IdeModifiableModelsProvider,
   ) {
+    // Clear caches to avoid stale mappings from previous Gradle sync
+    ArtifactSwapGotoDeclarationHandler.clearCaches()
+
     val service = ArtifactSwapService.getInstance(project)
     when (val data = toImport.firstOrNull()?.data) {
       null -> service.clearModel()

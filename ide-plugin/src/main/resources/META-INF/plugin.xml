@@ -17,13 +17,38 @@ This plugin works in conjunction with the
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.kotlin</depends>
 
-  <!-- Artifact Swap builds on top of Spotlight -->
-  <depends>com.fueledbycaffeine.spotlight</depends>
-
   <!-- Optional dependency for Android resource navigation support -->
   <depends optional="true">org.jetbrains.android</depends>
 
+  <!-- Artifact Swap builds on top of Spotlight -->
+  <depends>com.fueledbycaffeine.spotlight</depends>
+
   <extensions defaultExtensionNs="com.intellij">
+    <!-- Notification group for balloon popups -->
+    <notificationGroup
+        id="Artifact Swap Notifications"
+        displayType="BALLOON"/>
+
+    <!-- Editor notification banner when viewing a swapped artifact file -->
+    <editorNotificationProvider
+        implementation="xyz.block.artifactswap.idea.notification.SwappedArtifactNotificationProvider"/>
+
+    <!-- Intercept go-to-declaration navigation -->
+    <gotoDeclarationHandler
+        implementation="xyz.block.artifactswap.idea.navigation.ArtifactSwapGotoDeclarationHandler"
+        order="first"/>
+
+    <!-- Settings page -->
+    <applicationConfigurable
+        parentId="tools"
+        instance="xyz.block.artifactswap.idea.settings.ArtifactSwapSettingsConfigurable"
+        id="xyz.block.artifactswap.settings"
+        displayName="Artifact Swap"/>
+
+    <!-- Settings state service -->
+    <applicationService
+        serviceImplementation="xyz.block.artifactswap.idea.settings.ArtifactSwapSettings"/>
+
     <!-- External system data service for processing Gradle sync data -->
     <externalProjectDataService
         implementation="xyz.block.artifactswap.idea.gradle.ArtifactSwapModelDataService"/>
@@ -34,6 +59,13 @@ This plugin works in conjunction with the
     <projectResolve
         implementation="xyz.block.artifactswap.idea.gradle.ArtifactSwapProjectResolverExtension"/>
   </extensions>
+
+  <!-- File editor listener for showing popup notifications -->
+  <projectListeners>
+    <listener
+        class="xyz.block.artifactswap.idea.notification.SwappedArtifactFileEditorListener"
+        topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+  </projectListeners>
 
   <!-- Declare compatibility with Kotlin K2 mode -->
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
