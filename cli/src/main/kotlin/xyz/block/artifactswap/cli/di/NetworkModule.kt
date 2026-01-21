@@ -7,6 +7,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import java.io.File
 import java.io.IOException
+import java.io.InterruptedIOException
 import java.net.SocketTimeoutException
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
@@ -31,7 +32,7 @@ import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.network.ArtifactoryService
 
 private val UNAUTHENTICATED_HTTP_METHODS = listOf("GET", "HEAD")
-private const val MAX_RETRY_ATTEMPTS = 3
+private const val MAX_RETRY_ATTEMPTS = 5
 
 internal fun artifactoryNetworkModule() = module {
   // HTTP cache for OkHttp client (10MB)
@@ -85,8 +86,8 @@ internal fun artifactoryNetworkModule() = module {
       .cache(get<Cache>())
       .retryOnConnectionFailure(true)
       .connectTimeout(15.seconds.toJavaDuration())
-      .readTimeout(30.seconds.toJavaDuration())
-      .callTimeout(30.seconds.toJavaDuration())
+      .readTimeout(120.seconds.toJavaDuration())
+      .callTimeout(120.seconds.toJavaDuration())
       .dispatcher(
         Dispatcher().apply {
           maxRequestsPerHost = 128
@@ -101,8 +102,8 @@ internal fun artifactoryNetworkModule() = module {
             return@addInterceptor chain.proceed(chain.request())
           } catch (e: IOException) {
             lastException = e
-            if (e !is SocketTimeoutException) throw e
-            if (attempt < MAX_RETRY_ATTEMPTS - 1) Thread.sleep(1000L * (1 shl attempt))
+            if (e !is SocketTimeoutException && e !is InterruptedIOException) throw e
+            if (attempt < MAX_RETRY_ATTEMPTS - 1) Thread.sleep(5_000L * (1 shl attempt))
           }
         }
         throw lastException!!
