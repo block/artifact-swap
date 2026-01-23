@@ -30,6 +30,7 @@ ktfmt-gradle = "0.25.0"
 vanniktech = "0.35.0"
 dagp = "3.5.1"
 develocity = "4.3"
+intellij-platform = "2.10.5"
 
 [libraries]
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
@@ -42,6 +43,7 @@ jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-dataformat-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml", version.ref = "jackson" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version = "23.0.0" }
 jgit-core = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -90,3 +92,4 @@ log4j = ["log4j-api", "log4j-core", "log4j-kotlin"]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt-gradle" }
+intellij-platform = { id = "org.jetbrains.intellij.platform", version.ref = "intellij-platform" }

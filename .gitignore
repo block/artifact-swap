@@ -67,3 +67,6 @@ buildSrc/gradlew.bat
 
 # heap dumps
 *.hprof
+
+# Intellij platform plugin
+.intellijPlatform/

@@ -1,0 +1,7 @@
+<!-- Android-specific plugin configuration -->
+<idea-plugin>
+  <!-- This file contains Android-specific extensions and actions for Artifact Swap -->
+  <!-- It is only loaded when the org.jetbrains.android plugin is available -->
+  
+  <!-- Android-specific extensions will be added here as needed -->
+</idea-plugin>
