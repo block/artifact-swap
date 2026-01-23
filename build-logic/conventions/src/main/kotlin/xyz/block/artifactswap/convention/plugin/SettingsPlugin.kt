@@ -60,6 +60,7 @@ class SettingsPlugin : Plugin<Settings> {
       drm.repositories { repos ->
         repos.mavenCentral()
         repos.google()
+        repos.gradlePluginPortal()
 
         // Gradle tooling API
         // https://docs.gradle.org/current/userguide/tooling_api.html#sec:embedding_quickstart
