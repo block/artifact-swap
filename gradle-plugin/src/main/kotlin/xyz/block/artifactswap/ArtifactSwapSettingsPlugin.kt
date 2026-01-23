@@ -4,15 +4,18 @@ package xyz.block.artifactswap
 
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
 import com.fueledbycaffeine.spotlight.applySpotlightConfiguration
+import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import xyz.block.artifactswap.dsl.ArtifactSwapDslService
 import xyz.block.artifactswap.dsl.ArtifactSwapExtension
 import xyz.block.artifactswap.gradle.internal.artifactSwapConfig
 import xyz.block.artifactswap.gradle.internal.hasPublishableComponent
+import xyz.block.artifactswap.tooling.ArtifactSwapModelBuilder
 import xyz.block.gradle.ARTIFACT_SWAP_ENABLED
 import xyz.block.gradle.ArtifactSwapDependencyHandler
 import xyz.block.gradle.LOCAL_PROTOS_ARTIFACTS
@@ -42,7 +45,9 @@ import xyz.block.ide.isIdeSync
  * ```
  */
 @Suppress("unused")
-public class ArtifactSwapSettingsPlugin : Plugin<Settings> {
+public class ArtifactSwapSettingsPlugin
+@Inject
+constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings> {
 
   private lateinit var extension: ArtifactSwapExtension
   private lateinit var dslService: ArtifactSwapDslService
@@ -51,6 +56,7 @@ public class ArtifactSwapSettingsPlugin : Plugin<Settings> {
     target.run {
       dslService = ArtifactSwapDslService.of(settings).get()
       extension = ArtifactSwapExtension.create(settings, dslService)
+      gradle.rootProject { registry.register(ArtifactSwapModelBuilder()) }
       gradle.settingsEvaluated {
         val artifactSwapIsActive = isIdeSync && dslService.enabled
         when {
