@@ -18,3 +18,7 @@ public val Project.hasPublishableComponent: Boolean
       pluginManager.hasPlugin("org.jetbrains.kotlin.jvm") ||
       pluginManager.hasPlugin("java") ||
       pluginManager.hasPlugin("java-library")
+
+@Suppress("GradleProjectIsolation") // It's actually ok
+public val Project.isRootProject: Boolean
+  get() = this == this.rootProject

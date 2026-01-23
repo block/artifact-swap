@@ -27,7 +27,8 @@ kotlin {
 }
 
 dependencies {
-  implementation(project(":core"))
+  api(project(":core"))
+
   implementation(project(":gradle-utils"))
   implementation(gradleApi())
   implementation(libs.jackson.databind)
