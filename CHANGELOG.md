@@ -1,4 +1,10 @@
 ## Unreleased
+
+## 0.1.9
+- More aggressive timeouts and retries in artifactory client
+- Update spotlight version
+
+## 0.1.8
 - Move publish plugin to a new artifact to support projects with classpath issues
 - Add SocketTimeoutException retries with a backoff
 
