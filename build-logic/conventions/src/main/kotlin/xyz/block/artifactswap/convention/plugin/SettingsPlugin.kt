@@ -20,9 +20,13 @@ class SettingsPlugin : Plugin<Settings> {
 
     // Apply conventions to projects
     gradle.lifecycle.beforeProject { project ->
-      project.plugins.apply(BasePlugin::class.java)
       project.plugins.apply(ChecksPlugin::class.java)
-      project.plugins.apply(PublishPlugin::class.java)
+
+      // IDE plugin has different target jvm requirements and a separate publishing plugin
+      if (!project.path.startsWith(":ide-plugin")) {
+        project.plugins.apply(BasePlugin::class.java)
+        project.plugins.apply(PublishPlugin::class.java)
+      }
     }
   }
 
@@ -69,7 +73,6 @@ class SettingsPlugin : Plugin<Settings> {
           }
         }
       }
-      drm.repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     }
   }
 
@@ -83,6 +86,10 @@ class SettingsPlugin : Plugin<Settings> {
         issues.all { all ->
           all.onAny { issue ->
             issue.severity("fail")
+          }
+          all.onDuplicateClassWarnings { issue ->
+            // Provided by both IntelliJ bundled kotlin plugin and org.jetbrains:annotations
+            issue.exclude("org/jetbrains/annotations/NotNull")
           }
         }
       }

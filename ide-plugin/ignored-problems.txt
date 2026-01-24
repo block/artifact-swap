@@ -1,0 +1,8 @@
+# Ignore unresolved Android plugin classes
+# The Android plugin is marked as optional in plugin.xml
+# These classes are only available in Android Studio, not IntelliJ IDEA
+# The code handles their absence gracefully at runtime
+
+# Android plugin packages
+org.jetbrains.android.*
+com.android.resources.*
