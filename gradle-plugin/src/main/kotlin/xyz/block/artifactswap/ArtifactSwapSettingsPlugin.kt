@@ -175,7 +175,7 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
   }
 
   private fun Settings.maybeUseLocalProtos() {
-    if (dslService.enabled || useLocalProtos) {
+    if (dslService.enabled && useLocalProtos) {
       logger.warn(
         "Using locally synced protos artifacts! " +
           "If you have issues set $LOCAL_PROTOS_ARTIFACTS=false"
