@@ -30,7 +30,7 @@ ktfmt-gradle = "0.25.0"
 vanniktech = "0.35.0"
 dagp = "3.5.1"
 develocity = "4.3"
-intellij-platform = "2.10.5"
+intellij-platform = "2.11.0"
 
 [libraries]
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
