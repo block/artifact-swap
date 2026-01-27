@@ -78,7 +78,7 @@ jobs:
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
 
       - name: Publish to JetBrains Marketplace
-        run: ./gradlew :ide-plugin:publishPlugin
+        run: ./gradlew :ide-plugin:publishPlugin --stacktrace
         env:
           JETBRAINS_MARKETPLACE_SQUARE_PLUGINS: ${{ secrets.JETBRAINS_MARKETPLACE_SQUARE_PLUGINS }}
 
