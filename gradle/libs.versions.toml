@@ -10,7 +10,7 @@ jgit = "7.5.0.202512021534-r"
 koin = "4.1.1"
 kotlin = "2.2.21"
 kotlinxDatetime = "0.7.1"
-kotlinxSerializationJSON = "1.9.0"
+kotlinxSerializationJSON = "1.10.0"
 kotlinxCoroutines = "1.10.2"
 junit = "5.14.1"
 lint-gradle = "1.0.0-alpha05"
@@ -24,12 +24,12 @@ okhttp = "5.3.2"
 okio = "3.16.4"
 retrofit = "3.0.0"
 spotlight = "1.6.4"
-wire = "5.4.0"
+wire = "5.5.0"
 ktfmt = "0.59"
 ktfmt-gradle = "0.25.0"
-vanniktech = "0.35.0"
+vanniktech = "0.36.0"
 dagp = "3.5.1"
-develocity = "4.3"
+develocity = "4.3.1"
 intellij-platform = "2.11.0"
 
 [libraries]
@@ -43,7 +43,7 @@ jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-dataformat-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml", version.ref = "jackson" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
-jetbrains-annotations = { module = "org.jetbrains:annotations", version = "23.0.0" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version = "23.1.0" }
 jgit-core = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
