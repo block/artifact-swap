@@ -4,6 +4,7 @@ import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+  kotlin("jvm")
   id("org.jetbrains.intellij.platform")
 }
 
@@ -11,6 +12,13 @@ repositories {
   mavenCentral()
   intellijPlatform {
     defaultRepositories()
+  }
+}
+
+
+kotlin {
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_21)
   }
 }
 
@@ -22,8 +30,15 @@ java {
 
 // Otter 3 stable
 val androidStudioTarget = "2025.2.3.9"
+// Android studio Otter equivalent
+// https://plugins.jetbrains.com/docs/intellij/android-studio-releases-list.html
+val intellijTarget = "2025.2.1"
 
 dependencies {
+  api(project(":core"))
+
+  implementation(libs.jetbrains.annotations)
+
   intellijPlatform {
     // Use Android Studio as base IDE to get Android plugin bundled
     androidStudio(androidStudioTarget)
@@ -83,7 +98,7 @@ intellijPlatform {
     ides {
       create(IntelliJPlatformType.AndroidStudio, androidStudioTarget) {}
       // Also verify against IntelliJ IDEA (where Android plugin won't be available)
-      create(IntelliJPlatformType.IntellijIdea, "2025.3.1") {}
+      create(IntelliJPlatformType.IntellijIdea, intellijTarget) {}
     }
 
     // Unresolved Android plugin classes are expected when verifying against IntelliJ IDEA

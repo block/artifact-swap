@@ -21,7 +21,19 @@ This plugin works in conjunction with the
   <depends>com.fueledbycaffeine.spotlight</depends>
 
   <!-- Optional dependency for Android resource navigation support -->
-  <depends optional="true" config-file="plugin-android.xml">org.jetbrains.android</depends>
+  <depends optional="true">org.jetbrains.android</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- External system data service for processing Gradle sync data -->
+    <externalProjectDataService
+        implementation="xyz.block.artifactswap.idea.gradle.ArtifactSwapModelDataService"/>
+  </extensions>
+
+  <!-- Gradle integration -->
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <projectResolve
+        implementation="xyz.block.artifactswap.idea.gradle.ArtifactSwapProjectResolverExtension"/>
+  </extensions>
 
   <!-- Declare compatibility with Kotlin K2 mode -->
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
