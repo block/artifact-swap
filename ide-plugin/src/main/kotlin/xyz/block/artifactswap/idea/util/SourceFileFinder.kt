@@ -9,8 +9,11 @@ import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
-import xyz.block.artifactswap.idea.config.ArtifactPathInfo
-import xyz.block.artifactswap.idea.config.ArtifactSwapConfig
+import xyz.block.artifactswap.model.ArtifactPathInfo
+import xyz.block.artifactswap.model.ArtifactSwapModel
+import xyz.block.artifactswap.model.artifactIdToProjectPath
+import xyz.block.artifactswap.model.parseArtifactPath
+import xyz.block.artifactswap.model.projectPathToDirectory
 
 /** Utility class for finding source files that correspond to classes in swapped artifacts. */
 object SourceFileFinder {
@@ -25,13 +28,13 @@ object SourceFileFinder {
    *
    * @param project The IntelliJ project
    * @param artifactFilePath The path to the class file inside the artifact JAR
-   * @param config The Artifact Swap configuration
+   * @param model The Artifact Swap model
    * @return The VirtualFile for the source file, or null if not found
    */
   fun findSourceFile(
     project: Project,
     artifactFilePath: String,
-    config: ArtifactSwapConfig,
+    model: ArtifactSwapModel,
   ): VirtualFile? {
     val basePath = project.basePath
     if (basePath == null) {
@@ -39,7 +42,7 @@ object SourceFileFinder {
       return null
     }
 
-    val pathInfo = config.parseArtifactPath(artifactFilePath)
+    val pathInfo = model.parseArtifactPath(artifactFilePath)
     if (pathInfo == null) {
       logger.warn("Could not extract artifact ID from path: $artifactFilePath")
       return null
@@ -50,7 +53,7 @@ object SourceFileFinder {
     // Check if this is an Android resource file from transformed directory
     // These paths don't have !/ separator: .../transformed/artifact-name/res/...
     if (artifactFilePath.contains("/res/") && !artifactFilePath.contains("!/")) {
-      return findAndroidResourceFromTransformedPath(basePath, artifactFilePath, artifactId, config)
+      return findAndroidResourceFromTransformedPath(basePath, artifactFilePath, artifactId, model)
     }
 
     if (packagePath == null) {
@@ -141,10 +144,10 @@ object SourceFileFinder {
     basePath: String,
     artifactFilePath: String,
     artifactId: String,
-    config: ArtifactSwapConfig,
+    model: ArtifactSwapModel,
   ): VirtualFile? {
-    val projectPath = config.artifactIdToProjectPath(artifactId)
-    val moduleDir = config.projectPathToDirectory(projectPath)
+    val projectPath = model.artifactIdToProjectPath(artifactId)
+    val moduleDir = model.projectPathToDirectory(projectPath)
 
     // Extract the resource type and filename from the path
     val resIndex = artifactFilePath.indexOf("/res/")
@@ -567,11 +570,11 @@ object SourceFileFinder {
   fun getSourceFileInfo(
     project: Project,
     artifactFilePath: String,
-    config: ArtifactSwapConfig,
-  ): ArtifactPathInfo? {
-    val pathInfo = config.parseArtifactPath(artifactFilePath) ?: return null
-    val sourceFile = findSourceFile(project, artifactFilePath, config)
+    model: ArtifactSwapModel,
+  ): Pair<ArtifactPathInfo, VirtualFile?>? {
+    val pathInfo = model.parseArtifactPath(artifactFilePath) ?: return null
+    val sourceFile = findSourceFile(project, artifactFilePath, model)
 
-    return pathInfo.copy(sourceFile = sourceFile)
+    return pathInfo to sourceFile
   }
 }

@@ -11,10 +11,11 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotificationProvider
 import java.util.function.Function
 import javax.swing.JComponent
-import xyz.block.artifactswap.idea.config.ArtifactPathInfo
-import xyz.block.artifactswap.idea.config.ArtifactSwapConfig
 import xyz.block.artifactswap.idea.navigation.ArtifactSwapGotoDeclarationHandler
 import xyz.block.artifactswap.idea.util.SourceFileFinder
+import xyz.block.artifactswap.idea.util.artifactSwapModel
+import xyz.block.artifactswap.model.ArtifactPathInfo
+import xyz.block.artifactswap.model.isSwappedArtifactPath
 
 /**
  * An [EditorNotificationProvider] that shows a notification banner when a user is viewing a file
@@ -34,32 +35,29 @@ class SwappedArtifactNotificationProvider : EditorNotificationProvider, DumbAwar
     file: VirtualFile,
   ): Function<in FileEditor, out JComponent?>? {
     // Do nothing if artifactswap is not enabled in the project
-    val config = ArtifactSwapConfig.fromProject(project) ?: return null
+    val model = project.artifactSwapModel ?: return null
     val filePath = file.path
 
     // Check if this file is inside a swapped artifact
-    if (!config.isSwappedArtifactPath(filePath)) {
+    if (!model.isSwappedArtifactPath(filePath)) {
       return null
     }
 
     // Get information about the source file
-    val sourceFileInfo = SourceFileFinder.getSourceFileInfo(project, filePath, config)
-    if (sourceFileInfo == null) {
-      logger.warn("Could not get source file info for: $filePath")
-      return null
-    }
+    val (pathInfo, sourceFile) =
+      SourceFileFinder.getSourceFileInfo(project, filePath, model) ?: return null
 
-    return Function { _ -> createNotificationPanel(project, sourceFileInfo) }
+    return Function { _ -> createNotificationPanel(project, pathInfo, sourceFile) }
   }
 
   private fun createNotificationPanel(
     project: Project,
-    sourceFileInfo: ArtifactPathInfo,
+    artifactPathInfo: ArtifactPathInfo,
+    sourceFile: VirtualFile?,
   ): EditorNotificationPanel {
     val panel = EditorNotificationPanel()
-    panel.text = "This file is from a swapped artifact (${sourceFileInfo.projectPath})"
+    panel.text = "This file is from a swapped artifact (${artifactPathInfo.projectPath})"
 
-    val sourceFile = sourceFileInfo.sourceFile
     if (sourceFile != null) {
       panel.createActionLabel("Open source file") {
         // Navigate to source file
@@ -72,7 +70,7 @@ class SwappedArtifactNotificationProvider : EditorNotificationProvider, DumbAwar
         val basePath = project.basePath
         if (basePath != null) {
           val moduleDir =
-            LocalFileSystem.getInstance().findFileByPath("$basePath/${sourceFileInfo.moduleDir}")
+            LocalFileSystem.getInstance().findFileByPath("$basePath/${artifactPathInfo.moduleDir}")
           if (moduleDir != null) {
             FileEditorManager.getInstance(project).openFile(moduleDir, true)
           }

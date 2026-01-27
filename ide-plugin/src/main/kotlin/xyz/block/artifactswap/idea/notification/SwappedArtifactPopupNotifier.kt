@@ -10,10 +10,11 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import xyz.block.artifactswap.idea.config.ArtifactSwapConfig
 import xyz.block.artifactswap.idea.settings.ArtifactSwapSettings
 import xyz.block.artifactswap.idea.settings.ArtifactSwapSettingsConfigurable
 import xyz.block.artifactswap.idea.util.SourceFileFinder
+import xyz.block.artifactswap.idea.util.artifactSwapModel
+import xyz.block.artifactswap.model.isSwappedArtifactPath
 
 /**
  * Manages popup notifications for swapped artifact navigation. Shows a balloon notification when a
@@ -34,7 +35,7 @@ object SwappedArtifactPopupNotifier {
   fun showNavigationSuggestion(project: Project, file: VirtualFile) {
     val settings = ArtifactSwapSettings.getInstance()
     // If artifactswap is not enabled in the project, do nothing
-    val config = ArtifactSwapConfig.fromProject(project) ?: return
+    val model = project.artifactSwapModel ?: return
 
     // Check if we should show the notification
     if (!settings.shouldShowNotification()) {
@@ -48,12 +49,12 @@ object SwappedArtifactPopupNotifier {
     }
 
     // Check if this is a swapped artifact file
-    if (!config.isSwappedArtifactPath(filePath)) {
+    if (!model.isSwappedArtifactPath(filePath)) {
       return
     }
 
     // Check if source file exists
-    val sourceFile = SourceFileFinder.findSourceFile(project, filePath, config)
+    val sourceFile = SourceFileFinder.findSourceFile(project, filePath, model)
     if (sourceFile == null) {
       logger.info("Source file not found for: $filePath")
       return

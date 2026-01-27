@@ -15,14 +15,19 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import java.util.concurrent.ConcurrentHashMap
-import xyz.block.artifactswap.idea.config.ArtifactSwapConfig
 import xyz.block.artifactswap.idea.settings.ArtifactSwapSettings
 import xyz.block.artifactswap.idea.util.AndroidPluginSupport
 import xyz.block.artifactswap.idea.util.AndroidResourceHelper
 import xyz.block.artifactswap.idea.util.ArtifactSwapMavenLocalHelper
 import xyz.block.artifactswap.idea.util.SourceFileFinder
+import xyz.block.artifactswap.idea.util.artifactSwapModel
 import xyz.block.artifactswap.idea.util.findCorrespondingElement
 import xyz.block.artifactswap.idea.util.resolveAllReferences
+import xyz.block.artifactswap.model.ArtifactSwapModel
+import xyz.block.artifactswap.model.artifactIdToProjectPath
+import xyz.block.artifactswap.model.extractArtifactId
+import xyz.block.artifactswap.model.isSwappedArtifactPath
+import xyz.block.artifactswap.model.projectPathToDirectory
 
 /**
  * A [GotoDeclarationHandler] that intercepts navigation to classes inside swapped artifact JARs and
@@ -55,8 +60,8 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     }
 
     val project = sourceElement.project
-    // If there is no config, artifactswap is not applied and we should not do anything
-    val config = ArtifactSwapConfig.fromProject(project) ?: return null
+    // If there is no model, artifactswap is not applied and we should not do anything
+    val model = project.artifactSwapModel ?: return null
 
     val sourceFile = sourceElement.containingFile?.virtualFile
     // Get ALL resolved reference targets (handles multi-resolve for resources with variants)
@@ -65,8 +70,8 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     if (resolvedElements.isEmpty()) {
       // Even if we can't resolve, check if we're navigating FROM a swapped artifact
       // If so, we might be able to open the entire source file
-      if (sourceFile != null && config.isSwappedArtifactPath(sourceFile.path)) {
-        val result = openSourceFileForCurrentLocation(project, sourceFile.path, config)
+      if (sourceFile != null && model.isSwappedArtifactPath(sourceFile.path)) {
+        val result = openSourceFileForCurrentLocation(project, sourceFile.path, model)
         if (result != null) {
           return result
         }
@@ -77,7 +82,7 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     // Redirect each target from binary to source
     val redirectedTargets =
       resolvedElements.flatMap { resolvedElement ->
-        val result = redirectToSourceIfNeeded(project, resolvedElement, config)
+        val result = redirectToSourceIfNeeded(project, resolvedElement, model)
         result?.toList() ?: emptyList()
       }
 
@@ -95,7 +100,7 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
   private fun openSourceFileForCurrentLocation(
     project: Project,
     artifactFilePath: String,
-    config: ArtifactSwapConfig,
+    model: ArtifactSwapModel,
   ): Array<PsiElement>? {
     // Check user's preference from settings (no dialog during navigation)
     val settings = ArtifactSwapSettings.getInstance()
@@ -107,7 +112,7 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     }
 
     // Find and open the source file
-    val sourceFile = SourceFileFinder.findSourceFile(project, artifactFilePath, config)
+    val sourceFile = SourceFileFinder.findSourceFile(project, artifactFilePath, model)
     if (sourceFile == null) {
       logger.warn("Could not find source file for swapped artifact: $artifactFilePath")
       return null
@@ -127,24 +132,24 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
    *
    * @param project The current project
    * @param targetElement The element that navigation would go to (potentially in a JAR)
-   * @param config The Artifact Swap configuration
+   * @param model The Artifact Swap model
    * @return An array containing the source element to navigate to, or null to use default behavior
    */
   private fun redirectToSourceIfNeeded(
     project: Project,
     targetElement: PsiElement,
-    config: ArtifactSwapConfig,
+    model: ArtifactSwapModel,
   ): Array<PsiElement>? {
     // Special handling for Android light fields (synthetic R fields from Android plugin)
     if (targetElement is PsiField && AndroidPluginSupport.isAndroidLightField(targetElement)) {
-      return handleAndroidLightField(project, targetElement, config)
+      return handleAndroidLightField(project, targetElement, model)
     }
 
     val targetFile = targetElement.containingFile?.virtualFile ?: return null
     val targetFilePath = targetFile.path
 
     // Check if this is a file inside a swapped artifact JAR
-    if (!config.isSwappedArtifactPath(targetFilePath)) {
+    if (!model.isSwappedArtifactPath(targetFilePath)) {
       return null
     }
 
@@ -159,7 +164,7 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     }
 
     // Extract artifact info
-    val artifactId = config.extractArtifactId(targetFilePath)
+    val artifactId = model.extractArtifactId(targetFilePath)
 
     if (artifactId == null) {
       logger.warn("Could not extract artifact ID from path: $targetFilePath")
@@ -167,7 +172,7 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     }
 
     // Find the corresponding source file
-    val sourceFile = SourceFileFinder.findSourceFile(project, targetFilePath, config)
+    val sourceFile = SourceFileFinder.findSourceFile(project, targetFilePath, model)
     if (sourceFile == null) {
       logger.warn("Could not find source file for: $targetFilePath")
       return null
@@ -197,7 +202,7 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
   private fun handleAndroidLightField(
     project: Project,
     resourceField: PsiElement,
-    config: ArtifactSwapConfig,
+    model: ArtifactSwapModel,
   ): Array<PsiElement>? {
     if (resourceField !is PsiField) {
       return null
@@ -216,9 +221,9 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     val containingFile = rClass.containingFile?.virtualFile
     val artifactId =
       if (containingFile != null) {
-        config.extractArtifactId(containingFile.path)
+        model.extractArtifactId(containingFile.path)
       } else {
-        findArtifactIdForRClass(project, rClass, config)
+        findArtifactIdForRClass(project, rClass, model)
       }
 
     // If we couldn't extract artifact ID, we can't proceed
@@ -227,8 +232,8 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
       return null
     }
 
-    val projectPath = config.artifactIdToProjectPath(artifactId)
-    val moduleDir = config.projectPathToDirectory(projectPath)
+    val projectPath = model.artifactIdToProjectPath(artifactId)
+    val moduleDir = model.projectPathToDirectory(projectPath)
     val basePath = project.basePath ?: return null
 
     // Check if the Gradle module is loaded in IntelliJ
@@ -294,7 +299,7 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
   private fun findArtifactIdForRClass(
     project: Project,
     rClass: PsiClass,
-    config: ArtifactSwapConfig,
+    model: ArtifactSwapModel,
   ): String? {
     val qualifiedName = rClass.qualifiedName ?: return null
     val packageName = qualifiedName.substringBeforeLast(".R")
@@ -306,15 +311,12 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
 
     // Parse the BOM to get artifact versions
     val artifactVersions =
-      ArtifactSwapMavenLocalHelper.parseBomVersions(
-        project,
-        config.primaryArtifactsMavenGroup,
-        config.bomVersion,
-      ) ?: return null
+      ArtifactSwapMavenLocalHelper.parseBomVersions(project, model.mavenGroup, model.bomVersion)
+        ?: return null
 
     // Search Maven Local for AARs with matching AndroidManifest.xml
     val userHome = System.getProperty("user.home")
-    val groupPath = config.primaryArtifactsMavenGroup.replace('.', '/')
+    val groupPath = model.mavenGroup.replace('.', '/')
     val mavenLocalGroupPath = "$userHome/.m2/repository/$groupPath"
     val groupDir = LocalFileSystem.getInstance().findFileByPath(mavenLocalGroupPath) ?: return null
 

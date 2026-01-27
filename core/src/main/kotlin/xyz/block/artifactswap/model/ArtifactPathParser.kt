@@ -1,9 +1,4 @@
-package xyz.block.artifactswap.idea.config
-
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import xyz.block.artifactswap.idea.gradle.ArtifactSwapService
-import xyz.block.artifactswap.model.ArtifactSwapModel
+package xyz.block.artifactswap.model
 
 /**
  * Parsed information from an artifact file path.
@@ -14,8 +9,6 @@ import xyz.block.artifactswap.model.ArtifactSwapModel
  * @property packagePath The package path inside the JAR (e.g., "com/example"), null if not
  *   applicable
  * @property className The class name (e.g., "MyClass"), null if not applicable
- * @property sourceFile The resolved source file in the project, null if not resolved or not
- *   applicable
  */
 data class ArtifactPathInfo(
   val artifactId: String,
@@ -23,50 +16,31 @@ data class ArtifactPathInfo(
   val moduleDir: String,
   val packagePath: String?,
   val className: String?,
-  val sourceFile: VirtualFile? = null,
 )
 
 /**
- * Configuration for the Artifact Swap IDE plugin.
+ * Parses artifact file paths from Maven Local and Gradle transform cache into structured
+ * information.
  *
- * Retrieves configuration from the Gradle build via [ArtifactSwapModel], which provides:
- * - Maven group ID for swapped artifacts
- * - BOM version for swapped artifacts
+ * Supports two artifact storage locations:
+ * 1. Maven Local: `~/.m2/repository/{group}/{artifactId}/{version}/{artifactId}-{version}.jar`
+ * 2. Gradle transform cache:
+ *    `~/.gradle/caches/.../transformed/{artifactId}-VERSION/jars/classes.jar!/...`
  */
-data class ArtifactSwapConfig(
-  /** Maven group ID for the main artifacts */
-  val primaryArtifactsMavenGroup: String,
-
-  /** BOM version for swapped artifacts */
-  val bomVersion: String,
-) {
-  companion object {
-    /** Retrieves the Artifact Swap configuration from Gradle sync data. */
-    fun fromProject(project: Project): ArtifactSwapConfig? {
-      val service = ArtifactSwapService.getInstance(project)
-      val model = service.model ?: return null
-
-      return ArtifactSwapConfig(
-        primaryArtifactsMavenGroup = model.mavenGroup,
-        bomVersion = model.bomVersion,
-      )
-    }
-
-    private const val JAR_MARKER = "/jars/classes.jar!/"
-  }
+object ArtifactPathParser {
+  private const val JAR_MARKER = "/jars/classes.jar!/"
 
   /**
    * Checks if a file path is inside a swapped artifact JAR.
    *
    * Swapped artifacts can be in two locations:
-   * 1. Maven Local:
-   *    ~/.m2/repository/com/squareup/cash/artifacts/artifact_name/VERSION/artifact_name-VERSION-sources.jar
+   * 1. Maven Local: `~/.m2/repository/{group}/{artifact}/{version}/...`
    * 2. Gradle transform cache:
-   *    ~/.gradle/caches/.../transformed/artifact_name-VERSION/jars/classes.jar!/...
+   *    `~/.gradle/caches/.../transformed/{artifact}-VERSION/jars/classes.jar!/...`
    */
-  fun isSwappedArtifactPath(filePath: String): Boolean {
+  fun isSwappedArtifactPath(filePath: String, mavenGroup: String): Boolean {
     // Check Maven Local with our artifact group
-    val mavenGroupPath = primaryArtifactsMavenGroup.replace('.', '/')
+    val mavenGroupPath = mavenGroup.replace('.', '/')
     if (filePath.contains("/.m2/repository/$mavenGroupPath/")) {
       return true
     }
@@ -88,9 +62,9 @@ data class ArtifactSwapConfig(
    * Transform cache format:
    * `~/.gradle/caches/.../transformed/artifact-name-VERSION/jars/classes.jar!/...`
    */
-  fun extractArtifactId(filePath: String): String? {
+  fun extractArtifactId(filePath: String, mavenGroup: String): String? {
     // Try Maven Local first
-    val mavenGroupPath = primaryArtifactsMavenGroup.replace('.', '/')
+    val mavenGroupPath = mavenGroup.replace('.', '/')
     val m2Pattern = "/.m2/repository/$mavenGroupPath/"
     val m2Index = filePath.indexOf(m2Pattern)
     if (m2Index != -1) {
@@ -173,10 +147,11 @@ data class ArtifactSwapConfig(
    * the path string only once.
    *
    * @param artifactFilePath The path to a file in an artifact JAR
+   * @param mavenGroup The Maven group ID for swapped artifacts
    * @return Parsed artifact path information, or null if the artifact ID cannot be extracted
    */
-  fun parseArtifactPath(artifactFilePath: String): ArtifactPathInfo? {
-    val artifactId = extractArtifactId(artifactFilePath) ?: return null
+  fun parseArtifactPath(artifactFilePath: String, mavenGroup: String): ArtifactPathInfo? {
+    val artifactId = extractArtifactId(artifactFilePath, mavenGroup) ?: return null
     val projectPath = artifactIdToProjectPath(artifactId)
     val moduleDir = projectPathToDirectory(projectPath)
     val packagePath = extractPackagePath(artifactFilePath)
