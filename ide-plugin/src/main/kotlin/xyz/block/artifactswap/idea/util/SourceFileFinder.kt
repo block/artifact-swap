@@ -26,44 +26,47 @@ object SourceFileFinder {
   private val CODE_EXTENSIONS = listOf(".kt", ".java")
 
   /** Android resource types that have their own directories (e.g., res/layout/, res/drawable/). */
-  private val DIRECTORY_RESOURCES = setOf(
-    "layout",
-    "drawable",
-    "mipmap",
-    "anim",
-    "animator",
-    "menu",
-    "raw",
-    "xml",
-    "font",
-    "navigation",
-  )
+  private val DIRECTORY_RESOURCES =
+    setOf(
+      "layout",
+      "drawable",
+      "mipmap",
+      "anim",
+      "animator",
+      "menu",
+      "raw",
+      "xml",
+      "font",
+      "navigation",
+    )
 
-  /** 
-   * Android values resource types and their typical file names.
-   * These resources are stored in values/ directories (e.g., res/values/strings.xml).
+  /**
+   * Android values resource types and their typical file names. These resources are stored in
+   * values/ directories (e.g., res/values/strings.xml).
    */
-  private val VALUES_RESOURCE_FILE_NAMES = mapOf(
-    "string" to listOf("strings.xml"),
-    "color" to listOf("colors.xml", "color.xml"),
-    "dimen" to listOf("dimens.xml", "dimen.xml"),
-    "style" to listOf("styles.xml", "style.xml", "themes.xml"),
-    "array" to listOf("arrays.xml", "array.xml"),
-    "plurals" to listOf("plurals.xml", "strings.xml"),
-    "integer" to listOf("integers.xml", "integer.xml"),
-    "bool" to listOf("bools.xml", "bool.xml"),
-    "id" to listOf("ids.xml", "id.xml"),
-    "attr" to listOf("attrs.xml", "attr.xml"),
-    "styleable" to listOf("attrs.xml", "styleable.xml"),
-    "fraction" to listOf("fractions.xml", "fraction.xml"),
-  )
+  private val VALUES_RESOURCE_FILE_NAMES =
+    mapOf(
+      "string" to listOf("strings.xml"),
+      "color" to listOf("colors.xml", "color.xml"),
+      "dimen" to listOf("dimens.xml", "dimen.xml"),
+      "style" to listOf("styles.xml", "style.xml", "themes.xml"),
+      "array" to listOf("arrays.xml", "array.xml"),
+      "plurals" to listOf("plurals.xml", "strings.xml"),
+      "integer" to listOf("integers.xml", "integer.xml"),
+      "bool" to listOf("bools.xml", "bool.xml"),
+      "id" to listOf("ids.xml", "id.xml"),
+      "attr" to listOf("attrs.xml", "attr.xml"),
+      "styleable" to listOf("attrs.xml", "styleable.xml"),
+      "fraction" to listOf("fractions.xml", "fraction.xml"),
+    )
 
   /**
    * Finds the source file in the project that corresponds to a class file in a swapped artifact.
    *
    * @param project The IntelliJ project
    * @param artifactFilePath The path to the class file inside the artifact JAR
-   * @param sourceElement Optional PSI element to extract more context (e.g., resource type for Android resources)
+   * @param sourceElement Optional PSI element to extract more context (e.g., resource type for
+   *   Android resources)
    * @param model The Artifact Swap model
    * @return The VirtualFile for the source file, or null if not found
    */
@@ -90,7 +93,13 @@ object SourceFileFinder {
     // Check if this is an Android resource file from transformed directory
     // These paths don't have !/ separator: .../transformed/artifact-name/res/...
     if (artifactFilePath.contains("/res/") && !artifactFilePath.contains("!/")) {
-      return findAndroidResourceFromTransformedPath(basePath, artifactFilePath, artifactId, sourceElement, model)
+      return findAndroidResourceFromTransformedPath(
+        basePath,
+        artifactFilePath,
+        artifactId,
+        sourceElement,
+        model,
+      )
     }
 
     if (packagePath == null) {
@@ -152,15 +161,15 @@ object SourceFileFinder {
    */
   private fun extractResourceTypeFromElement(element: PsiElement?): String? {
     if (element == null) return null
-    
+
     // Navigate up to find the actual XML tag (user might click on text content)
     var current: PsiElement? = element
     while (current != null && current !is XmlTag) {
       current = current.parent
     }
-    
+
     val tag = current as? XmlTag ?: return null
-    
+
     // The tag name is the resource type (e.g., <string>, <color>, <dimen>)
     return tag.name
   }
@@ -429,13 +438,7 @@ object SourceFileFinder {
     // Values-based resources (need specific file names like strings.xml, colors.xml)
     val valuesFileNames = VALUES_RESOURCE_FILE_NAMES[resourceType] ?: return null
 
-    return findResourceInDirectory(
-      basePath,
-      moduleDir,
-      "values",
-      valuesFileNames,
-      localFileSystem,
-    )
+    return findResourceInDirectory(basePath, moduleDir, "values", valuesFileNames, localFileSystem)
   }
 
   /**
@@ -463,12 +466,14 @@ object SourceFileFinder {
   }
 
   /**
-   * Finds a resource file in a directory (e.g., res/layout/file.xml, res/drawable-hdpi/file.png, res/values/strings.xml).
-   * Searches both exact directory name and qualified variants (e.g., drawable, drawable-hdpi, values-night).
-   * All Android resource types can have configuration qualifiers (density, orientation, locale, API level, etc.).
-   * 
+   * Finds a resource file in a directory (e.g., res/layout/file.xml, res/drawable-hdpi/file.png,
+   * res/values/strings.xml). Searches both exact directory name and qualified variants (e.g.,
+   * drawable, drawable-hdpi, values-night). All Android resource types can have configuration
+   * qualifiers (density, orientation, locale, API level, etc.).
+   *
    * @param resourceType The resource directory name (e.g., "layout", "drawable", "values")
-   * @param fileNames Optional list of specific file names to search for (used for values resources like strings.xml)
+   * @param fileNames Optional list of specific file names to search for (used for values resources
+   *   like strings.xml)
    */
   private fun findResourceInDirectory(
     basePath: String,
@@ -485,7 +490,8 @@ object SourceFileFinder {
       val matchingDirs =
         resDirFile.children
           .filter { child ->
-            child.isDirectory && (child.name == resourceType || child.name.startsWith("$resourceType-"))
+            child.isDirectory &&
+              (child.name == resourceType || child.name.startsWith("$resourceType-"))
           }
           .sortedBy { child ->
             // Prioritize main variant over qualified variants
@@ -501,22 +507,26 @@ object SourceFileFinder {
               return resourceFile
             }
           }
-          
+
           // For values directories, fallback to any XML file if no exact match
           if (resourceType == "values") {
             dir.children
               .firstOrNull { !it.isDirectory && it.name.endsWith(".xml") }
-              ?.let { return it }
+              ?.let {
+                return it
+              }
           }
         } else {
           // For directory resources (layout, drawable, etc.), return any file
           dir.children
             .firstOrNull { !it.isDirectory }
-            ?.let { return it }
+            ?.let {
+              return it
+            }
         }
       }
     }
-    
+
     return null
   }
 

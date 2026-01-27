@@ -68,7 +68,8 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
       // Even if we can't resolve, check if we're navigating FROM a swapped artifact
       // If so, we might be able to open the entire source file
       if (sourceFile != null && model.isSwappedArtifactPath(sourceFile.path)) {
-        val result = openSourceFileForCurrentLocation(project, sourceFile.path, sourceElement, model)
+        val result =
+          openSourceFileForCurrentLocation(project, sourceFile.path, sourceElement, model)
         if (result != null) {
           return result
         }
@@ -119,7 +120,8 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     ProgressManager.checkCanceled()
 
     // Find and open the source file (potentially expensive I/O operation)
-    val sourceFile = SourceFileFinder.findSourceFile(project, artifactFilePath, sourceElement, model)
+    val sourceFile =
+      SourceFileFinder.findSourceFile(project, artifactFilePath, sourceElement, model)
     if (sourceFile == null) {
       logger.warn("Could not find source file for swapped artifact: $artifactFilePath")
       return null

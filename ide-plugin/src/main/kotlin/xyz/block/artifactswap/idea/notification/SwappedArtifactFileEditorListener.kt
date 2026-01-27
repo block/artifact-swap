@@ -64,7 +64,8 @@ class SwappedArtifactFileEditorListener : FileEditorManagerListener {
     val model = project.artifactSwapModel ?: return
     val filePath = file.path
     if (!model.isSwappedArtifactPath(filePath)) return
-    val sourceFile = SourceFileFinder.findSourceFile(project, filePath, sourceElement = null, model) ?: return
+    val sourceFile =
+      SourceFileFinder.findSourceFile(project, filePath, sourceElement = null, model) ?: return
 
     hasShownNotificationThisSession = true
 

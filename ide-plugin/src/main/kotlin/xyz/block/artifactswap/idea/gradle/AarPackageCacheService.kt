@@ -9,7 +9,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import java.util.concurrent.ConcurrentHashMap
 import xyz.block.artifactswap.idea.util.ArtifactSwapMavenLocalHelper
-import xyz.block.artifactswap.idea.util.artifactSwapModel
 import xyz.block.artifactswap.model.ArtifactSwapModel
 
 /**
@@ -37,9 +36,9 @@ class AarPackageCacheService(private val project: Project) {
     return packageToArtifactCache[packageName]
   }
 
-  /** 
-   * Caches the package → artifact mapping.
-   * Should be called after successfully extracting package name from an AAR.
+  /**
+   * Caches the package → artifact mapping. Should be called after successfully extracting package
+   * name from an AAR.
    */
   fun cachePackageMapping(packageName: String, artifactId: String) {
     packageToArtifactCache[packageName] = artifactId
