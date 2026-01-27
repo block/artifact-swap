@@ -15,6 +15,15 @@ repositories {
   }
 }
 
+configurations.all {
+  resolutionStrategy {
+    // Force OkHttp 4.x for IntelliJ Platform Gradle Plugin compatibility
+    // The plugin's publishPlugin task uses OkHttp internally and is not compatible with OkHttp 5.x
+    // https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/530
+    force("com.squareup.okhttp3:okhttp:4.12.0")
+  }
+}
+
 
 kotlin {
   compilerOptions {
