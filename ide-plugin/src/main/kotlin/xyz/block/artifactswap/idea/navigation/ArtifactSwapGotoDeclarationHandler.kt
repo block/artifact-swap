@@ -4,9 +4,10 @@ import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -14,12 +15,12 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import java.util.concurrent.ConcurrentHashMap
+import xyz.block.artifactswap.idea.gradle.AarPackageCacheService
 import xyz.block.artifactswap.idea.settings.ArtifactSwapSettings
 import xyz.block.artifactswap.idea.util.AndroidPluginSupport
 import xyz.block.artifactswap.idea.util.AndroidResourceHelper
-import xyz.block.artifactswap.idea.util.ArtifactSwapMavenLocalHelper
 import xyz.block.artifactswap.idea.util.SourceFileFinder
+import xyz.block.artifactswap.idea.util.SourceSetUtils
 import xyz.block.artifactswap.idea.util.artifactSwapModel
 import xyz.block.artifactswap.idea.util.findCorrespondingElement
 import xyz.block.artifactswap.idea.util.resolveAllReferences
@@ -40,16 +41,6 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
 
   private val logger = Logger.getInstance(ArtifactSwapGotoDeclarationHandler::class.java)
 
-  companion object {
-    // Cache mapping of Android namespace (package) to artifact ID
-    private val namespaceToArtifactCache = ConcurrentHashMap<String, String>()
-
-    /** Clears the namespace to artifact cache. Called when Gradle sync completes. */
-    fun clearCaches() {
-      namespaceToArtifactCache.clear()
-    }
-  }
-
   override fun getGotoDeclarationTargets(
     sourceElement: PsiElement?,
     offset: Int,
@@ -60,6 +51,12 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     }
 
     val project = sourceElement.project
+
+    // Don't run during indexing - defer to default navigation
+    if (DumbService.isDumb(project)) {
+      return null
+    }
+
     // If there is no model, artifactswap is not applied and we should not do anything
     val model = project.artifactSwapModel ?: return null
 
@@ -71,7 +68,7 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
       // Even if we can't resolve, check if we're navigating FROM a swapped artifact
       // If so, we might be able to open the entire source file
       if (sourceFile != null && model.isSwappedArtifactPath(sourceFile.path)) {
-        val result = openSourceFileForCurrentLocation(project, sourceFile.path, model)
+        val result = openSourceFileForCurrentLocation(project, sourceFile.path, sourceElement, model)
         if (result != null) {
           return result
         }
@@ -80,17 +77,24 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     }
 
     // Redirect each target from binary to source
-    val redirectedTargets =
-      resolvedElements.flatMap { resolvedElement ->
-        val result = redirectToSourceIfNeeded(project, resolvedElement, model)
-        result?.toList() ?: emptyList()
-      }
+    return ProgressManager.getInstance()
+      .runProcess<Array<PsiElement>?>(
+        {
+          val redirectedTargets =
+            resolvedElements.flatMap { resolvedElement ->
+              ProgressManager.checkCanceled()
+              val result = redirectToSourceIfNeeded(project, resolvedElement, model)
+              result?.toList() ?: emptyList()
+            }
 
-    return if (redirectedTargets.isNotEmpty()) {
-      redirectedTargets.toTypedArray()
-    } else {
-      null
-    }
+          if (redirectedTargets.isNotEmpty()) {
+            redirectedTargets.toTypedArray()
+          } else {
+            null
+          }
+        },
+        ProgressManager.getInstance().progressIndicator,
+      )
   }
 
   /**
@@ -100,6 +104,7 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
   private fun openSourceFileForCurrentLocation(
     project: Project,
     artifactFilePath: String,
+    sourceElement: PsiElement,
     model: ArtifactSwapModel,
   ): Array<PsiElement>? {
     // Check user's preference from settings (no dialog during navigation)
@@ -111,8 +116,10 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
       return null
     }
 
-    // Find and open the source file
-    val sourceFile = SourceFileFinder.findSourceFile(project, artifactFilePath, model)
+    ProgressManager.checkCanceled()
+
+    // Find and open the source file (potentially expensive I/O operation)
+    val sourceFile = SourceFileFinder.findSourceFile(project, artifactFilePath, sourceElement, model)
     if (sourceFile == null) {
       logger.warn("Could not find source file for swapped artifact: $artifactFilePath")
       return null
@@ -171,12 +178,16 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
       return null
     }
 
+    ProgressManager.checkCanceled()
+
     // Find the corresponding source file
-    val sourceFile = SourceFileFinder.findSourceFile(project, targetFilePath, model)
+    val sourceFile = SourceFileFinder.findSourceFile(project, targetFilePath, targetElement, model)
     if (sourceFile == null) {
       logger.warn("Could not find source file for: $targetFilePath")
       return null
     }
+
+    ProgressManager.checkCanceled()
 
     // Open the source file and find the corresponding element
     val psiSourceFile = PsiManager.getInstance(project).findFile(sourceFile)
@@ -215,6 +226,8 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     // Get the outer R class (containingClass is R.string, we need R)
     val rClass = resourceField.containingClass?.containingClass ?: return null
 
+    ProgressManager.checkCanceled()
+
     // Try to get the artifact ID from the containing file path
     // For synthetic light fields, the containing file might be null, so we need to
     // find the R class JAR through the project's libraries
@@ -223,7 +236,7 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
       if (containingFile != null) {
         model.extractArtifactId(containingFile.path)
       } else {
-        findArtifactIdForRClass(project, rClass, model)
+        findArtifactIdForRClass(project, rClass)
       }
 
     // If we couldn't extract artifact ID, we can't proceed
@@ -261,6 +274,8 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
       return null
     }
 
+    ProgressManager.checkCanceled()
+
     // Module is not loaded in IDE - it's swapped, we handle navigation
     // Special handling for ManifestLightField - navigate to AndroidManifest.xml
     if (AndroidPluginSupport.isManifestLightField(resourceField)) {
@@ -290,82 +305,20 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
   }
 
   /**
-   * Finds the artifact ID for an R class by matching the package name to AndroidManifest.xml files
-   * in Maven Local. Used for synthetic Android light field elements.
+   * Finds the artifact ID for an R class by looking up the package name in the cache. Used for
+   * synthetic Android light field elements.
    *
-   * Uses the BOM version from Gradle sync to look up the exact artifact version, avoiding the need
-   * to search through all versions.
+   * The cache is populated by the background AAR scan after Gradle sync, so this is just a lookup.
+   * If not found, it means the AAR doesn't exist or doesn't have a valid manifest.
    */
-  private fun findArtifactIdForRClass(
-    project: Project,
-    rClass: PsiClass,
-    model: ArtifactSwapModel,
-  ): String? {
+  private fun findArtifactIdForRClass(project: Project, rClass: PsiClass): String? {
     val qualifiedName = rClass.qualifiedName ?: return null
     val packageName = qualifiedName.substringBeforeLast(".R")
 
-    // Check cache first
-    namespaceToArtifactCache[packageName]?.let {
-      return it
-    }
+    val cacheService = AarPackageCacheService.getInstance(project)
 
-    // Parse the BOM to get artifact versions
-    val artifactVersions =
-      ArtifactSwapMavenLocalHelper.parseBomVersions(project, model.mavenGroup, model.bomVersion)
-        ?: return null
-
-    // Search Maven Local for AARs with matching AndroidManifest.xml
-    val userHome = System.getProperty("user.home")
-    val groupPath = model.mavenGroup.replace('.', '/')
-    val mavenLocalGroupPath = "$userHome/.m2/repository/$groupPath"
-    val groupDir = LocalFileSystem.getInstance().findFileByPath(mavenLocalGroupPath) ?: return null
-
-    // Collect all AAR files from BOM-listed artifacts to search in parallel
-    val aarFiles = mutableListOf<Pair<String, VirtualFile>>()
-
-    // Only search for artifacts that are listed in the BOM
-    for ((artifactId, version) in artifactVersions) {
-      val artifactDir = groupDir.findChild(artifactId)
-      if (artifactDir != null && artifactDir.isDirectory) {
-        // Try the version directory first (normal case)
-        var versionDir = artifactDir.findChild(version)
-
-        // If not found, it might be using hash-based storage - search all subdirectories
-        if (versionDir == null) {
-          versionDir =
-            artifactDir.children.firstOrNull {
-              it.isDirectory && it.children.any { file -> file.name.endsWith(".aar") }
-            }
-        }
-
-        if (versionDir != null && versionDir.isDirectory) {
-          versionDir.children.forEach { file ->
-            if (file.name.endsWith(".aar")) {
-              aarFiles.add(artifactId to file)
-            }
-          }
-        }
-      }
-    }
-
-    // Search AAR files in parallel
-    val result =
-      aarFiles
-        .parallelStream()
-        .filter { (_, aarFile) ->
-          val manifestPackage = ArtifactSwapMavenLocalHelper.extractPackageFromAar(project, aarFile)
-          manifestPackage == packageName
-        }
-        .findFirst()
-        .map { (artifactId, _) -> artifactId }
-        .orElse(null)
-
-    // Cache the result if found
-    if (result != null) {
-      namespaceToArtifactCache[packageName] = result
-    }
-
-    return result
+    // Lookup in cache - the background scan should have already populated this
+    return cacheService.getArtifactForPackage(packageName)
   }
 
   /** Finds AndroidManifest.xml in the module. Checks src/main first, then other source sets. */
@@ -374,32 +327,16 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     basePath: String,
     moduleDir: String,
   ): Array<PsiElement>? {
-    val localFileSystem = LocalFileSystem.getInstance()
-    val moduleRoot = localFileSystem.findFileByPath("$basePath/$moduleDir") ?: return null
+    val moduleRoot =
+      LocalFileSystem.getInstance().findFileByPath("$basePath/$moduleDir") ?: return null
     val srcDir = moduleRoot.findChild("src") ?: return null
+    val psiManager = PsiManager.getInstance(project)
 
-    // Try src/main/AndroidManifest.xml first
-    val mainManifest =
-      localFileSystem.findFileByPath("$basePath/$moduleDir/src/main/AndroidManifest.xml")
-    if (mainManifest != null) {
-      val psiFile = PsiManager.getInstance(project).findFile(mainManifest)
-      if (psiFile != null) {
-        return arrayOf(psiFile)
-      }
-    }
-
-    // Try other source sets
-    val otherSourceSets = srcDir.children.filter { it.isDirectory && it.name != "main" }
-    for (sourceSet in otherSourceSets) {
-      val manifest = sourceSet.findChild("AndroidManifest.xml")
-      if (manifest != null) {
-        val psiFile = PsiManager.getInstance(project).findFile(manifest)
-        if (psiFile != null) {
-          return arrayOf(psiFile)
-        }
-      }
-    }
-
-    return null
+    return SourceSetUtils.getSourceSets(srcDir)
+      .asSequence()
+      .mapNotNull { it.findChild("AndroidManifest.xml") }
+      .mapNotNull { psiManager.findFile(it) }
+      .firstOrNull()
+      ?.let { arrayOf(it) }
   }
 }

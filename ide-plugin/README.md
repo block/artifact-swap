@@ -23,6 +23,11 @@ The plugin receives configuration from the Gradle plugin during project sync via
 - Authoritative source of config post-sync
 - Accessed via `Project.artifactSwapModel` extension property
 
+**`AarPackageCacheService`**
+- Scans Android AARs in background after Gradle sync
+- Pre-populates package cache for instant navigation
+- Runs as cancellable background task with progress indicator
+
 **Path Parsing** (`:core` module)
 - `ArtifactPathParser`: General Gradle path parsing logic (no IDE dependencies)
 - `ArtifactSwapModelExtensions`: Extension methods on `ArtifactSwapModel` for path operations
@@ -36,7 +41,10 @@ flowchart TD
     A[ArtifactSwapModelBuilder<br/>Gradle Plugin] -->|Tooling API| B[ArtifactSwapProjectResolverExtension]
     B -->|Creates DataNode| C[ArtifactSwapModelDataService]
     C -->|Stores model<br/>Clears caches| D[ArtifactSwapService]
-    D -->|Accessed via<br/>Project.artifactSwapModel| E[Navigation & Notification Components]
+    C -->|Triggers background scan| E[AarPackageCacheService]
+    E -->|Scans AARs<br/>Populates cache| F[Package Cache]
+    D -->|Accessed via<br/>Project.artifactSwapModel| G[Navigation & Notification Components]
+    F -->|Instant lookups| G
 ```
 
 ## Editor Navigation Assistance
@@ -66,6 +74,7 @@ Intercepts `Ctrl+Click` / `Cmd+Click` navigation events to redirect from binary 
 - `ArtifactSwapMavenLocalHelper`: Parses BOM to extract artifact versions, reads Android namespace from AAR manifests
 
 **Utilities**
+- `SourceSetUtils`: Orders source sets by priority (main first), provides consistent source set traversal
 - `PsiUtils`: PSI traversal helpers for matching symbols across binary/source, resolves multi-reference elements
 
 #### Dataflow
@@ -97,13 +106,10 @@ Provides fallback UI when users view decompiled code from swapped artifacts (e.g
 - Provides "Open source file" action button
 
 **`SwappedArtifactFileEditorListener`**
-- Listens for file open events
-- Shows balloon popup suggesting source navigation on first view
-- One-time prompt that can be dismissed
-
-**`SwappedArtifactPopupNotifier`**
-- Displays popup balloon notifications
-- Offers "Jump to Source" and settings configuration actions
+- Listens for file open and selection events
+- Shows balloon popup suggesting source navigation once per IDE session
+- Runs file system searches on background thread to avoid EDT freezes
+- Offers "Always navigate to source", "Settings", and "Don't show again" actions
 
 **Settings**
 - `ArtifactSwapSettings`: Persists `NavigationBehavior` preference (`JUMP_TO_BINARY` default or `JUMP_TO_SOURCE`)
@@ -115,6 +121,6 @@ Provides fallback UI when users view decompiled code from swapped artifacts (e.g
 flowchart TD
     A[User opens file from JAR] --> B{SwappedArtifactFileEditorListener}
     A --> C{SwappedArtifactNotificationProvider}
-    B -->|First view?| D[Show SwappedArtifactPopupNotifier<br/>balloon popup]
+    B -->|Once per session<br/>background thread| D[Find source file<br/>Show balloon popup]
     C --> E[Show banner with<br/>Open source file action]
 ```

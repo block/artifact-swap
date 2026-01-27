@@ -3,6 +3,7 @@ package xyz.block.artifactswap.idea.util
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.isFile
 import com.intellij.psi.PsiField
 
 /**
@@ -135,19 +136,10 @@ object AndroidResourceHelper {
         else -> null
       }
 
-    // Try src/main/res first
-    val mainRes = localFileSystem.findFileByPath("$basePath/$moduleDir/src/main/res")
-    if (mainRes != null && mainRes.isDirectory) {
-      val result = searchInResDirectory(mainRes, resourceType, resourceName, fileNameToFind)
-      if (result != null) {
-        return result
-      }
-    }
-
-    // Try other source sets
-    val otherSourceSets = srcDir.children.filter { it.isDirectory && it.name != "main" }
-    for (sourceSet in otherSourceSets) {
+    // Try all source sets (main first)
+    for (sourceSet in SourceSetUtils.getSourceSets(srcDir)) {
       val resDir = sourceSet.findChild("res") ?: continue
+      if (resDir.isFile) continue
       val result = searchInResDirectory(resDir, resourceType, resourceName, fileNameToFind)
       if (result != null) {
         return result

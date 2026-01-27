@@ -4,8 +4,10 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
@@ -23,17 +25,52 @@ object SourceFileFinder {
   /** File extensions to search for code files. */
   private val CODE_EXTENSIONS = listOf(".kt", ".java")
 
+  /** Android resource types that have their own directories (e.g., res/layout/, res/drawable/). */
+  private val DIRECTORY_RESOURCES = setOf(
+    "layout",
+    "drawable",
+    "mipmap",
+    "anim",
+    "animator",
+    "menu",
+    "raw",
+    "xml",
+    "font",
+    "navigation",
+  )
+
+  /** 
+   * Android values resource types and their typical file names.
+   * These resources are stored in values/ directories (e.g., res/values/strings.xml).
+   */
+  private val VALUES_RESOURCE_FILE_NAMES = mapOf(
+    "string" to listOf("strings.xml"),
+    "color" to listOf("colors.xml", "color.xml"),
+    "dimen" to listOf("dimens.xml", "dimen.xml"),
+    "style" to listOf("styles.xml", "style.xml", "themes.xml"),
+    "array" to listOf("arrays.xml", "array.xml"),
+    "plurals" to listOf("plurals.xml", "strings.xml"),
+    "integer" to listOf("integers.xml", "integer.xml"),
+    "bool" to listOf("bools.xml", "bool.xml"),
+    "id" to listOf("ids.xml", "id.xml"),
+    "attr" to listOf("attrs.xml", "attr.xml"),
+    "styleable" to listOf("attrs.xml", "styleable.xml"),
+    "fraction" to listOf("fractions.xml", "fraction.xml"),
+  )
+
   /**
    * Finds the source file in the project that corresponds to a class file in a swapped artifact.
    *
    * @param project The IntelliJ project
    * @param artifactFilePath The path to the class file inside the artifact JAR
+   * @param sourceElement Optional PSI element to extract more context (e.g., resource type for Android resources)
    * @param model The Artifact Swap model
    * @return The VirtualFile for the source file, or null if not found
    */
   fun findSourceFile(
     project: Project,
     artifactFilePath: String,
+    sourceElement: PsiElement? = null,
     model: ArtifactSwapModel,
   ): VirtualFile? {
     val basePath = project.basePath
@@ -53,7 +90,7 @@ object SourceFileFinder {
     // Check if this is an Android resource file from transformed directory
     // These paths don't have !/ separator: .../transformed/artifact-name/res/...
     if (artifactFilePath.contains("/res/") && !artifactFilePath.contains("!/")) {
-      return findAndroidResourceFromTransformedPath(basePath, artifactFilePath, artifactId, model)
+      return findAndroidResourceFromTransformedPath(basePath, artifactFilePath, artifactId, sourceElement, model)
     }
 
     if (packagePath == null) {
@@ -70,10 +107,10 @@ object SourceFileFinder {
   }
 
   /**
-   * Searches for a source file in the given module directory. Tries src/main first, then falls back
-   * to searching any other src subdirectories. Since Kotlin allows multiple classes per file and
-   * files don't need to match class names, we try exact matches first, then fall back to finding
-   * any file in the package directory.
+   * Searches for a source file in the given module directory. Searches all source sets in priority
+   * order (src/main first, then others). Since Kotlin allows multiple classes per file and files
+   * don't need to match class names, we try exact matches first, then fall back to finding any file
+   * in the package directory.
    */
   private fun findSourceFileInModule(
     project: Project,
@@ -92,45 +129,40 @@ object SourceFileFinder {
       }
     }
 
-    // Step 1: Try src/main/* first (most common location)
-    val mainSourceResult =
+    // Try all source sets in priority order (main first, then others)
+    val moduleRoot = localFileSystem.findFileByPath("$basePath/$moduleDir") ?: return null
+    val srcDir = moduleRoot.findChild("src") ?: return null
+
+    return SourceSetUtils.getSourceSets(srcDir).firstNotNullOf { sourceSet ->
       tryFindInSourceRoot(
         project,
         basePath,
         moduleDir,
-        "src/main",
+        "src/${sourceSet.name}",
         packagePath,
         className,
         localFileSystem,
       )
-    if (mainSourceResult != null) {
-      return mainSourceResult
     }
+  }
 
-    // Step 2: Try any other src/* directories dynamically
-    val moduleRoot = localFileSystem.findFileByPath("$basePath/$moduleDir") ?: return null
-    val srcDir = moduleRoot.findChild("src") ?: return null
-
-    // Get all subdirectories of src/ except "main" (already tried)
-    val otherSourceSets = srcDir.children.filter { it.isDirectory && it.name != "main" }
-
-    for (sourceSet in otherSourceSets) {
-      val result =
-        tryFindInSourceRoot(
-          project,
-          basePath,
-          moduleDir,
-          "src/${sourceSet.name}",
-          packagePath,
-          className,
-          localFileSystem,
-        )
-      if (result != null) {
-        return result
-      }
+  /**
+   * Extracts the Android resource type from an XML element (e.g., "string", "color", "dimen").
+   * Returns null if the element is not an XmlTag or doesn't represent a resource.
+   */
+  private fun extractResourceTypeFromElement(element: PsiElement?): String? {
+    if (element == null) return null
+    
+    // Navigate up to find the actual XML tag (user might click on text content)
+    var current: PsiElement? = element
+    while (current != null && current !is XmlTag) {
+      current = current.parent
     }
-
-    return null
+    
+    val tag = current as? XmlTag ?: return null
+    
+    // The tag name is the resource type (e.g., <string>, <color>, <dimen>)
+    return tag.name
   }
 
   /**
@@ -138,12 +170,15 @@ object SourceFileFinder {
    * JARs) with paths like: .../transformed/artifact-name/res/values/values.xml
    *
    * Note: Transformed values.xml files are MERGED files containing all value resources. We need to
-   * search for the appropriate source file (strings.xml, colors.xml, etc.)
+   * search for the appropriate source file (strings.xml, colors.xml, etc.). If sourceElement is
+   * provided, we can determine the exact resource type (string, color, etc.) to search for the
+   * specific file instead of guessing.
    */
   private fun findAndroidResourceFromTransformedPath(
     basePath: String,
     artifactFilePath: String,
     artifactId: String,
+    sourceElement: PsiElement?,
     model: ArtifactSwapModel,
   ): VirtualFile? {
     val projectPath = model.artifactIdToProjectPath(artifactId)
@@ -170,30 +205,25 @@ object SourceFileFinder {
     val moduleRoot = localFileSystem.findFileByPath("$basePath/$moduleDir") ?: return null
     val srcDir = moduleRoot.findChild("src") ?: return null
 
-    // For transformed values.xml (merged file), try common value resource files
+    // For transformed values.xml (merged file), determine which specific file to search for
     val isMergedValuesFile = resourceDir.startsWith("values") && fileName == "values.xml"
     val fileNamesToTry =
       if (isMergedValuesFile) {
-        // Search for common value resource files in priority order
-        listOf("strings.xml", "colors.xml", "dimens.xml", "styles.xml", "attrs.xml")
+        // If we have the source element, extract the resource type (e.g., <string>, <color>)
+        val resourceType = extractResourceTypeFromElement(sourceElement)
+        if (resourceType != null) {
+          // Look up the specific file names for this resource type
+          VALUES_RESOURCE_FILE_NAMES[resourceType] ?: listOf("values.xml")
+        } else {
+          // Fallback: search common value resource files in priority order
+          listOf("strings.xml", "colors.xml", "dimens.xml", "styles.xml", "attrs.xml")
+        }
       } else {
         listOf(fileName)
       }
 
-    // Step 1: Try src/main/res first (most common)
-    val mainRes = localFileSystem.findFileByPath("$basePath/$moduleDir/src/main/res")
-    if (mainRes != null && mainRes.isDirectory) {
-      for (fileNameToTry in fileNamesToTry) {
-        val result = searchResourceInResDir(mainRes, resourceDir, fileNameToTry)
-        if (result != null) {
-          return result
-        }
-      }
-    }
-
-    // Step 2: Try all other source sets
-    val otherSourceSets = srcDir.children.filter { it.isDirectory && it.name != "main" }
-    for (sourceSet in otherSourceSets) {
+    // Try all source sets (main first)
+    for (sourceSet in SourceSetUtils.getSourceSets(srcDir)) {
       val resDir = sourceSet.findChild("res")
       if (resDir != null && resDir.isDirectory) {
         for (fileNameToTry in fileNamesToTry) {
@@ -385,57 +415,27 @@ object SourceFileFinder {
         else -> return null
       }
 
-    // Handle directory-based resources
-    val directoryResources =
-      mapOf(
-        "layout" to "layout",
-        "drawable" to "drawable*",
-        "mipmap" to "mipmap*",
-        "anim" to "anim",
-        "animator" to "animator",
-        "menu" to "menu",
-        "raw" to "raw",
-        "xml" to "xml",
-        "font" to "font",
-        "navigation" to "navigation",
-      )
-
-    if (directoryResources.containsKey(resourceType)) {
-      return findDirectoryResource(
+    // Directory-based resources (no specific file name needed)
+    if (DIRECTORY_RESOURCES.contains(resourceType)) {
+      return findResourceInDirectory(
         basePath,
         moduleDir,
-        directoryResources[resourceType]!!,
+        resourceType,
+        fileNames = null,
         localFileSystem,
       )
     }
 
-    // Handle values-based resources
-    val valuesResources =
-      mapOf(
-        "string" to listOf("strings.xml"),
-        "color" to listOf("colors.xml", "color.xml"),
-        "dimen" to listOf("dimens.xml", "dimen.xml"),
-        "style" to listOf("styles.xml", "style.xml", "themes.xml"),
-        "array" to listOf("arrays.xml", "array.xml"),
-        "plurals" to listOf("plurals.xml", "strings.xml"),
-        "integer" to listOf("integers.xml", "integer.xml"),
-        "bool" to listOf("bools.xml", "bool.xml"),
-        "id" to listOf("ids.xml", "id.xml"),
-        "attr" to listOf("attrs.xml", "attr.xml"),
-        "styleable" to listOf("attrs.xml", "styleable.xml"),
-        "fraction" to listOf("fractions.xml", "fraction.xml"),
-      )
+    // Values-based resources (need specific file names like strings.xml, colors.xml)
+    val valuesFileNames = VALUES_RESOURCE_FILE_NAMES[resourceType] ?: return null
 
-    if (valuesResources.containsKey(resourceType)) {
-      return findValuesResource(
-        basePath,
-        moduleDir,
-        valuesResources[resourceType]!!,
-        localFileSystem,
-      )
-    }
-
-    return null
+    return findResourceInDirectory(
+      basePath,
+      moduleDir,
+      "values",
+      valuesFileNames,
+      localFileSystem,
+    )
   }
 
   /**
@@ -452,15 +452,7 @@ object SourceFileFinder {
     val moduleRoot = localFileSystem.findFileByPath("$basePath/$moduleDir") ?: return emptyList()
     val srcDir = moduleRoot.findChild("src") ?: return emptyList()
 
-    // Try src/main/res first
-    val mainRes = localFileSystem.findFileByPath("$basePath/$moduleDir/src/main/res")
-    if (mainRes != null && mainRes.isDirectory) {
-      resDirs.add(mainRes)
-    }
-
-    // Try all other src/*/res directories
-    val otherSourceSets = srcDir.children.filter { it.isDirectory && it.name != "main" }
-    for (sourceSet in otherSourceSets) {
+    for (sourceSet in SourceSetUtils.getSourceSets(srcDir)) {
       val resDir = sourceSet.findChild("res")
       if (resDir != null && resDir.isDirectory) {
         resDirs.add(resDir)
@@ -471,98 +463,60 @@ object SourceFileFinder {
   }
 
   /**
-   * Finds a resource file in a directory (e.g., res/layout/file.xml, res/drawable-hdpi/file.png).
-   * Supports wildcards for variant directories like drawable-hdpi, drawable-xxhdpi, etc.
+   * Finds a resource file in a directory (e.g., res/layout/file.xml, res/drawable-hdpi/file.png, res/values/strings.xml).
+   * Searches both exact directory name and qualified variants (e.g., drawable, drawable-hdpi, values-night).
+   * All Android resource types can have configuration qualifiers (density, orientation, locale, API level, etc.).
+   * 
+   * @param resourceType The resource directory name (e.g., "layout", "drawable", "values")
+   * @param fileNames Optional list of specific file names to search for (used for values resources like strings.xml)
    */
-  private fun findDirectoryResource(
+  private fun findResourceInDirectory(
     basePath: String,
     moduleDir: String,
-    resourceSubDir: String,
+    resourceType: String,
+    fileNames: List<String>?,
     localFileSystem: LocalFileSystem,
   ): VirtualFile? {
     val resDirs = getResourceDirectories(basePath, moduleDir, localFileSystem)
 
     for (resDirFile in resDirs) {
-      // Check if this is a wildcard search (e.g., "drawable*", "mipmap*")
-      if (resourceSubDir.endsWith("*")) {
-        val prefix = resourceSubDir.dropLast(1)
-        // Find all directories matching the prefix (e.g., drawable, drawable-hdpi, drawable-xxhdpi)
-        val matchingDirs =
-          resDirFile.children
-            .filter { child ->
-              child.isDirectory && (child.name == prefix || child.name.startsWith("$prefix-"))
-            }
-            .sortedBy { child ->
-              // Prioritize exact match (e.g., "drawable" before "drawable-hdpi")
-              if (child.name == prefix) 0 else 1
-            }
-
-        // Return first resource file found in any matching directory
-        for (dir in matchingDirs) {
-          dir.children
-            .firstOrNull { !it.isDirectory }
-            ?.let {
-              return it
-            }
-        }
-      } else {
-        // Direct subdirectory (e.g., "layout")
-        val resourceDir = resDirFile.findChild(resourceSubDir)
-        if (resourceDir != null && resourceDir.isDirectory) {
-          // Return first resource file found
-          resourceDir.children
-            .firstOrNull { !it.isDirectory }
-            ?.let {
-              return it
-            }
-        }
-      }
-    }
-    return null
-  }
-
-  /**
-   * Finds a values resource file (e.g., res/values/strings.xml). Searches all values and values-*
-   * directories for the resource files.
-   */
-  private fun findValuesResource(
-    basePath: String,
-    moduleDir: String,
-    fileNames: List<String>,
-    localFileSystem: LocalFileSystem,
-  ): VirtualFile? {
-    val resDirs = getResourceDirectories(basePath, moduleDir, localFileSystem)
-
-    for (resDirFile in resDirs) {
-      // Find all values and values-* directories
-      val valuesDirs =
+      // Find all directories matching this resource type (exact match + qualified variants)
+      // e.g., "layout", "layout-land", "values", "values-night", "drawable-hdpi"
+      val matchingDirs =
         resDirFile.children
           .filter { child ->
-            child.isDirectory && (child.name == "values" || child.name.startsWith("values-"))
+            child.isDirectory && (child.name == resourceType || child.name.startsWith("$resourceType-"))
           }
           .sortedBy { child ->
-            // Prioritize plain "values" over variants
-            if (child.name == "values") 0 else 1
+            // Prioritize main variant over qualified variants
+            if (child.name == resourceType) 0 else 1
           }
 
-      for (valuesDir in valuesDirs) {
-        // Try each possible filename
-        for (fileName in fileNames) {
-          val resourceFile = valuesDir.findChild(fileName)
-          if (resourceFile != null && !resourceFile.isDirectory) {
-            return resourceFile
+      for (dir in matchingDirs) {
+        // If specific file names provided (values resources), search for those
+        if (fileNames != null) {
+          for (fileName in fileNames) {
+            val resourceFile = dir.findChild(fileName)
+            if (resourceFile != null && !resourceFile.isDirectory) {
+              return resourceFile
+            }
           }
+          
+          // For values directories, fallback to any XML file if no exact match
+          if (resourceType == "values") {
+            dir.children
+              .firstOrNull { !it.isDirectory && it.name.endsWith(".xml") }
+              ?.let { return it }
+          }
+        } else {
+          // For directory resources (layout, drawable, etc.), return any file
+          dir.children
+            .firstOrNull { !it.isDirectory }
+            ?.let { return it }
         }
-
-        // If no exact match, return first XML file in the values directory
-        valuesDir.children
-          .firstOrNull { !it.isDirectory && it.name.endsWith(".xml") }
-          ?.let {
-            return it
-          }
       }
     }
-
+    
     return null
   }
 
@@ -573,7 +527,7 @@ object SourceFileFinder {
     model: ArtifactSwapModel,
   ): Pair<ArtifactPathInfo, VirtualFile?>? {
     val pathInfo = model.parseArtifactPath(artifactFilePath) ?: return null
-    val sourceFile = findSourceFile(project, artifactFilePath, model)
+    val sourceFile = findSourceFile(project, artifactFilePath, sourceElement = null, model)
 
     return pathInfo to sourceFile
   }
