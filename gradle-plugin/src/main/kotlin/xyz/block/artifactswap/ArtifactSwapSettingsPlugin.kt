@@ -4,6 +4,7 @@ package xyz.block.artifactswap
 
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
 import com.fueledbycaffeine.spotlight.applySpotlightConfiguration
+import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
@@ -77,6 +78,7 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
     val selectionResult = selectProjectsForArtifactSwap()
     selectionResult.selectedProjects.forEach { include(it) }
     setupArtifactSwapInfrastructure(selectionResult.bomVersion)
+    reportToDevelocity(selectionResult)
   }
 
   private fun Settings.applySpotlight() {
@@ -197,6 +199,53 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
       repos.exclusiveContent { ex ->
         ex.forRepositories(repos.mavenLocal())
         ex.filter { config -> config.includeGroup("com.squareup.protos") }
+      }
+    }
+  }
+
+  /**
+   * Report Artifact Swap metrics to Develocity build scans if the plugin is available.
+   *
+   * This adds a custom tag and several custom values to the build scan to help track artifact swap
+   * usage and effectiveness across builds.
+   */
+  private fun Settings.reportToDevelocity(
+    selectionResult: ArtifactSwapModuleSelectionValueSource.Result
+  ) {
+    pluginManager.withPlugin("com.gradle.develocity") {
+      extensions.getByType(DevelocityConfiguration::class.java).buildScan { scan ->
+        scan.buildFinished {
+          scan.tag("Artifact Swap")
+          scan.value("Artifact Swap Enabled", "true")
+          scan.value(
+            "Artifact Swap Candidate Projects",
+            selectionResult.metrics.totalCandidates.toString(),
+          )
+          scan.value(
+            "Artifact Swap Selected Projects",
+            selectionResult.metrics.totalSelected.toString(),
+          )
+          scan.value(
+            "Artifact Swap Swapped Projects",
+            selectionResult.metrics.excludedDueToArtifactAvailable.toString(),
+          )
+          scan.value(
+            "Artifact Swap Explicit Requests",
+            selectionResult.metrics.selectedDueToExplicitRequest.toString(),
+          )
+          scan.value(
+            "Artifact Swap Always Keep",
+            selectionResult.metrics.selectedDueToAlwaysKeep.toString(),
+          )
+          scan.value(
+            "Artifact Swap Local Changes",
+            selectionResult.metrics.selectedDueToLocalChanges.toString(),
+          )
+          scan.value(
+            "Artifact Swap Missing Artifacts",
+            selectionResult.metrics.selectedDueToMissingArtifact.toString(),
+          )
+        }
       }
     }
   }

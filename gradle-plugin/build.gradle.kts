@@ -46,6 +46,7 @@ dependencies {
 
   compileOnly(project(":gradle-publish-plugin"))
   compileOnly(libs.android.gradle.api)
+  compileOnly(libs.develocity.gradle)
 
   runtimeOnly(libs.jackson.core)
   runtimeOnly(libs.jackson.module.kotlin)
