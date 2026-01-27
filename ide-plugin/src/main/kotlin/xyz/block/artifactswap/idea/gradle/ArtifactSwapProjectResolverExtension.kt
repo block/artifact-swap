@@ -22,11 +22,25 @@ class ArtifactSwapProjectResolverExtension : AbstractProjectResolverExtension() 
     gradleModule: IdeaModule,
     ideModule: DataNode<ModuleData>,
   ) {
-    val model = resolverCtx.getExtraProject(gradleModule, ArtifactSwapModel::class.java)
-    if (model != null) {
-      ideModule.createChild(ARTIFACT_SWAP_MODEL_KEY, model)
-    } else {
-      logger.info("Artifact swap is not enabled for this project")
+    val gradleProject = gradleModule.gradleProject
+    logger.info(
+      "populateModuleExtraModels called for module: ${gradleModule.name}, gradleProjectPath=${gradleProject.path}"
+    )
+
+    // ArtifactSwapModel is only built for the root Gradle project
+    // The root project always has the Gradle path ":"
+    val isRootModule = gradleProject.path == ":"
+
+    if (isRootModule) {
+      val model = resolverCtx.getExtraProject(gradleModule, ArtifactSwapModel::class.java)
+      if (model != null) {
+        logger.info(
+          "Found ArtifactSwapModel for ${gradleModule.name}: mavenGroup=${model.mavenGroup}, bomVersion=${model.bomVersion}"
+        )
+        ideModule.createChild(ARTIFACT_SWAP_MODEL_KEY, model)
+      } else {
+        logger.info("ArtifactSwapModel returned null for root module: ${gradleModule.name}")
+      }
     }
     super.populateModuleExtraModels(gradleModule, ideModule)
   }

@@ -78,24 +78,18 @@ class ArtifactSwapGotoDeclarationHandler : GotoDeclarationHandler {
     }
 
     // Redirect each target from binary to source
-    return ProgressManager.getInstance()
-      .runProcess<Array<PsiElement>?>(
-        {
-          val redirectedTargets =
-            resolvedElements.flatMap { resolvedElement ->
-              ProgressManager.checkCanceled()
-              val result = redirectToSourceIfNeeded(project, resolvedElement, model)
-              result?.toList() ?: emptyList()
-            }
+    val redirectedTargets =
+      resolvedElements.flatMap { resolvedElement ->
+        ProgressManager.checkCanceled()
+        val result = redirectToSourceIfNeeded(project, resolvedElement, model)
+        result?.toList() ?: emptyList()
+      }
 
-          if (redirectedTargets.isNotEmpty()) {
-            redirectedTargets.toTypedArray()
-          } else {
-            null
-          }
-        },
-        ProgressManager.getInstance().progressIndicator,
-      )
+    return if (redirectedTargets.isNotEmpty()) {
+      redirectedTargets.toTypedArray()
+    } else {
+      null
+    }
   }
 
   /**

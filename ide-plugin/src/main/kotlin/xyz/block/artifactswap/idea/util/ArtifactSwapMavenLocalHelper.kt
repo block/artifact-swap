@@ -1,6 +1,7 @@
 package xyz.block.artifactswap.idea.util
 
 import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -44,25 +45,33 @@ object ArtifactSwapMavenLocalHelper {
 
     // Read file contents and parse as XML (POM files might not be detected as XML by PSI)
     val xmlContent = String(bomPomFile.contentsToByteArray())
-    val xmlFile =
-      PsiFileFactory.getInstance(project)
-        .createFileFromText("bom.pom", XmlFileType.INSTANCE, xmlContent) as? XmlFile ?: return null
 
-    val rootTag = xmlFile.rootTag ?: return null
+    val versions =
+      runReadAction {
+        val xmlFile =
+          PsiFileFactory.getInstance(project)
+            .createFileFromText("bom.pom", XmlFileType.INSTANCE, xmlContent) as? XmlFile
+            ?: return@runReadAction null
 
-    // Find <dependencyManagement><dependencies> section
-    val dependencyManagement = rootTag.findFirstSubTag("dependencyManagement") ?: return null
-    val dependencies = dependencyManagement.findFirstSubTag("dependencies") ?: return null
+        val rootTag = xmlFile.rootTag ?: return@runReadAction null
 
-    val versions = mutableMapOf<String, String>()
-    for (dependency in dependencies.findSubTags("dependency")) {
-      val artifactId = dependency.findFirstSubTag("artifactId")?.value?.text
-      val version = dependency.findFirstSubTag("version")?.value?.text
+        // Find <dependencyManagement><dependencies> section
+        val dependencyManagement =
+          rootTag.findFirstSubTag("dependencyManagement") ?: return@runReadAction null
+        val dependencies =
+          dependencyManagement.findFirstSubTag("dependencies") ?: return@runReadAction null
 
-      if (artifactId != null && version != null) {
-        versions[artifactId] = version
-      }
-    }
+        val versionMap = mutableMapOf<String, String>()
+        for (dependency in dependencies.findSubTags("dependency")) {
+          val artifactId = dependency.findFirstSubTag("artifactId")?.value?.text
+          val version = dependency.findFirstSubTag("version")?.value?.text
+
+          if (artifactId != null && version != null) {
+            versionMap[artifactId] = version
+          }
+        }
+        versionMap
+      } ?: return null
 
     // Cache the result
     bomVersionCache[cacheKey] = versions
@@ -87,14 +96,16 @@ object ArtifactSwapMavenLocalHelper {
         val manifestContent = zip.getInputStream(manifestEntry).use { it.readBytes() }
         val xmlContent = String(manifestContent)
 
-        // Parse as XML using PsiFileFactory
-        val xmlFile =
-          PsiFileFactory.getInstance(project)
-            .createFileFromText("AndroidManifest.xml", XmlFileType.INSTANCE, xmlContent) as? XmlFile
-            ?: return null
+        // Parse as XML using PsiFileFactory (requires read action for PSI access)
+        return runReadAction {
+          val xmlFile =
+            PsiFileFactory.getInstance(project)
+              .createFileFromText("AndroidManifest.xml", XmlFileType.INSTANCE, xmlContent)
+              as? XmlFile ?: return@runReadAction null
 
-        val rootTag = xmlFile.rootTag ?: return null
-        return rootTag.getAttribute("package")?.value
+          val rootTag = xmlFile.rootTag ?: return@runReadAction null
+          rootTag.getAttribute("package")?.value
+        }
       }
     } catch (e: Exception) {
       logger.warn("Failed to extract package from AAR: ${aarFile.path}", e)
