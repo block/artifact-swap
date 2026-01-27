@@ -19,6 +19,15 @@
         "org.jetbrains.kotlinx:kotlinx-datetime"
       ],
       "allowedVersions": "!/-compat$/",
+    },
+    {
+      // OkHttp must stay at 4.x for IntelliJ Platform plugin compatibility
+      // The plugin-repository-rest-client library is compiled against OkHttp 4.x
+      // and is not compatible with OkHttp 5.x (NoSuchFieldError: Companion)
+      "matchPackageNames": [
+        "com.squareup.okhttp3:okhttp"
+      ],
+      "allowedVersions": "< 5.0",
     }
   ]
 }

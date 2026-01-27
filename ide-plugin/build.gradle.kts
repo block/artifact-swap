@@ -15,6 +15,20 @@ repositories {
   }
 }
 
+// Force OkHttp 4.x across ALL configurations to prevent binary incompatibility
+// The IntelliJ Platform plugin brings in OkHttp 3.x which is incompatible
+configurations.all {
+  resolutionStrategy {
+    force(libs.okhttp)
+    eachDependency {
+      if (requested.group == "com.squareup.okhttp3" && requested.name == "okhttp") {
+        useVersion(libs.versions.okhttp.get())
+        because("https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/530")
+      }
+    }
+  }
+}
+
 kotlin {
   compilerOptions {
     jvmTarget.set(JvmTarget.JVM_21)
