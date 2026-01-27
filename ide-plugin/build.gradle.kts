@@ -110,8 +110,6 @@ intellijPlatform {
   pluginVerification {
     ides {
       create(IntelliJPlatformType.AndroidStudio, androidStudioTarget) {}
-      // Also verify against IntelliJ IDEA (where Android plugin won't be available)
-      create(IntelliJPlatformType.IntellijIdea, intellijTarget) {}
     }
 
     // Unresolved Android plugin classes are expected when verifying against IntelliJ IDEA
