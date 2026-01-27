@@ -71,6 +71,14 @@ tasks.withType<CreateStartScripts>().configureEach {
   dependsOn(shadowJar)
 }
 
+tasks.named<Zip>("shadowDistZip") {
+  archiveBaseName = "artifactswap"
+}
+
+tasks.named<Tar>("shadowDistTar") {
+  archiveBaseName = "artifactswap"
+}
+
 // GMM is not useful in this case and trying to generate it throws errors
 // because the publication component was changed to a zip file.
 tasks.withType<GenerateModuleMetadata>().configureEach {
