@@ -1,5 +1,6 @@
 package xyz.block.artifactswap.idea.gradle
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
@@ -14,6 +15,8 @@ import xyz.block.artifactswap.model.ArtifactSwapModel
  */
 class ArtifactSwapModelDataService : AbstractProjectDataService<ArtifactSwapModel, Void>() {
 
+  private val logger = Logger.getInstance(ArtifactSwapModelDataService::class.java)
+
   override fun getTargetDataKey(): Key<ArtifactSwapModel> =
     ArtifactSwapProjectResolverExtension.ARTIFACT_SWAP_MODEL_KEY
 
@@ -23,10 +26,25 @@ class ArtifactSwapModelDataService : AbstractProjectDataService<ArtifactSwapMode
     project: Project,
     modelsProvider: IdeModifiableModelsProvider,
   ) {
+    // Clear cache to avoid stale mappings from previous Gradle sync
+    AarPackageCacheService.getInstance(project).clearCache()
+
     val service = ArtifactSwapService.getInstance(project)
     when (val data = toImport.firstOrNull()?.data) {
-      null -> service.clearModel()
-      else -> service.updateModel(data)
+      null -> {
+        logger.info("No ArtifactSwapModel found, clearing service")
+        service.clearModel()
+      }
+      else -> {
+        logger.info(
+          "Updating service with model: mavenGroup=${data.mavenGroup}, bomVersion=${data.bomVersion}"
+        )
+        service.updateModel(data)
+
+        // Trigger background scan of AARs to pre-populate the package cache
+        logger.info("Starting background AAR scan")
+        AarPackageCacheService.getInstance(project).scanAarsInBackground(data)
+      }
     }
   }
 }
