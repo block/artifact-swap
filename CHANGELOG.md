@@ -1,5 +1,10 @@
 ## Unreleased
 
+## 0.1.10
+- Add IDE plugin to support navigation in projects with swapped artifacts
+- Require local protos to be explicitly enabled
+- Add Develocity integration
+
 ## 0.1.9
 - More aggressive timeouts and retries in artifactory client
 - Update spotlight version
