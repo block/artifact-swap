@@ -17,10 +17,12 @@ repositories {
 
 // WORKAROUND: Force OkHttp 5.x to prevent version mismatch in plugin-repository-rest-client
 // 
-// plugin-repository-rest-client depends on retrofit:2.11.0, which declares OkHttp 3.14.9.
-// However, plugin-repository-rest-client's binary uses OkHttp 4.x+ Companion object APIs.
-// OkHttp 3.x was written in Java (no Companion objects), while 4.x+ was rewritten in Kotlin
-// with Companions. Without forcing, Gradle resolves OkHttp 3.x (lacks Companions), causing:
+// plugin-repository-rest-client's POM declares okhttp:4.12.0 and excludes okhttp from its
+// direct retrofit dependency. However, it also depends on retrofit-converter-jaxb and
+// retrofit-converter-jackson, which transitively bring in retrofit:2.11.0 -> okhttp:3.14.9
+// without the exclusion. The binary was compiled against OkHttp 4.x+ Companion APIs. OkHttp
+// 3.x (Java) has no Companion objects, while 4.x+ (Kotlin) does. Without forcing, Gradle may
+// resolve OkHttp 3.x, causing:
 //   NoSuchFieldError: Class okhttp3.RequestBody does not have member field 'Companion'
 //
 // This forces OkHttp 5.x across all project configurations. Must be combined with:
@@ -114,7 +116,8 @@ intellijPlatform {
   }
 
   publishing {
-    token = "test"
+    token = providers.environmentVariable("JETBRAINS_MARKETPLACE_SQUARE_PLUGINS")
+      .orElse(providers.gradleProperty("jetbrainsMarketplaceToken"))
     channels = if (isSnapshot()) listOf("EAP") else listOf("Stable")
   }
 

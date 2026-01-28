@@ -18,11 +18,11 @@ pluginManagement {
 
 // WORKAROUND: Force OkHttp 5.x in buildscript classpath for IntelliJ Platform plugin tasks
 //
-// plugin-repository-rest-client depends on retrofit:2.11.0, which declares OkHttp 3.14.9.
-// However, plugin-repository-rest-client's binary uses OkHttp 4.x+ Companion APIs. OkHttp 3.x
-// was written in Java (no Companion objects), while 4.x+ is Kotlin-based with Companions.
-// Without forcing, Gradle resolves 3.x, causing NoSuchFieldError when publishPlugin tries to
-// access Companion object fields that don't exist in OkHttp 3.x.
+// plugin-repository-rest-client's POM excludes okhttp from its direct retrofit dependency but
+// not from retrofit-converter-jaxb/jackson, which transitively bring in okhttp:3.14.9. The
+// binary was compiled against OkHttp 4.x+ Companion APIs. OkHttp 3.x (Java) has no Companion
+// objects, while 4.x+ (Kotlin) does. Without forcing, Gradle may resolve 3.x, causing
+// NoSuchFieldError when publishPlugin accesses Companion fields that don't exist in 3.x.
 //
 // Must be combined with forcing OkHttp in ide-plugin/build.gradle.kts configurations.
 //
