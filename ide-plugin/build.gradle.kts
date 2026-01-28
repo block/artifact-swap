@@ -68,7 +68,13 @@ dependencies {
 
   intellijPlatform {
     // Use Android Studio as base IDE to get Android plugin bundled
-    androidStudio(androidStudioTarget)
+    create(
+      type = IntelliJPlatformType.AndroidStudio,
+      version = androidStudioTarget
+    ) {
+      // Use cache to prevent multiple IDE transforms when build classpath changes
+      useCache = true
+    }
 
     bundledPlugin("com.intellij.gradle")
     bundledPlugin("com.intellij.java")
@@ -102,6 +108,11 @@ version = if (isSnapshot()) {
 
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
+  caching {
+    ides {
+      enabled = true
+    }
+  }
   pluginConfiguration {
     name = "Artifact Swap"
     description = """
