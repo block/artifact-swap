@@ -60,7 +60,11 @@ jobs:
 
 
   jetbrains:
-    if: github.repository == 'block/artifact-swap'
+    if: >
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.repository == 'block/artifact-swap'
+      }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
