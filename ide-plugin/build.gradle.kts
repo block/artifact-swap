@@ -15,15 +15,27 @@ repositories {
   }
 }
 
-// Force OkHttp 4.x across ALL configurations to prevent binary incompatibility
-// The IntelliJ Platform plugin brings in OkHttp 3.x which is incompatible
-configurations.all {
+// WORKAROUND: Force OkHttp 5.x to prevent version mismatch in plugin-repository-rest-client
+// 
+// plugin-repository-rest-client depends on retrofit:2.11.0, which declares OkHttp 3.14.9.
+// However, plugin-repository-rest-client's binary uses OkHttp 4.x+ Companion object APIs.
+// OkHttp 3.x was written in Java (no Companion objects), while 4.x+ was rewritten in Kotlin
+// with Companions. Without forcing, Gradle resolves OkHttp 3.x (lacks Companions), causing:
+//   NoSuchFieldError: Class okhttp3.RequestBody does not have member field 'Companion'
+//
+// This forces OkHttp 5.x across all project configurations. Must be combined with:
+// 1. Running buildPlugin before publishPlugin (so publishPlugin reuses cached artifacts)
+// 2. Forcing OkHttp in settings.gradle.kts buildscript classpath
+//
+// See: https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/530
+// See: https://github.com/square/okhttp/issues/5818
+configurations.configureEach {
   resolutionStrategy {
     force(libs.okhttp)
     eachDependency {
       if (requested.group == "com.squareup.okhttp3" && requested.name == "okhttp") {
         useVersion(libs.versions.okhttp.get())
-        because("https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/530")
+        because("Prevent OkHttp version conflicts in plugin-repository-rest-client")
       }
     }
   }
@@ -102,8 +114,7 @@ intellijPlatform {
   }
 
   publishing {
-    token = providers.environmentVariable("JETBRAINS_MARKETPLACE_SQUARE_PLUGINS")
-      .orElse(providers.gradleProperty("jetbrainsMarketplaceToken"))
+    token = "test"
     channels = if (isSnapshot()) listOf("EAP") else listOf("Stable")
   }
 

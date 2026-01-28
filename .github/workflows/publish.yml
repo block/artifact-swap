@@ -86,7 +86,16 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
 
+      - name: Build Plugin
+        run: ./gradlew :ide-plugin:buildPlugin --stacktrace
+        
+      - name: Verify Plugin
+        run: ./gradlew :ide-plugin:verifyPlugin --stacktrace
+        
       - name: Publish to JetBrains Marketplace
+        # Run publishPlugin separately to reuse cached artifacts from buildPlugin
+        # This avoids loading Android Studio's IDE which causes OkHttp classloading conflicts
+        # See: https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/530
         run: ./gradlew :ide-plugin:publishPlugin --stacktrace
         env:
           JETBRAINS_MARKETPLACE_SQUARE_PLUGINS: ${{ secrets.JETBRAINS_MARKETPLACE_SQUARE_PLUGINS }}
