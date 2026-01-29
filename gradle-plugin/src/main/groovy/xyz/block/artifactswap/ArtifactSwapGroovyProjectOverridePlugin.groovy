@@ -67,8 +67,8 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
    * Note on IDE behavior: This metaclass modification will cause IDE autocomplete to not suggest
    * excluded project accessors. However, if you manually write a reference to an excluded project
    * (e.g., projects.di.scoping), it will still resolve correctly at build time to the published
-   * artifact. This is expected behavior - the IDE can only autocomplete accessors for projects
-   * that are actually included in settings.gradle.
+   * artifact. The Artifact Swap IDE plugin suppresses false-positive inspections for these valid
+   * project references via {@code GradleBuildFileInspectionSuppressor}.
    */
   private static void installProjectAccessorOverride(Project project, String artifactsGroup) {
     def group = artifactsGroup
