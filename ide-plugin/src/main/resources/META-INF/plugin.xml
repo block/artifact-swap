@@ -52,6 +52,14 @@ This plugin works in conjunction with the
     <!-- External system data service for processing Gradle sync data -->
     <externalProjectDataService
         implementation="xyz.block.artifactswap.idea.gradle.ArtifactSwapModelDataService"/>
+
+    <!-- Suppress Gradle inspections for valid project references not loaded in IDE -->
+    <lang.inspectionSuppressor
+        language="kotlin"
+        implementationClass="xyz.block.artifactswap.idea.gradle.GradleBuildFileInspectionSuppressor"/>
+    <lang.inspectionSuppressor
+        language="Groovy"
+        implementationClass="xyz.block.artifactswap.idea.gradle.GradleBuildFileInspectionSuppressor"/>
   </extensions>
 
   <!-- Gradle integration -->
