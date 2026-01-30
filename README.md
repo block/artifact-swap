@@ -26,11 +26,14 @@ pluginManagement {
   }
 
   plugins {
+    id("com.fueledbycaffeine.spotlight") version "<latest>"
     id("xyz.block.artifactswap.settings") version "<latest>"
   }
 }
 
 plugins {
+  // Required to be declared here, but artifact swap will apply it for you
+  id("com.fueledbycaffeine.spotlight") apply false
   id("xyz.block.artifactswap.settings")
 }
 ```

@@ -1,4 +1,5 @@
 ## Unreleased
+- Update spotlight
 
 ## 0.1.10
 - Add IDE plugin to support navigation in projects with swapped artifacts

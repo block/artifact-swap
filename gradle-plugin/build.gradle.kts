@@ -42,11 +42,11 @@ dependencies {
   implementation(libs.retrofit.core)
   implementation(libs.slf4j.api)
   implementation(libs.spotlight.buildscriptUtils)
-  implementation(libs.spotlight.gradle)
 
   compileOnly(project(":gradle-publish-plugin"))
   compileOnly(libs.android.gradle.api)
   compileOnly(libs.develocity.gradle)
+  compileOnly(libs.spotlight.gradle)
 
   runtimeOnly(libs.jackson.core)
   runtimeOnly(libs.jackson.module.kotlin)

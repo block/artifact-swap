@@ -4,6 +4,7 @@ package xyz.block.artifactswap
 
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
 import com.fueledbycaffeine.spotlight.applySpotlightConfiguration
+import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import javax.inject.Inject
 import org.gradle.api.Plugin
@@ -55,6 +56,7 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
 
   public override fun apply(target: Settings): Unit =
     target.run {
+      requireSpotlightAvailable()
       dslService = ArtifactSwapDslService.of(settings).get()
       extension = ArtifactSwapExtension.create(settings, dslService)
       gradle.rootProject { registry.register(ArtifactSwapModelBuilder()) }
@@ -249,6 +251,42 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
           )
         }
       }
+    }
+  }
+
+  /**
+   * Verifies that the Spotlight Gradle plugin is available on the classpath.
+   *
+   * Spotlight is a compileOnly dependency, so users must add it to their build. This check provides
+   * a helpful error message if it's missing.
+   */
+  private fun requireSpotlightAvailable() {
+    try {
+      @Suppress("UnusedVariable") val spotlight = SpotlightExtension::class.java
+    } catch (_: Throwable) {
+      throw IllegalStateException(
+        """
+        |Artifact Swap requires the Spotlight Gradle plugin to be available.
+        |
+        |Add the Spotlight plugin to your pluginManagement block:
+        |
+        |  pluginManagement {
+        |    plugins {
+        |      id("com.fueledbycaffeine.spotlight") version "<version>"
+        |    }
+        |  }
+        |
+        |And add it to your settings plugins list (with apply false):
+        |
+        |  plugins {
+        |    // Must be declared here, but artifact swap applies it for you
+        |    id("com.fueledbycaffeine.spotlight) apply false
+        |  }
+        |
+        |For more information, see: https://github.com/joshfriend/spotlight
+        """
+          .trimMargin()
+      )
     }
   }
 
