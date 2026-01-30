@@ -1,5 +1,7 @@
-## Unreleased
+## 0.1.11
+- Add GradleBuildFileInspectionSuppressor to hide IDE warnings about unknown project accessors caused by swapping their project references
 - Update spotlight
+- Require spotlight be present, use compileOnly dependency on it
 
 ## 0.1.10
 - Add IDE plugin to support navigation in projects with swapped artifacts
