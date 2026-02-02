@@ -26,11 +26,7 @@ import xyz.block.artifactswap.core.shared_services.git.RealSquareGit
 import xyz.block.artifactswap.core.shared_services.git.SquareGit
 
 /** Configuration options for the artifact downloader module. */
-data class ArtifactDownloaderConfig(
-  val bomVersion: String = "",
-  val settingsGradleFile: Path?,
-  val mavenLocalPath: Path,
-)
+data class ArtifactDownloaderConfig(val bomVersion: String = "", val settingsGradleFile: Path?)
 
 fun artifactDownloaderModules(
   application: KoinApplication,
@@ -44,12 +40,20 @@ fun artifactDownloaderModules(
       )
     }
     single<ArtifactRepository> {
+      val artifactSwapConfig = get<ArtifactSwapConfig>()
+      val mavenLocalPath =
+        Path.of(
+          artifactSwapConfig.mavenLocalDirectory.replace(
+            "\${user.home}",
+            System.getProperty("user.home"),
+          )
+        )
       RealArtifactRepository(
-        localMavenPath = config.mavenLocalPath,
+        localMavenPath = mavenLocalPath,
         artifactoryService = get(),
         ioDispatcher = get<CoroutineDispatcher>(named("IO")),
         objectMapper = get(),
-        config = get<ArtifactSwapConfig>(),
+        config = artifactSwapConfig,
       )
     }
     single<SquareGit> {

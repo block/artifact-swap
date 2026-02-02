@@ -46,5 +46,11 @@ private fun readArtifactSwapConfig(providers: ProviderFactory): ArtifactSwapConf
     excludeGradleProjects = emptyList(),
     bomSourceBranchName = getProperty("artifactswap.bomSourceBranchName"),
     artifactoryBaseUrl = getProperty("artifactswap.artifactoryBaseUrl"),
+    mavenLocalDirectory =
+      getProperty(
+          "artifactswap.mavenLocalDirectory",
+          ArtifactSwapConfig.DEFAULT_MAVEN_LOCAL_DIRECTORY,
+        )
+        .replace("\${user.home}", System.getProperty("user.home")),
   )
 }

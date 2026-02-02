@@ -11,7 +11,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import xyz.block.artifactswap.ArtifactSwapBomService.Parameters
-import xyz.block.artifactswap.core.repository.DEFAULT_LOCAL_MAVEN_DIRECTORY
 import xyz.block.gradle.services.SharedServiceKey
 import xyz.block.gradle.services.SharedServices
 
@@ -24,6 +23,8 @@ public abstract class ArtifactSwapBomService : BuildService<Parameters> {
   public interface Parameters : BuildServiceParameters {
     public val bomVersion: Property<String>
     public val artifactSwapMavenGroup: Property<String>
+    /** Path to the local Maven repository directory. */
+    public val mavenLocalDirectory: Property<String>
   }
 
   internal object KEY : SharedServiceKey<ArtifactSwapBomService, Parameters>("artifactSyncBom")
@@ -31,9 +32,14 @@ public abstract class ArtifactSwapBomService : BuildService<Parameters> {
   private val bomFile: Path
     get() {
       val bomVersion = parameters.bomVersion.get()
-      return DEFAULT_LOCAL_MAVEN_DIRECTORY.resolve(
-          parameters.artifactSwapMavenGroup.get().replace(".", "/")
+      val mavenLocalDir =
+        Path.of(
+          parameters.mavenLocalDirectory
+            .get()
+            .replace("\${user.home}", System.getProperty("user.home"))
         )
+      return mavenLocalDir
+        .resolve(parameters.artifactSwapMavenGroup.get().replace(".", "/"))
         .resolve("bom/$bomVersion/bom-$bomVersion.pom")
     }
 

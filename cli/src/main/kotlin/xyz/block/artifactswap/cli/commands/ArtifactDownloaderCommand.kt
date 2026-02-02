@@ -26,7 +26,6 @@ class ArtifactDownloaderCommand : AbstractArtifactSwapCommand() {
       ArtifactDownloaderConfig(
         bomVersion = artifactDownloaderOptions.bomVersion,
         settingsGradleFile = artifactDownloaderOptions.settingsGradleFile,
-        mavenLocalPath = artifactDownloaderOptions.mavenLocalPath,
       )
     application.modules(artifactDownloaderModules(application, config))
   }

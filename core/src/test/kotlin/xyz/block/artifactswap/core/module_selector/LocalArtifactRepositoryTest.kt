@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.config.testArtifactSwapConfig
 import xyz.block.artifactswap.core.maven.Dependencies
 import xyz.block.artifactswap.core.maven.Dependency
@@ -65,10 +66,15 @@ class LocalArtifactRepositoryTest {
       "features_open-tickets-v2_home_impl",
     )
   private val testMavenGroup = "com.squareup.register.sandbags"
-  private val config = testArtifactSwapConfig(primaryArtifactsMavenGroup = testMavenGroup)
+  private lateinit var config: ArtifactSwapConfig
 
   @BeforeEach
   fun setUp() {
+    config =
+      testArtifactSwapConfig(
+        primaryArtifactsMavenGroup = testMavenGroup,
+        mavenLocalDirectory = fakeM2Root.toString(),
+      )
     artifactsDirectory =
       fakeM2Root.resolve("com").resolve("squareup").resolve("register").resolve("sandbags")
     artifactsDirectory.createParentDirectories()
@@ -81,7 +87,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(fakeBom)
@@ -114,7 +119,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
@@ -162,7 +166,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
@@ -199,7 +202,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
@@ -250,7 +252,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
@@ -302,7 +303,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
@@ -341,7 +341,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
@@ -380,7 +379,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())
@@ -392,7 +390,11 @@ class LocalArtifactRepositoryTest {
     runTest {
       // Use a different maven group than the default to verify config is used
       val customMavenGroup = "org.acme.custom"
-      val customConfig = testArtifactSwapConfig(primaryArtifactsMavenGroup = customMavenGroup)
+      val customConfig =
+        testArtifactSwapConfig(
+          primaryArtifactsMavenGroup = customMavenGroup,
+          mavenLocalDirectory = fakeM2Root.toString(),
+        )
       val customArtifactsDirectory = fakeM2Root.resolve("org").resolve("acme").resolve("custom")
       customArtifactsDirectory.createDirectories()
 
@@ -429,7 +431,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = customConfig,
         )
 
@@ -446,7 +447,11 @@ class LocalArtifactRepositoryTest {
     runTest {
       // Use a different maven group than the default to verify config is used
       val customMavenGroup = "com.example.test.artifacts"
-      val customConfig = testArtifactSwapConfig(primaryArtifactsMavenGroup = customMavenGroup)
+      val customConfig =
+        testArtifactSwapConfig(
+          primaryArtifactsMavenGroup = customMavenGroup,
+          mavenLocalDirectory = fakeM2Root.toString(),
+        )
       val customArtifactsDirectory =
         fakeM2Root.resolve("com").resolve("example").resolve("test").resolve("artifacts")
       customArtifactsDirectory.createDirectories()
@@ -484,7 +489,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = customConfig,
         )
 
@@ -556,7 +560,6 @@ class LocalArtifactRepositoryTest {
         RealLocalArtifactRepository(
           xmlMapper = xmlMapper,
           ioContext = EmptyCoroutineContext,
-          mavenDirectory = fakeM2Root,
           config = config,
         )
       val installedArtifacts = localArtifactRepository.getInstalledArtifacts(bom.getOrThrow())

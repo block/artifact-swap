@@ -117,6 +117,18 @@ data class ArtifactSwapConfig(
   // Artifactory
   // ============================================================================
   val artifactoryBaseUrl: String,
+
+  // ============================================================================
+  // Local Maven Repository
+  // ============================================================================
+
+  /**
+   * Path to the local Maven repository directory. Defaults to ~/.m2/repository but can be
+   * overridden for testing or custom setups.
+   *
+   * Example: "/tmp/custom-maven-repo" or "/Users/user/.m2/repository"
+   */
+  val mavenLocalDirectory: String = DEFAULT_MAVEN_LOCAL_DIRECTORY,
 ) : Serializable {
   val primaryArtifactsMavenGroupArtifactoryPath = primaryArtifactsMavenGroup.replace('.', '/')
 
@@ -127,5 +139,6 @@ data class ArtifactSwapConfig(
     const val PROTOS_GENERATED_VERSION_PROPERTY = "square.protosGeneratedVersion"
     const val PROTOS_SCHEMA_VERSION_PROPERTY = "square.protosSchemaVersion"
     const val ARTIFACTORY_BASE_URL = "https://artifactory.example.com"
+    const val DEFAULT_MAVEN_LOCAL_DIRECTORY = "\${user.home}/.m2/repository"
   }
 }

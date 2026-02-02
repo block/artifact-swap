@@ -125,6 +125,7 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
     gradle.services.register(ArtifactSwapBomService.KEY, ArtifactSwapBomService::class.java) {
       it.parameters.bomVersion.set(bomVersion)
       it.parameters.artifactSwapMavenGroup.set(artifactSwapConfig.primaryArtifactsMavenGroup)
+      it.parameters.mavenLocalDirectory.set(artifactSwapConfig.mavenLocalDirectory)
     }
 
     // Force Gradle to only look for swapped artifacts in maven local

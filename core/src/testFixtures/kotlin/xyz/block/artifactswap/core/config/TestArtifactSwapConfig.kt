@@ -22,6 +22,7 @@ fun testArtifactSwapConfig(
   excludeGradleProjects: List<String> = emptyList(),
   bomSourceBranchName: String = "origin/main",
   artifactoryBaseUrl: String = ArtifactSwapConfig.ARTIFACTORY_BASE_URL,
+  mavenLocalDirectory: String = "${System.getProperty("user.home")}/.m2/repository",
 ): ArtifactSwapConfig =
   ArtifactSwapConfig(
     primaryRepositoryName = primaryRepositoryName,
@@ -35,4 +36,5 @@ fun testArtifactSwapConfig(
     excludeGradleProjects = excludeGradleProjects,
     bomSourceBranchName = bomSourceBranchName,
     artifactoryBaseUrl = artifactoryBaseUrl,
+    mavenLocalDirectory = mavenLocalDirectory,
   )
