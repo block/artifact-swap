@@ -1,6 +1,5 @@
 package xyz.block.artifactswap.cli.di
 
-import java.nio.file.Path
 import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.KoinApplication
 import org.koin.core.module.Module
@@ -13,10 +12,7 @@ import xyz.block.artifactswap.core.remover.services.RealArtifactRemoverEventStre
 import xyz.block.artifactswap.core.repository.LocalArtifactRepository
 import xyz.block.artifactswap.core.repository.RealLocalArtifactRepository
 
-/** Configuration options for the artifact remover module. */
-data class ArtifactRemoverConfig(val mavenLocalPath: Path)
-
-fun artifactRemoverModules(application: KoinApplication, config: ArtifactRemoverConfig): Module {
+fun artifactRemoverModules(): Module {
   return module {
     single<ArtifactRemoverEventStream> {
       RealArtifactRemoverEventStream(
@@ -27,7 +23,6 @@ fun artifactRemoverModules(application: KoinApplication, config: ArtifactRemover
 
     single<LocalArtifactRepository> {
       RealLocalArtifactRepository(
-        mavenDirectory = config.mavenLocalPath,
         xmlMapper = get(),
         ioContext = get<CoroutineDispatcher>(named("IO")),
         config = get(),

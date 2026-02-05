@@ -59,6 +59,12 @@ private fun createArtifactSwapConfig(properties: Properties): ArtifactSwapConfig
     artifactoryBaseUrl =
       getProperty("artifactswap.artifactoryBaseUrl", ArtifactSwapConfig.ARTIFACTORY_BASE_URL),
     bomSourceBranchName = getProperty("artifactswap.bomSourceBranchName"),
+    mavenLocalDirectory =
+      getProperty(
+          "artifactswap.mavenLocalDirectory",
+          ArtifactSwapConfig.DEFAULT_MAVEN_LOCAL_DIRECTORY,
+        )
+        .replace("\${user.home}", System.getProperty("user.home")),
   )
 }
 

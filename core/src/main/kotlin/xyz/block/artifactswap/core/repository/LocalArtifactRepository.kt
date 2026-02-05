@@ -112,24 +112,24 @@ interface LocalArtifactRepository {
   suspend fun measureRepository(): RepositoryStats?
 }
 
-val DEFAULT_LOCAL_MAVEN_DIRECTORY: Path =
-  Path.of(System.getProperty("user.home")).resolve(".m2/repository")
-
 /** Checks local .m2 cache for installed maven artifacts that match the artifact sync structure. */
 class RealLocalArtifactRepository(
   private val xmlMapper: ObjectMapper,
   private val ioContext: CoroutineContext,
-  private val mavenDirectory: Path = DEFAULT_LOCAL_MAVEN_DIRECTORY,
   private val slf4jLogger: Logger? = null,
   private val config: ArtifactSwapConfig,
 ) : LocalArtifactRepository {
+
+  // Resolve ${user.home} placeholder if present in config value
+  private val mavenDirectory: Path =
+    Path.of(config.mavenLocalDirectory.replace("\${user.home}", System.getProperty("user.home")))
 
   companion object {
     private val logger = logger("RealLocalArtifactRepository")
   }
 
   private val primaryGroupDirectory: Path =
-    mavenDirectory.resolve(
+    this@RealLocalArtifactRepository.mavenDirectory.resolve(
       Path.of(config.primaryArtifactsMavenGroup.replace('.', File.separatorChar))
     )
 
@@ -154,7 +154,7 @@ class RealLocalArtifactRepository(
                   // no version present means we won't be able to find an artifact
                   val dependencyVersion = dependency.version
                   val expectedProject =
-                    mavenDirectory
+                    this@RealLocalArtifactRepository.mavenDirectory
                       .resolve(dependency.groupId.replace('.', File.separatorChar))
                       .resolve(dependency.artifactId)
                       .resolve(dependencyVersion)

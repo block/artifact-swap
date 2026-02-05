@@ -24,7 +24,6 @@ import xyz.block.artifactswap.core.module_selector.ArtifactSwapModuleSelector
 import xyz.block.artifactswap.core.module_selector.RealArtifactSwapModuleSelector
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.network.ArtifactoryService
-import xyz.block.artifactswap.core.repository.DEFAULT_LOCAL_MAVEN_DIRECTORY
 import xyz.block.artifactswap.core.repository.RealLocalArtifactRepository
 import xyz.block.artifactswap.core.shared_services.git.RealSquareGit
 
@@ -64,7 +63,8 @@ internal object ArtifactSwapModuleSelectorFactory {
 
     // Create download package instances for BOM loading
     val downloadSquareGit = RealSquareGit(rootDir, Dispatchers.IO)
-    val localMavenPath = DEFAULT_LOCAL_MAVEN_DIRECTORY
+    val localMavenPath =
+      Path.of(config.mavenLocalDirectory.replace("\${user.home}", System.getProperty("user.home")))
     val downloadArtifactRepository =
       RealArtifactRepository(
         localMavenPath,

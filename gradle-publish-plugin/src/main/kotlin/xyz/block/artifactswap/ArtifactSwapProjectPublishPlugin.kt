@@ -48,7 +48,8 @@ public class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
       }
 
       extensions.getByType(PublishingExtension::class.java).also { mavenPublishing ->
-        val repo = configureArtifactSwapRepository(mavenPublishing)
+        val remoteRepo = configureArtifactSwapRepository(mavenPublishing)
+        val localRepo = configureLocalMavenRepository(mavenPublishing)
 
         // Other plugins configure the components to be published, so we have to configure them
         // after those plugins run
@@ -59,7 +60,8 @@ public class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
               version,
               artifactSwapConfig.primaryArtifactsMavenGroup,
             )
-          createPublishAliasTask(repo, publication)
+          createPublishAliasTask(remoteRepo, publication)
+          createPublishAliasTask(localRepo, publication)
         }
       }
 
@@ -85,6 +87,23 @@ public class ArtifactSwapProjectPublishPlugin : Plugin<Project> {
             creds.password = password
           }
         }
+      }
+    }
+
+  /**
+   * Configures a local Maven repository for publishing artifacts locally. The repository path is
+   * read from `artifactswap.mavenLocalDirectory` configuration, defaulting to ~/.m2/repository.
+   *
+   * This enables local publishing via `publishToArtifactSwapLocalRepository` task.
+   */
+  private fun Project.configureLocalMavenRepository(
+    mavenPublishing: PublishingExtension
+  ): MavenArtifactRepository =
+    with(mavenPublishing) {
+      val localRepoPath = artifactSwapConfig.mavenLocalDirectory
+      return repositories.maven { repo ->
+        repo.name = "artifactSwapLocal"
+        repo.url = uri(file(localRepoPath))
       }
     }
 

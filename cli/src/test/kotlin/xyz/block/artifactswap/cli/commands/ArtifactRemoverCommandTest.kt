@@ -1,8 +1,11 @@
 package xyz.block.artifactswap.cli.commands
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import java.io.File
 import kotlin.io.path.Path
 import kotlin.test.assertEquals
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -12,6 +15,8 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.mockito.kotlin.mock
 import picocli.CommandLine
+import xyz.block.artifactswap.core.config.ArtifactSwapConfig
+import xyz.block.artifactswap.core.config.testArtifactSwapConfig
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.eventstream.EventstreamService
 import xyz.block.artifactswap.core.remover.models.ArtifactRemoverEventResult
@@ -43,19 +48,16 @@ class ArtifactRemoverCommandTest {
   @Test
   fun `GIVEN valid CLI args WHEN executing THEN command parses args and runs remover`() = runTest {
     val command =
-      commandLine
-        .parseArgs("--maven-local-path", tempDir.absolutePath)
-        .commandSpec()
-        .commandLine()
-        .getCommand<ArtifactRemoverCommand>()
+      commandLine.parseArgs().commandSpec().commandLine().getCommand<ArtifactRemoverCommand>()
 
     val testApplication = koinApplication { allowOverride(true) }
     testApplication.modules(
       module {
-        single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
+        single(named("IO")) { Dispatchers.Unconfined }
         single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
-        single<com.fasterxml.jackson.databind.ObjectMapper> {
-          com.fasterxml.jackson.dataformat.xml.XmlMapper.builder().defaultUseWrapper(false).build()
+        single<ObjectMapper> { XmlMapper.builder().defaultUseWrapper(false).build() }
+        single<ArtifactSwapConfig> {
+          testArtifactSwapConfig(mavenLocalDirectory = tempDir.absolutePath)
         }
       }
     )
@@ -93,19 +95,16 @@ class ArtifactRemoverCommandTest {
       )
 
     val command =
-      commandLine
-        .parseArgs("--maven-local-path", tempDir.absolutePath)
-        .commandSpec()
-        .commandLine()
-        .getCommand<ArtifactRemoverCommand>()
+      commandLine.parseArgs().commandSpec().commandLine().getCommand<ArtifactRemoverCommand>()
 
     val testApplication = koinApplication { allowOverride(true) }
     testApplication.modules(
       module {
-        single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
+        single(named("IO")) { Dispatchers.Unconfined }
         single<Eventstream>() { Eventstream(eventstreamService = mock<EventstreamService>()) }
-        single<com.fasterxml.jackson.databind.ObjectMapper> {
-          com.fasterxml.jackson.dataformat.xml.XmlMapper.builder().defaultUseWrapper(false).build()
+        single<ObjectMapper> { XmlMapper.builder().defaultUseWrapper(false).build() }
+        single<ArtifactSwapConfig> {
+          testArtifactSwapConfig(mavenLocalDirectory = tempDir.absolutePath)
         }
       }
     )

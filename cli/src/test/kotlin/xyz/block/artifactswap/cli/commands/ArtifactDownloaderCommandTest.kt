@@ -3,6 +3,7 @@ package xyz.block.artifactswap.cli.commands
 import java.io.File
 import java.util.Properties
 import kotlin.test.assertEquals
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -70,7 +71,7 @@ class ArtifactDownloaderCommandTest {
 
       val command =
         commandLine
-          .parseArgs("--bom-version", FAKE_BOM_VERSION, "--maven-local-path", tempDir.absolutePath)
+          .parseArgs("--bom-version", FAKE_BOM_VERSION)
           .commandSpec()
           .commandLine()
           .getCommand<ArtifactDownloaderCommand>()
@@ -79,9 +80,11 @@ class ArtifactDownloaderCommandTest {
       command.init(testApplication)
       testApplication.modules(
         module {
-          single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
+          single(named("IO")) { Dispatchers.Unconfined }
           single(named("gradleProperties")) { Properties() }
-          single<ArtifactSwapConfig> { testArtifactSwapConfig() }
+          single<ArtifactSwapConfig> {
+            testArtifactSwapConfig(mavenLocalDirectory = tempDir.absolutePath)
+          }
           single<ArtifactSyncBomLoader> { mockArtifactSyncBomLoader }
           single<ArtifactRepository> { fakeArtifactRepository }
           single<ArtifactDownloaderEventStream> { fakeEventStream }
@@ -105,19 +108,17 @@ class ArtifactDownloaderCommandTest {
     fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
 
     val command =
-      commandLine
-        .parseArgs("--maven-local-path", tempDir.absolutePath)
-        .commandSpec()
-        .commandLine()
-        .getCommand<ArtifactDownloaderCommand>()
+      commandLine.parseArgs().commandSpec().commandLine().getCommand<ArtifactDownloaderCommand>()
 
     val testApplication = koinApplication()
     command.init(testApplication)
     testApplication.modules(
       module {
-        single(named("IO")) { kotlinx.coroutines.Dispatchers.Unconfined }
+        single(named("IO")) { Dispatchers.Unconfined }
         single(named("gradleProperties")) { Properties() }
-        single<ArtifactSwapConfig> { testArtifactSwapConfig() }
+        single<ArtifactSwapConfig> {
+          testArtifactSwapConfig(mavenLocalDirectory = tempDir.absolutePath)
+        }
         single<ArtifactSyncBomLoader> { mockArtifactSyncBomLoader }
         single<ArtifactRepository> { fakeArtifactRepository }
         single<ArtifactDownloaderEventStream> { fakeEventStream }
