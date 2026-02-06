@@ -10,9 +10,12 @@ import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.publisher.ArtifactoryBomRepository
+import xyz.block.artifactswap.core.publisher.ArtifactoryPublishedArtifactRepository
 import xyz.block.artifactswap.core.publisher.BomPublisher
 import xyz.block.artifactswap.core.publisher.BomRepository
 import xyz.block.artifactswap.core.publisher.LocalBomRepository
+import xyz.block.artifactswap.core.publisher.LocalPublishedArtifactRepository
+import xyz.block.artifactswap.core.publisher.PublishedArtifactRepository
 import xyz.block.artifactswap.core.publisher.services.BomPublisherEventStream
 import xyz.block.artifactswap.core.publisher.services.ProjectHashReader
 import xyz.block.artifactswap.core.publisher.services.RealBomPublisherEventStream
@@ -33,25 +36,32 @@ fun bomPublisherModules(application: KoinApplication, config: BomPublisherConfig
       )
     }
 
-    // Provide the appropriate BomRepository implementation based on local flag
-    single<BomRepository> {
-      if (config.local) {
-        // Provide LocalArtifactRepository for local mode
-        // mavenDirectory is derived from config.mavenLocalDirectory inside
-        // RealLocalArtifactRepository
-        val localArtifactRepository =
-          RealLocalArtifactRepository(
-            xmlMapper = get<ObjectMapper>(),
-            ioContext = get<CoroutineDispatcher>(named("IO")),
-            config = get<ArtifactSwapConfig>(),
-          )
-
-        LocalBomRepository(
-          localArtifactRepository = localArtifactRepository,
-          xmlMapper = get<ObjectMapper>(),
+    // Provide the appropriate repository implementations based on local flag
+    if (config.local) {
+      single<PublishedArtifactRepository> {
+        LocalPublishedArtifactRepository(
+          localArtifactRepository =
+            RealLocalArtifactRepository(
+              xmlMapper = get<ObjectMapper>(),
+              ioContext = get<CoroutineDispatcher>(named("IO")),
+              config = get<ArtifactSwapConfig>(),
+            ),
           config = get<ArtifactSwapConfig>(),
         )
-      } else {
+      }
+
+      single<BomRepository> {
+        LocalBomRepository(xmlMapper = get<ObjectMapper>(), config = get<ArtifactSwapConfig>())
+      }
+    } else {
+      single<PublishedArtifactRepository> {
+        ArtifactoryPublishedArtifactRepository(
+          artifactoryEndpoints = get<ArtifactoryEndpoints>(),
+          config = get<ArtifactSwapConfig>(),
+        )
+      }
+
+      single<BomRepository> {
         ArtifactoryBomRepository(
           artifactoryEndpoints = get<ArtifactoryEndpoints>(),
           config = get<ArtifactSwapConfig>(),
@@ -62,6 +72,7 @@ fun bomPublisherModules(application: KoinApplication, config: BomPublisherConfig
     single<BomPublisher> {
       BomPublisher(
         projectHashReader = get(),
+        publishedArtifactRepository = get<PublishedArtifactRepository>(),
         bomRepository = get<BomRepository>(),
         eventStream = get(),
         config = get<ArtifactSwapConfig>(),

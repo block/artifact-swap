@@ -20,6 +20,7 @@ import xyz.block.artifactswap.core.publisher.services.ProjectHashReader
 /** Service for publishing BOM (Bill of Materials) to a repository. */
 class BomPublisher(
   private val projectHashReader: ProjectHashReader,
+  private val publishedArtifactRepository: PublishedArtifactRepository,
   private val bomRepository: BomRepository,
   private val eventStream: BomPublisherEventStream,
   private val config: ArtifactSwapConfig,
@@ -84,7 +85,7 @@ class BomPublisher(
     logger.info { "Collecting available artifacts from repository" }
     // Convert all successful artifact uploads to Dependency objects
     val (dependencies, fetchArtifactoryDataDuration) =
-      measureTimedValue { bomRepository.fetchAvailableDependencies(projectHashes) }
+      measureTimedValue { publishedArtifactRepository.getAvailableDependencies(projectHashes) }
 
     result =
       result.copy(
@@ -125,7 +126,7 @@ class BomPublisher(
           result = BomPublishingResult.SUCCESS_BOM_AND_METADATA_PUBLISHED,
         )
       } else {
-        val publishResult = bomRepository.publishBom(project, bomVersion)
+        val publishResult = bomRepository.storeBom(project, bomVersion)
         if (publishResult.isSuccess) {
           logger.info { "BOM artifact published!" }
           val updatedResult = result.copy(countProjectsIncludedInBom = dependencies.size.toLong())
@@ -154,7 +155,7 @@ class BomPublisher(
     result: BomPublisherResult,
   ): BomPublisherResult {
     // Fetch existing metadata
-    val metadataResult = bomRepository.fetchBomMetadata(BOM)
+    val metadataResult = bomRepository.getBomMetadata(BOM)
     if (metadataResult.isFailure) {
       logger.error { "Failed to fetch BOM metadata: ${metadataResult.exceptionOrNull()?.message}" }
       return result.copy(result = BomPublishingResult.SUCCESS_BOM_PUBLISHED_METADATA_FAILED)
@@ -198,7 +199,7 @@ class BomPublisher(
     // Publish metadata if it changed
     if (newMetadata != existingMetadata) {
       logger.info { "Publishing BOM metadata" }
-      val publishResult = bomRepository.publishBomMetadata(newMetadata)
+      val publishResult = bomRepository.storeBomMetadata(newMetadata)
       return if (publishResult.isSuccess) {
         result.copy(result = BomPublishingResult.SUCCESS_BOM_AND_METADATA_PUBLISHED)
       } else {

@@ -17,6 +17,7 @@ import xyz.block.artifactswap.core.publisher.models.BomPublishingResult
 class BomPublisherTest {
 
   private lateinit var fakeHashReader: FakeProjectHashReader
+  private lateinit var fakePublishedArtifactRepository: FakePublishedArtifactRepository
   private lateinit var fakeBomRepository: FakeBomRepository
   private lateinit var fakeEventStream: FakeBomPublisherEventStream
   private lateinit var bomPublisher: BomPublisher
@@ -50,11 +51,13 @@ class BomPublisherTest {
   @BeforeEach
   fun setUp() {
     fakeHashReader = FakeProjectHashReader()
+    fakePublishedArtifactRepository = FakePublishedArtifactRepository()
     fakeBomRepository = FakeBomRepository()
     fakeEventStream = FakeBomPublisherEventStream()
     bomPublisher =
       BomPublisher(
         projectHashReader = fakeHashReader,
+        publishedArtifactRepository = fakePublishedArtifactRepository,
         bomRepository = fakeBomRepository,
         eventStream = fakeEventStream,
         config = testConfig,
@@ -112,8 +115,8 @@ class BomPublisherTest {
       Result.success(mapOf("artifact1" to "version1", "artifact2" to "version2"))
 
     // Set up available dependencies
-    fakeBomRepository.availableDependencies["artifact1"] = "version1"
-    fakeBomRepository.availableDependencies["artifact2"] = "version2"
+    fakePublishedArtifactRepository.availableDependencies["artifact1"] = "version1"
+    fakePublishedArtifactRepository.availableDependencies["artifact2"] = "version2"
 
     val result =
       bomPublisher.publishBom(
@@ -130,8 +133,8 @@ class BomPublisherTest {
           BomPublishingResult.SUCCESS_BOM_PUBLISHED_METADATA_FAILED,
         )
     )
-    assertEquals(1, fakeBomRepository.publishedBoms.size)
-    val pushedPom = fakeBomRepository.publishedBoms.first()
+    assertEquals(1, fakeBomRepository.storedBoms.size)
+    val pushedPom = fakeBomRepository.storedBoms.first()
     assertEquals("bom", pushedPom.artifactId)
     assertEquals("1.0.0", pushedPom.version)
     val depManagement =
@@ -145,7 +148,7 @@ class BomPublisherTest {
   fun `GIVEN new BOM WHEN publishing THEN creates metadata`() = runTest {
     fakeHashReader.projectHashes = Result.success(mapOf("artifact1" to "version1"))
 
-    fakeBomRepository.availableDependencies["artifact1"] = "version1"
+    fakePublishedArtifactRepository.availableDependencies["artifact1"] = "version1"
 
     val result =
       bomPublisher.publishBom(
@@ -155,8 +158,8 @@ class BomPublisherTest {
       )
 
     assertEquals(BomPublishingResult.SUCCESS_BOM_AND_METADATA_PUBLISHED, result.result)
-    assertEquals(1, fakeBomRepository.publishedMetadata.size)
-    val pushedMetadata = fakeBomRepository.publishedMetadata.first()
+    assertEquals(1, fakeBomRepository.storedMetadata.size)
+    val pushedMetadata = fakeBomRepository.storedMetadata.first()
     assertEquals("bom", pushedMetadata.artifactId)
     assertEquals("1.0.0", pushedMetadata.versioning.latest)
     assertEquals("1.0.0", pushedMetadata.versioning.release)
@@ -166,10 +169,10 @@ class BomPublisherTest {
   fun `GIVEN existing BOM metadata WHEN publishing THEN updates metadata`() = runTest {
     fakeHashReader.projectHashes = Result.success(mapOf("artifact1" to "version1"))
 
-    fakeBomRepository.availableDependencies["artifact1"] = "version1"
+    fakePublishedArtifactRepository.availableDependencies["artifact1"] = "version1"
 
     // Set up existing BOM metadata
-    fakeBomRepository.fetchMetadataResult =
+    fakeBomRepository.getMetadataResult =
       Result.success(
         Metadata(
           groupId = "xyz.block.artifactswap.artifacts",
@@ -192,8 +195,8 @@ class BomPublisherTest {
       )
 
     assertEquals(BomPublishingResult.SUCCESS_BOM_AND_METADATA_PUBLISHED, result.result)
-    assertEquals(1, fakeBomRepository.publishedMetadata.size)
-    val pushedMetadata = fakeBomRepository.publishedMetadata.first()
+    assertEquals(1, fakeBomRepository.storedMetadata.size)
+    val pushedMetadata = fakeBomRepository.storedMetadata.first()
     assertEquals("bom", pushedMetadata.artifactId)
     assertEquals("1.0.0", pushedMetadata.versioning.latest)
     assertEquals("1.0.0", pushedMetadata.versioning.release)
@@ -206,6 +209,7 @@ class BomPublisherTest {
     val dryRunPublisher =
       BomPublisher(
         projectHashReader = fakeHashReader,
+        publishedArtifactRepository = fakePublishedArtifactRepository,
         bomRepository = fakeBomRepository,
         eventStream = fakeEventStream,
         config = testConfig,
@@ -214,7 +218,7 @@ class BomPublisherTest {
 
     fakeHashReader.projectHashes = Result.success(mapOf("artifact1" to "version1"))
 
-    fakeBomRepository.availableDependencies["artifact1"] = "version1"
+    fakePublishedArtifactRepository.availableDependencies["artifact1"] = "version1"
 
     val result =
       dryRunPublisher.publishBom(
@@ -231,8 +235,8 @@ class BomPublisherTest {
         )
     )
     // In dry run mode, nothing should be published
-    assertEquals(0, fakeBomRepository.publishedBoms.size)
-    assertEquals(0, fakeBomRepository.publishedMetadata.size)
+    assertEquals(0, fakeBomRepository.storedBoms.size)
+    assertEquals(0, fakeBomRepository.storedMetadata.size)
   }
 
   @Test
@@ -240,7 +244,7 @@ class BomPublisherTest {
     runTest {
       fakeHashReader.projectHashes = Result.success(mapOf("artifact1" to "version1"))
 
-      fakeBomRepository.availableDependencies["artifact1"] = "version1"
+      fakePublishedArtifactRepository.availableDependencies["artifact1"] = "version1"
 
       val result =
         bomPublisher.publishBom(
