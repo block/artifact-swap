@@ -2,6 +2,7 @@ package xyz.block.artifactswap.cli.commands
 
 import org.apache.logging.log4j.kotlin.logger
 import org.koin.core.KoinApplication
+import org.koin.core.qualifier.named
 import picocli.CommandLine
 import picocli.CommandLine.Mixin
 import xyz.block.artifactswap.cli.AbstractArtifactSwapCommand
@@ -27,7 +28,10 @@ class BomPublishingCommand : AbstractArtifactSwapCommand() {
 
   override fun init(application: KoinApplication) {
     val config =
-      BomPublisherConfig(dryRun = application.koin.get(org.koin.core.qualifier.named("dryRun")))
+      BomPublisherConfig(
+        dryRun = application.koin.get(named("dryRun")),
+        local = bomPublishingOptions.local,
+      )
     application.modules(bomPublisherModules(application, config))
   }
 
