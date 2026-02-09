@@ -155,10 +155,14 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
       val process =
         ProcessBuilder("git", "status", "--porcelain", "-z", "--untracked-files=all")
           .directory(repoRoot.toFile())
-          .redirectErrorStream(true)
           .start()
       val output = process.inputStream.readAllBytes().decodeToString()
-      process.waitFor()
+      val errorOutput = process.errorStream.readAllBytes().decodeToString()
+      val exitCode = process.waitFor()
+
+      if (exitCode != 0) {
+        throw IllegalStateException("git status failed with exit code $exitCode: $errorOutput")
+      }
 
       // Porcelain format with -z: entries are NUL-separated, each entry is "XY path"
       // where XY is the two-character status code. For renames, there's an additional
