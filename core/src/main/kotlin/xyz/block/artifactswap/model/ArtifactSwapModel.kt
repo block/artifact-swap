@@ -15,4 +15,11 @@ interface ArtifactSwapModel : Serializable {
    * "52E6B87B62D51260154DC6460FB5CAAFB8E050DCA74A2DD870D7E4B93FF126E3")
    */
   val bomVersion: String
+
+  /**
+   * Resolved path to the local Maven repository directory.
+   *
+   * Example: "/Users/user/.m2/repository"
+   */
+  val mavenLocalDirectory: String
 }
