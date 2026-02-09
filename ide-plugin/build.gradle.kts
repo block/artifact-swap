@@ -57,14 +57,21 @@ java {
 
 // Otter 3 stable
 val androidStudioTarget = "2025.2.3.9"
-// Android studio Otter equivalent
+// Android Studio Otter equivalent IntelliJ platform version
 // https://plugins.jetbrains.com/docs/intellij/android-studio-releases-list.html
 val intellijTarget = "2025.2.1"
+
+// Derive the IntelliJ platform build prefix from intellijTarget.
+// Version format is "YYYY.M.P" and the build prefix is "YYM" (e.g., "2025.2.1" → "252").
+// https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html
+val (year, major) = intellijTarget.split(".").map { it.toInt() }
+val platformBuildPrefix = "${year % 100}$major"
 
 dependencies {
   api(project(":core"))
 
   implementation(libs.jetbrains.annotations)
+  implementation(libs.kotlinxCoroutines)
 
   intellijPlatform {
     // Use Android Studio as base IDE to get Android plugin bundled
@@ -120,9 +127,9 @@ intellijPlatform {
     """.trimIndent()
 
     ideaVersion {
-      // Android studio Otter 1 equivalent
+      // Must match the IntelliJ platform we compile against (Android Studio Otter = 252)
       // https://plugins.jetbrains.com/docs/intellij/android-studio-releases-list.html
-      sinceBuild = "251"
+      sinceBuild = platformBuildPrefix
     }
   }
 
@@ -135,6 +142,9 @@ intellijPlatform {
   pluginVerification {
     ides {
       create(IntelliJPlatformType.AndroidStudio, androidStudioTarget) {}
+      // Also verify against IntelliJ IDEA to catch compatibility issues reported by
+      // the JetBrains Marketplace. This ensures our sinceBuild claim is accurate.
+      create(IntelliJPlatformType.IntellijIdeaUltimate, intellijTarget) {}
     }
 
     // Unresolved Android plugin classes are expected when verifying against IntelliJ IDEA
