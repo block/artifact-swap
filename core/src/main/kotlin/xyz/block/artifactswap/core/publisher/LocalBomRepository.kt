@@ -15,7 +15,7 @@ class LocalBomRepository(
   private val xmlMapper: ObjectMapper,
   private val config: ArtifactSwapConfig,
   private val mavenDirectory: Path =
-    Path.of(System.getProperty("user.home")).resolve(".m2/repository"),
+    Path.of(config.mavenLocalDirectory.replace("\${user.home}", System.getProperty("user.home"))),
 ) : BomRepository {
 
   override suspend fun storeBom(project: Project, version: String): Result<Unit> {
