@@ -95,8 +95,14 @@ jobs:
         env:
           JETBRAINS_MARKETPLACE_SQUARE_PLUGINS: ${{ secrets.JETBRAINS_MARKETPLACE_SQUARE_PLUGINS }}
 
+      - name: Upload plugin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: idea-plugin
+          path: ide-plugin/build/distributions/*.zip
+
   create-github-release:
-    needs: prepare-release
+    needs: [prepare-release, jetbrains]
     if: >
       ${{
         github.event.workflow_run.conclusion == 'success' &&
@@ -110,6 +116,12 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
+
+      - name: Download plugin artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: idea-plugin
+          path: idea-plugin
 
       - name: Check if tag exists and extract changelog
         id: changelog
@@ -165,4 +177,5 @@ jobs:
 
           gh release create "v${{ needs.prepare-release.outputs.version }}" \
             --title "v${{ needs.prepare-release.outputs.version }}" \
-            --notes "${{ steps.changelog.outputs.notes }}"
+            --notes-file /tmp/changelog.txt \
+            idea-plugin/*.zip
