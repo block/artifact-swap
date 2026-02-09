@@ -55,7 +55,7 @@ class RealArtifactSyncBomLoader(
         bomExistsLocally(commit.name) || (checkRemote && bomExistsInArtifactory(commit.name))
       }
         ?: throw IllegalStateException(
-          "Traversed $COUNT_SHARED_COMMITS_TO_CHECK_FOR_BOM commits " +
+          "Traversed ${recentSharedCommits.size} commits " +
             "from $originRef and found no matching BOMs"
         )
     matchingBom.name

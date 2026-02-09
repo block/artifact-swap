@@ -14,8 +14,18 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
 
   @Override
   void apply(Project target) {
-    def artifactsGroup = target.providers.gradleProperty("artifactswap.primaryArtifactsMavenGroup").get()
-    // This plugin is not applied when artifact sync is inactive
+    // Get the BOM service which has all our configuration.
+    // We need eager lookup here because we immediately read its parameters.
+    //noinspection ConfigurationAvoidance
+    def bomServiceReg = target.gradle.sharedServices.registrations.findByName("artifactSyncBom")
+    if (bomServiceReg == null) {
+      // Service not registered - artifact swap is not active
+      return
+    }
+    
+    def bomService = bomServiceReg.service.get()
+    def artifactsGroup = bomService.parameters.artifactSwapMavenGroup.get()
+    // Install the overrides
     installProjectOverride(target, artifactsGroup)
     installProjectAccessorOverride(target, artifactsGroup)
   }
@@ -35,6 +45,9 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
   /**
    * Installs the project() method override using Groovy metaclass manipulation.
    * This directly replaces the project() method on the dependencies handler.
+   * 
+   * Always returns artifact notation - the ArtifactSwapProjectPlugin will swap it back
+   * to a real project dependency if the project is included in the build.
    */
   private static void installProjectOverride(Project project, String artifactsGroup) {
     // Override the project(String) method - this is the main one used in build scripts
@@ -55,7 +68,7 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
 
     // Override the project(Map) method for map-style project declarations
     project.dependencies.metaClass.project = { Map notation ->
-      return delegate.create(toArtifactNotation(artifactsGroup, notation.path))
+      return delegate.create(toArtifactNotation(artifactsGroup, notation.path as String))
     }
   }
 
@@ -69,6 +82,7 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
    * (e.g., projects.di.scoping), it will still resolve correctly at build time to the published
    * artifact. The Artifact Swap IDE plugin suppresses false-positive inspections for these valid
    * project references via {@code GradleBuildFileInspectionSuppressor}.
+   * 
    */
   private static void installProjectAccessorOverride(Project project, String artifactsGroup) {
     def group = artifactsGroup

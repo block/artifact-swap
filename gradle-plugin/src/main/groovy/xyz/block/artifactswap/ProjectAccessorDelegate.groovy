@@ -1,23 +1,32 @@
 package xyz.block.artifactswap
 
+import org.gradle.api.artifacts.ProjectDependency
+
 /**
  * A wrapper/delegate that intercepts project accessor property access and converts excluded
  * projects to artifact dependency notations.
  * 
  * This class serves two purposes:
- * 1. **Wrapper mode** (original != null): Wraps Gradle's generated accessor, tries it first,
- *    falls back to artifact notation if the property throws (excluded project)
+ * 1. **Wrapper mode** (original != null): Wraps Gradle's generated accessor. For leaf accesses
+ *    that return a {@link ProjectDependency}, returns the unwrapped original so DSLs like
+ *    SQLDelight and dependency-analysis get the real project object they expect. For intermediate
+ *    accessors (sub-project groups), keeps wrapping to handle chained access where deeper
+ *    segments may be excluded.
  * 2. **Delegate mode** (original == null): Purely builds up artifact notation for chained access
  *    when we've already determined the path is excluded
  * 
  * By implementing CharSequence and delegating to a String, Gradle's dependency handler treats
  * instances of this class as regular dependency notation strings.
  * 
- * Example flow for `projects.account.backend.real`:
+ * Example flow for `projects.account.backend.real` where backend is excluded:
  * - `projects` → wrapper with original=RootProjectAccessor
- * - `.account` → tries original, succeeds → wrapper with original=AccountProjectAccessor  
- * - `.backend` → tries original, throws → wrapper with original=null (delegate mode)
- * - `.real` → no original to try → wrapper with original=null, notation="group:account_backend_real"
+ * - `.account` → tries original, succeeds → wrapper with original=AccountProjectAccessor
+ * - `.backend` → tries original, throws → delegate mode (builds artifact notation)
+ * - `.real` → delegate mode → notation="group:account_backend_real"
+ * 
+ * Example flow for `projects.db` (leaf, included) used by SQLDelight:
+ * - `projects` → wrapper with original=RootProjectAccessor
+ * - `.db` → tries original, succeeds, result is ProjectDependency → returns unwrapped
  */
 class ProjectAccessorDelegate implements CharSequence {
   private final Object original  // nullable - null means "delegate mode" (no Gradle accessor to try)
@@ -79,6 +88,13 @@ class ProjectAccessorDelegate implements CharSequence {
 
   /**
    * Core logic for accessing a property, used by both getProperty and methodMissing.
+   *
+   * In wrapper mode, tries the real Gradle accessor first. If the project is included in the
+   * build, the accessor exists and we return the result — unwrapped for leaf ProjectDependency
+   * (so DSLs get the real object), wrapped for intermediate accessors (to handle deeper excluded
+   * segments). If the accessor throws (project excluded), we switch to delegate mode.
+   *
+   * In delegate mode, we just extend the path and build up the artifact notation string.
    */
   private def accessProperty(String name) {
     // Delegate mode: no original to try, just extend the path
@@ -90,16 +106,14 @@ class ProjectAccessorDelegate implements CharSequence {
     try {
       def result = original."$name"
 
-      // Wrap the result to handle chained access (e.g., projects.account.backend)
-      if (result != null) {
-        return new ProjectAccessorDelegate(result, artifactsGroup, pathSegments + [name])
+      if (result instanceof ProjectDependency) {
+        // Leaf — return unwrapped so DSLs like SQLDelight and DAGP get the real object
+        return result
       }
-      return result
-    } catch (MissingPropertyException ignored) {
-      // Property doesn't exist - switch to delegate mode (null original)
-      return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
-    } catch (MissingMethodException ignored) {
-      // Method doesn't exist - switch to delegate mode
+      // Intermediate accessor — keep wrapping so deeper excluded segments fall back to artifacts
+      return new ProjectAccessorDelegate(result, artifactsGroup, pathSegments + [name])
+    } catch (MissingPropertyException | MissingMethodException ignored) {
+      // Property doesn't exist on the real accessor — switch to delegate mode
       return new ProjectAccessorDelegate(null, artifactsGroup, pathSegments + [name])
     }
   }
