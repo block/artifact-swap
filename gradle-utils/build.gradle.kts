@@ -1,3 +1,6 @@
+plugins {
+  id("com.autonomousapps.testkit")
+}
 
 kotlin {
   explicitApi()

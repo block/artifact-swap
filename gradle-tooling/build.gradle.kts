@@ -1,3 +1,7 @@
+plugins {
+  id("com.autonomousapps.testkit")
+}
+
 dependencies {
   api(project(":core"))
   api(libs.gradle.tooling.api)

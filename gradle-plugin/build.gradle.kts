@@ -1,11 +1,17 @@
 plugins {
   id("java-gradle-plugin")
   id("groovy")
+  id("com.autonomousapps.testkit")
+}
+
+kotlin {
+  explicitApi()
 }
 
 gradlePlugin {
   vcsUrl = "https://github.com/block/artifact-swap"
   website = "https://github.com/block/artifact-swap"
+  
   plugins {
     create("artifactSwapSettingsPlugin") {
       id = "xyz.block.artifactswap.settings"
@@ -22,8 +28,19 @@ gradlePlugin {
   }
 }
 
-kotlin {
-  explicitApi()
+tasks.named<Test>("functionalTest") {
+  useJUnitPlatform()
+  
+  testLogging {
+    events("passed", "skipped", "failed")
+    showStandardStreams = true
+    showExceptions = true
+  }
+}
+
+gradleTestKitSupport {
+  // Dependencies are declared explicitly in the dependencies block below
+  // to allow buildHealth to manage their configurations (api vs implementation vs runtimeOnly)
 }
 
 dependencies {
@@ -52,6 +69,20 @@ dependencies {
   runtimeOnly(libs.jackson.module.kotlin)
 
   lintChecks(libs.androidx.lintGradle)
+
+  functionalTestImplementation(project(":cli"))
+  functionalTestImplementation(libs.picocli.core)
+  functionalTestImplementation(platform(libs.junit.bom))
+  functionalTestApi(libs.autonomousapps.testkit.gradle)
+  functionalTestApi(libs.junit.jupiter.api)
+  functionalTestImplementation(libs.autonomousapps.testkit.truth)
+  functionalTestImplementation(libs.spotlight.buildscriptUtils)
+  functionalTestImplementation(libs.truth)
+  functionalTestRuntimeOnly(libs.jackson.core)
+  functionalTestRuntimeOnly(libs.jackson.databind)
+  functionalTestRuntimeOnly(libs.jackson.dataformat.xml)
+  functionalTestRuntimeOnly(libs.kotlin.test.junit5)
+  functionalTestRuntimeOnly(libs.woodstox.core)
 }
 
 listOf("runtimeElements", "apiElements").forEach { configurationName ->

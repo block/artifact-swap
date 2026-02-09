@@ -4,6 +4,9 @@
 
 [versions]
 agp = "8.9.1"
+autonomousapps-testkit-gradle = "0.22"
+autonomousapps-testkit-plugin = "0.17"
+autonomousapps-testkit-truth = "1.6.1"
 gradle-tapi = "8.14.3"
 jackson = "2.21.0"
 jgit = "7.5.0.202512021534-r"
@@ -24,7 +27,9 @@ okhttp = "5.3.2"
 okio = "3.16.4"
 retrofit = "3.0.0"
 spotlight = "1.6.7"
+truth = "1.4.4"
 wire = "5.5.0"
+woodstox = "7.1.1"
 ktfmt = "0.59"
 ktfmt-gradle = "0.25.0"
 vanniktech = "0.35.0"
@@ -36,6 +41,9 @@ intellij-platform = "2.11.0"
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 android-gradle-api = { module = "com.android.tools.build:gradle-api", version.ref = "agp" }
 androidx-lintGradle = { module = "androidx.lint:lint-gradle", version.ref = "lint-gradle" }
+autonomousapps-testkit-gradle = { module = "com.autonomousapps:gradle-testkit-support", version.ref = "autonomousapps-testkit-gradle" }
+autonomousapps-testkit-plugin = { module = "com.autonomousapps:gradle-testkit-plugin", version.ref = "autonomousapps-testkit-plugin" }
+autonomousapps-testkit-truth = { module = "com.autonomousapps:gradle-testkit-truth", version.ref = "autonomousapps-testkit-truth" }
 dagp-gradle = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version.ref = "dagp" }
 develocity-gradle = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
 gradle-tooling-api = { module = "org.gradle:gradle-tooling-api", version.ref = "gradle-tapi" }
@@ -57,6 +65,7 @@ kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", 
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 kotlin-utilio = { module = "org.jetbrains.kotlin:kotlin-util-io", version.ref = "kotlin" }
 log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j"}
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j"}
@@ -79,6 +88,8 @@ spotlight-buildscriptUtils = { module = "com.fueledbycaffeine.spotlight:buildscr
 retrofit-core = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-converter-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref = "retrofit" }
 retrofit-wire = { module = "com.squareup.retrofit2:converter-wire", version.ref = "retrofit" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
+woodstox-core = { module = "com.fasterxml.woodstox:woodstox-core", version.ref = "woodstox" }
 wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wire" }
 ktfmt-gradle = { module = "com.ncorti.ktfmt.gradle:plugin", version.ref = "ktfmt-gradle" }
 vanniktech-gradle = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "vanniktech" }
