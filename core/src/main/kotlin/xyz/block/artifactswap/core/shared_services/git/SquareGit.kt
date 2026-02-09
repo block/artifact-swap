@@ -148,9 +148,29 @@ class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : Squa
 
   private suspend fun findUncommittedChanges(): List<String> =
     withContext(context) {
-      ProcessBuilder("git", "diff", "--name-only").start().inputReader().useLines { lines ->
-        lines.toList()
+      // Use git CLI (not JGit) to benefit from the filesystem monitor and untrackedCache
+      // optimizations that make this fast on large repos.
+      // --porcelain -z gives NUL-delimited, machine-parseable output for all changes
+      // including untracked files.
+      val process =
+        ProcessBuilder("git", "status", "--porcelain", "-z", "--untracked-files=all")
+          .directory(repoRoot.toFile())
+          .start()
+      val output = process.inputStream.readAllBytes().decodeToString()
+      val errorOutput = process.errorStream.readAllBytes().decodeToString()
+      val exitCode = process.waitFor()
+
+      if (exitCode != 0) {
+        throw IllegalStateException("git status failed with exit code $exitCode: $errorOutput")
       }
+
+      // Porcelain format with -z: entries are NUL-separated, each entry is "XY path"
+      // where XY is the two-character status code. For renames, there's an additional
+      // NUL-separated original path.
+      output
+        .split('\u0000')
+        .filter { it.length > 3 }
+        .map { it.substring(3) } // skip "XY " status prefix
     }
 
   // Helper function to get the treeId of a commit object.
