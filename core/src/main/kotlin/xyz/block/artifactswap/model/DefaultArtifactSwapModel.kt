@@ -4,4 +4,5 @@ package xyz.block.artifactswap.model
 data class DefaultArtifactSwapModel(
   override val mavenGroup: String,
   override val bomVersion: String,
+  override val mavenLocalDirectory: String,
 ) : ArtifactSwapModel

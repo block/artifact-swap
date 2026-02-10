@@ -56,13 +56,18 @@ class AarPackageCacheService(private val project: Project) {
         object : Task.Backgroundable(project, "Scanning Android AARs", true) {
           override fun run(indicator: ProgressIndicator) {
             logger.info("Background AAR scan task started")
-            scanAars(indicator, model.mavenGroup, model.bomVersion)
+            scanAars(indicator, model.mavenGroup, model.bomVersion, model.mavenLocalDirectory)
           }
         }
       )
   }
 
-  private fun scanAars(indicator: ProgressIndicator, mavenGroup: String, bomVersion: String) {
+  private fun scanAars(
+    indicator: ProgressIndicator,
+    mavenGroup: String,
+    bomVersion: String,
+    mavenLocalDirectory: String,
+  ) {
     val startTime = System.currentTimeMillis()
     logger.info("Starting scanAars for $mavenGroup:bom:$bomVersion")
 
@@ -71,16 +76,20 @@ class AarPackageCacheService(private val project: Project) {
 
     // Parse the BOM to get all artifact versions
     val artifactVersions =
-      ArtifactSwapMavenLocalHelper.parseBomVersions(project, mavenGroup, bomVersion)
+      ArtifactSwapMavenLocalHelper.parseBomVersions(
+        project,
+        mavenGroup,
+        bomVersion,
+        mavenLocalDirectory,
+      )
     if (artifactVersions == null) {
       logger.warn("Could not parse BOM versions for $mavenGroup:bom:$bomVersion")
       return
     }
     logger.info("Found ${artifactVersions.size} artifacts in BOM")
 
-    val userHome = System.getProperty("user.home")
     val groupPath = mavenGroup.replace('.', '/')
-    val mavenLocalGroupPath = "$userHome/.m2/repository/$groupPath"
+    val mavenLocalGroupPath = "$mavenLocalDirectory/$groupPath"
     val groupDir = LocalFileSystem.getInstance().findFileByPath(mavenLocalGroupPath)
     if (groupDir == null) {
       logger.warn("Maven local group directory not found: $mavenLocalGroupPath")

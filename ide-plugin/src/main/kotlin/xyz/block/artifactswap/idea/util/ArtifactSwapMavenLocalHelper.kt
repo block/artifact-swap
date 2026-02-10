@@ -29,6 +29,7 @@ object ArtifactSwapMavenLocalHelper {
     project: Project,
     mavenGroup: String,
     bomVersion: String,
+    mavenLocalDirectory: String,
   ): Map<String, String>? {
     val cacheKey = "$mavenGroup:$bomVersion"
 
@@ -37,9 +38,8 @@ object ArtifactSwapMavenLocalHelper {
       return it
     }
 
-    val userHome = System.getProperty("user.home")
     val groupPath = mavenGroup.replace('.', '/')
-    val bomPomPath = "$userHome/.m2/repository/$groupPath/bom/$bomVersion/bom-$bomVersion.pom"
+    val bomPomPath = "$mavenLocalDirectory/$groupPath/bom/$bomVersion/bom-$bomVersion.pom"
 
     val bomPomFile = LocalFileSystem.getInstance().findFileByPath(bomPomPath) ?: return null
 

@@ -33,9 +33,13 @@ public class ArtifactSwapModelBuilder : ToolingModelBuilder {
     val config = project.artifactSwapConfig
     val bomVersion = project.gradle.services.artifactSyncBomService.parameters.bomVersion.get()
 
+    val resolvedMavenLocalDir =
+      config.mavenLocalDirectory.replace("\${user.home}", System.getProperty("user.home"))
+
     return DefaultArtifactSwapModel(
       mavenGroup = config.primaryArtifactsMavenGroup,
       bomVersion = bomVersion,
+      mavenLocalDirectory = resolvedMavenLocalDir,
     )
   }
 }
