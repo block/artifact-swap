@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import xyz.block.artifactswap.functionaltest.fixtures.ArtifactSwapTestProject
 import xyz.block.artifactswap.functionaltest.fixtures.CliRunner
+import xyz.block.artifactswap.functionaltest.fixtures.CliRunner.Companion.parseHashFile
 import xyz.block.artifactswap.functionaltest.fixtures.build
 import xyz.block.artifactswap.functionaltest.fixtures.ideSync
 
@@ -74,16 +75,10 @@ class EndToEndCliTest {
     assertThat(hashingOutputFile.toFile().exists()).isTrue()
 
     // Parse hash file to get content hashes for each project
-    val hashLines = hashingOutputFile.readLines()
-    assertThat(hashLines).isNotEmpty()
-    assertThat(hashLines.any { it.startsWith(":lib|") }).isTrue()
-    assertThat(hashLines.any { it.startsWith(":app|") }).isTrue()
-
-    val projectHashes =
-      hashLines.associate { line ->
-        val parts = line.split("|")
-        parts[0] to parts[1] // :projectPath -> contentHash
-      }
+    val projectHashes = parseHashFile(hashingOutputFile)
+    assertThat(projectHashes).isNotEmpty()
+    assertThat(projectHashes).containsKey(":lib")
+    assertThat(projectHashes).containsKey(":app")
 
     val libHash = projectHashes[":lib"]!!
     val appHash = projectHashes[":app"]!!
@@ -141,11 +136,7 @@ class EndToEndCliTest {
     assertThat(hashResult.isSuccess).isTrue()
 
     // Parse hash file to get content hashes and publish with those versions
-    val projectHashes =
-      hashingOutputFile.readLines().associate { line ->
-        val parts = line.split("|")
-        parts[0] to parts[1]
-      }
+    val projectHashes = parseHashFile(hashingOutputFile)
     testProject.publishArtifactWithVersion(project, ":lib", projectHashes[":lib"]!!)
     testProject.publishArtifactWithVersion(project, ":app", projectHashes[":app"]!!)
 
@@ -222,11 +213,7 @@ class EndToEndCliTest {
     assertThat(hashResult.isSuccess).isTrue()
 
     // Parse hashes and publish artifacts with those versions
-    val projectHashes =
-      hashingOutputFile.readLines().associate { line ->
-        val parts = line.split("|")
-        parts[0] to parts[1]
-      }
+    val projectHashes = parseHashFile(hashingOutputFile)
     testProject.publishArtifactWithVersion(project, ":lib", projectHashes[":lib"]!!)
     testProject.publishArtifactWithVersion(project, ":app", projectHashes[":app"]!!)
 
@@ -271,11 +258,7 @@ class EndToEndCliTest {
     assertThat(hashResult.isSuccess).isTrue()
 
     // Parse hashes
-    val projectHashes =
-      hashingOutputFile.readLines().associate { line ->
-        val parts = line.split("|")
-        parts[0] to parts[1]
-      }
+    val projectHashes = parseHashFile(hashingOutputFile)
 
     // Only publish :app artifact - deliberately DON'T publish :lib
     testProject.publishArtifactWithVersion(project, ":app", projectHashes[":app"]!!)

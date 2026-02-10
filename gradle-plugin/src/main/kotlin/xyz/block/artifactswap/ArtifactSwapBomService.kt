@@ -16,8 +16,11 @@ import xyz.block.gradle.services.SharedServices
 
 // Service to parse local BOM file once per sync
 public abstract class ArtifactSwapBomService : BuildService<Parameters> {
-  private companion object {
+  internal companion object {
     val logger: Logger = Logging.getLogger(ArtifactSwapBomService::class.java)
+
+    /** Service registration name, used for lookup from Groovy code. */
+    const val SERVICE_NAME: String = "artifactSyncBom"
   }
 
   public interface Parameters : BuildServiceParameters {
@@ -27,7 +30,7 @@ public abstract class ArtifactSwapBomService : BuildService<Parameters> {
     public val mavenLocalDirectory: Property<String>
   }
 
-  internal object KEY : SharedServiceKey<ArtifactSwapBomService, Parameters>("artifactSyncBom")
+  internal object KEY : SharedServiceKey<ArtifactSwapBomService, Parameters>(SERVICE_NAME)
 
   private val bomFile: Path
     get() {

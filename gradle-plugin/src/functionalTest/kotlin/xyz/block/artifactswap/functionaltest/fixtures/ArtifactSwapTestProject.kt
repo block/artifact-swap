@@ -11,7 +11,6 @@ import java.io.File
 import java.nio.file.Path
 import java.util.UUID
 import kotlin.io.path.createTempDirectory
-import org.gradle.testkit.runner.BuildResult
 
 /**
  * Helper for creating test projects with artifact swap configured.
@@ -421,21 +420,6 @@ class ArtifactSwapTestProject(
   }
 
   /**
-   * Runs Gradle to publish artifacts using the artifact swap publish plugin. This exercises the
-   * real publishing workflow instead of creating fake artifacts.
-   *
-   * @param project The GradleProject to publish from
-   * @param modules List of module paths to publish (e.g., [":lib", ":app"])
-   * @return The BuildResult from the Gradle execution
-   */
-  fun runGradlePublish(project: GradleProject, modules: List<String>): BuildResult {
-    // Build publish tasks for each module - uses standard maven-publish task naming
-    val publishTasks =
-      modules.map { module -> "${module}:publishMavenPublicationToArtifactSwapLocalRepository" }
-    return project.build(*publishTasks.toTypedArray())
-  }
-
-  /**
    * Publishes a single artifact with a specific version (content hash). This is used by E2E tests
    * where the BOM publisher expects artifacts to be versioned by their content hash.
    *
@@ -488,7 +472,7 @@ class ArtifactSwapTestProject(
   ): GradleProject =
     newGradleProjectBuilder(dslKind)
       .withRootProject {
-        gradleProperties = gradlePropertiesForPublishing()
+        gradleProperties = gradleProperties()
 
         withSettingsScript {
           plugins(
@@ -606,29 +590,11 @@ class ArtifactSwapTestProject(
       .trimIndent()
 
   /**
-   * Creates gradle.properties configured for publishing, including the local maven repository path.
-   */
-  private fun gradlePropertiesForPublishing() =
-    GradleProperties.of(
-      "artifactswap.enabled=true",
-      "artifactswap.primaryArtifactsMavenGroup=$mavenGroup",
-      "artifactswap.artifactoryBaseUrl=https://example.com/artifactory/",
-      "artifactswap.primaryRepositoryName=test-repo",
-      "artifactswap.bomArtifactId=bom",
-      "artifactswap.eventstreamBaseUrl=https://example.com/eventstream/",
-      "artifactswap.artifactoryPublisherTokenFileName=test-token.txt",
-      "artifactswap.bomSourceBranchName=main",
-      "artifactswap.mavenLocalDirectory=${mavenLocalPath}",
-      "org.gradle.caching=false",
-      "org.gradle.configuration-cache=false",
-    )
-
-  /**
    * Publishes test artifacts to maven local for the given modules. Uses the git commit SHA as the
    * BOM version, matching how artifact-swap works in production.
    *
-   * NOTE: This is the legacy method that creates fake artifacts. For E2E tests, use
-   * [createPublishableProject] and [runGradlePublish] instead.
+   * NOTE: This method creates fake artifacts directly. For E2E tests, use
+   * [createPublishableProject] with [publishArtifactWithVersion] instead.
    */
   fun publishArtifactsToMavenLocal(project: GradleProject, modules: List<String>) {
     val commitSha = getGitCommitSha(project)

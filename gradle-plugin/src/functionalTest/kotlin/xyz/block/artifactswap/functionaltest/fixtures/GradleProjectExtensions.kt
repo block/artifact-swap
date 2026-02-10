@@ -21,10 +21,6 @@ private val testGradleVersion: GradleVersion
 fun GradleProject.build(vararg args: String): BuildResult =
   GradleBuilder.build(testGradleVersion, rootDir, *args, "--stacktrace")
 
-/** Builds a Gradle project expecting failure. */
-fun GradleProject.buildAndFail(vararg args: String): BuildResult =
-  GradleBuilder.buildAndFail(testGradleVersion, rootDir, *args, "--stacktrace")
-
 /**
  * Simulates an IDE sync by running with -Didea.sync.active=true. This is how we test artifact swap
  * behavior during sync.
@@ -36,32 +32,9 @@ fun GradleProject.ideSync(vararg additionalArgs: String): BuildResult {
   return GradleBuilder.build(testGradleVersion, rootDir, *args)
 }
 
-/** Simulates an IDE sync expecting failure. */
-fun GradleProject.ideSyncAndFail(vararg additionalArgs: String): BuildResult {
-  val args =
-    arrayOf("help", "-Didea.sync.active=true", "--no-configuration-cache", "--stacktrace") +
-      additionalArgs
-  return GradleBuilder.buildAndFail(testGradleVersion, rootDir, *args)
-}
-
 /** Writes a file to the project directory. */
 fun GradleProject.writeFile(path: String, content: String) {
   val file = File(rootDir, path)
   file.parentFile.mkdirs()
   file.writeText(content)
-}
-
-/** Creates a directory in the project. */
-fun GradleProject.createDir(path: String) {
-  File(rootDir, path).mkdirs()
-}
-
-/** Reads a file from the project directory. */
-fun GradleProject.readFile(path: String): String {
-  return File(rootDir, path).readText()
-}
-
-/** Checks if a file exists in the project. */
-fun GradleProject.fileExists(path: String): Boolean {
-  return File(rootDir, path).exists()
 }

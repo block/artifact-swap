@@ -8,6 +8,7 @@ import java.nio.file.Path
 import picocli.CommandLine
 import xyz.block.artifactswap.cli.commands.BomPublishingCommand
 import xyz.block.artifactswap.cli.commands.HashingCommand
+import xyz.block.artifactswap.core.hashing.parseProjectHashFile
 
 /**
  * Helper class for running CLI commands in functional tests by invoking picocli directly
@@ -23,6 +24,12 @@ class CliRunner(private val projectDir: File, private val mavenLocalPath: Path) 
     fun forProject(project: GradleProject, mavenLocalPath: Path): CliRunner {
       return CliRunner(project.rootDir, mavenLocalPath)
     }
+
+    /**
+     * Parses a hash file into a map of project path to content hash. Delegates to the shared
+     * [parseProjectHashFile] utility in core.
+     */
+    fun parseHashFile(hashFile: Path): Map<String, String> = hashFile.parseProjectHashFile()
   }
 
   /**

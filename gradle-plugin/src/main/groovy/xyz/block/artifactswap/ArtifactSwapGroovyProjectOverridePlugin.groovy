@@ -17,7 +17,7 @@ class ArtifactSwapGroovyProjectOverridePlugin implements Plugin<Project> {
     // Get the BOM service which has all our configuration.
     // We need eager lookup here because we immediately read its parameters.
     //noinspection ConfigurationAvoidance
-    def bomServiceReg = target.gradle.sharedServices.registrations.findByName("artifactSyncBom")
+    def bomServiceReg = target.gradle.sharedServices.registrations.findByName(ArtifactSwapBomService.SERVICE_NAME)
     if (bomServiceReg == null) {
       // Service not registered - artifact swap is not active
       return

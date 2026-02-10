@@ -3,6 +3,7 @@ package xyz.block.artifactswap.core.hashing
 import java.nio.file.Path
 import java.security.MessageDigest
 import kotlin.io.path.readBytes
+import kotlin.io.path.useLines
 
 private val HEX_ARRAY = "0123456789ABCDEF".toCharArray()
 
@@ -28,4 +29,12 @@ private fun ByteArray.toHex(): String {
 /** Converts an artifact name to a project path by replacing underscores with colons. */
 fun String.artifactToProject(): String {
   return ":${replace('_', ':')}"
+}
+
+/**
+ * Parses a hash file with lines in `<project-path>|<hash>` format into a map of project path to
+ * content hash.
+ */
+fun Path.parseProjectHashFile(): Map<String, String> = useLines { lines ->
+  lines.map { it.split('|') }.filter { it.size == 2 }.associate { it[0] to it[1] }
 }
