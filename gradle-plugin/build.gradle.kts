@@ -71,12 +71,11 @@ dependencies {
   lintChecks(libs.androidx.lintGradle)
 
   functionalTestImplementation(project(":cli"))
-  functionalTestImplementation(project(":core"))
+  functionalTestApi(project(":core"))
   functionalTestImplementation(libs.picocli.core)
   functionalTestImplementation(platform(libs.junit.bom))
   functionalTestApi(libs.autonomousapps.testkit.gradle)
   functionalTestApi(libs.junit.jupiter.api)
-  functionalTestImplementation(libs.autonomousapps.testkit.truth)
   functionalTestImplementation(libs.spotlight.buildscriptUtils)
   functionalTestImplementation(libs.truth)
   functionalTestRuntimeOnly(libs.jackson.core)
