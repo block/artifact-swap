@@ -1,6 +1,7 @@
 plugins {
   application
   id("com.gradleup.shadow")
+  id("com.autonomousapps.testkit")
 }
 
 application {

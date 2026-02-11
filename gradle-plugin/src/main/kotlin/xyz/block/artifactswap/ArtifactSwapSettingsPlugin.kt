@@ -122,6 +122,7 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
    */
   private fun Settings.setupArtifactSwapInfrastructure(bomVersion: String) {
     logger.info("Artifact Swap BOM version: {}", bomVersion)
+
     gradle.services.register(ArtifactSwapBomService.KEY, ArtifactSwapBomService::class.java) {
       it.parameters.bomVersion.set(bomVersion)
       it.parameters.artifactSwapMavenGroup.set(artifactSwapConfig.primaryArtifactsMavenGroup)

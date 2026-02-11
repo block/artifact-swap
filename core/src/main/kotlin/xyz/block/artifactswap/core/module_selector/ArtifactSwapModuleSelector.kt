@@ -18,6 +18,15 @@ import xyz.block.artifactswap.core.repository.InstalledArtifact
 import xyz.block.artifactswap.core.repository.LocalArtifactRepository
 import xyz.block.artifactswap.core.shared_services.git.SquareGit
 
+/** Reason a module was included or excluded during artifact swap selection. */
+enum class InclusionReason {
+  EXPLICITLY_REQUESTED,
+  ALWAYS_KEEP,
+  LOCAL_CHANGES,
+  MISSING_ARTIFACT,
+  EXCLUDED,
+}
+
 /** Metrics about project selection decisions. */
 data class SelectionMetrics(
   val totalCandidates: Int,
@@ -203,6 +212,11 @@ class RealArtifactSwapModuleSelector(
           }
       }
 
+    // Log each project's inclusion decision at info level
+    for ((project, reason) in projectDecisions) {
+      LOGGER.info("Artifact Swap decision: {} -> {}", project.path, reason)
+    }
+
     val decisionCounts = projectDecisions.groupingBy { it.second }.eachCount()
     val selectedProjects =
       projectDecisions.filter { it.second != InclusionReason.EXCLUDED }.map { it.first }.toSet()
@@ -219,14 +233,6 @@ class RealArtifactSwapModuleSelector(
       )
 
     selectedProjects to metrics
-  }
-
-  private enum class InclusionReason {
-    EXPLICITLY_REQUESTED,
-    ALWAYS_KEEP,
-    LOCAL_CHANGES,
-    MISSING_ARTIFACT,
-    EXCLUDED,
   }
 
   sealed class ModuleSelectorException(
