@@ -1,3 +1,11 @@
+## 0.1.12
+- Allow configuring maven local directory via gradle.properties
+- Expose mavenLocalDirectory through tooling model to IDE plugin
+- Add a local publishing option for BOM for easier debugging/testing
+- Fix uncommitted change detection missing untracked files
+- Add end-to-end functional tests
+- Update spotlight
+
 ## 0.1.11
 - Add GradleBuildFileInspectionSuppressor to hide IDE warnings about unknown project accessors caused by swapping their project references
 - Update spotlight
