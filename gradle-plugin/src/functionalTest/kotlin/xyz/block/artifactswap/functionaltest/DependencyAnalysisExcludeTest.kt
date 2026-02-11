@@ -1,14 +1,16 @@
 package xyz.block.artifactswap.functionaltest
 
 import com.autonomousapps.kit.GradleProject
-import com.autonomousapps.kit.truth.BuildTaskSubject.Companion.assertThat
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Path
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import xyz.block.artifactswap.core.module_selector.InclusionReason.EXCLUDED
+import xyz.block.artifactswap.core.module_selector.InclusionReason.EXPLICITLY_REQUESTED
 import xyz.block.artifactswap.functionaltest.fixtures.ArtifactSwapTestProject
+import xyz.block.artifactswap.functionaltest.fixtures.artifactSwapSelection
 import xyz.block.artifactswap.functionaltest.fixtures.ideSync
 
 /**
@@ -51,7 +53,12 @@ class DependencyAnalysisExcludeTest {
     // Then: Build should succeed with artifact swap active
     assertThat(result.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(result.output).contains("Using Artifact Swap!")
-    assertThat(result.output).contains("Artifact Swap module selection")
+
+    val selection = result.artifactSwapSelection()
+    assertThat(selection.explicitCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(1)
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":common-ui")).isEqualTo(EXCLUDED)
 
     // Verify no errors about missing exclude() method — this confirms
     // DAGP's exclude(':common-ui') still works when artifact swap is active

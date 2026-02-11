@@ -1,14 +1,19 @@
 package xyz.block.artifactswap.functionaltest
 
 import com.autonomousapps.kit.GradleProject
-import com.autonomousapps.kit.truth.BuildTaskSubject.Companion.assertThat
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Path
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import xyz.block.artifactswap.core.module_selector.InclusionReason.ALWAYS_KEEP
+import xyz.block.artifactswap.core.module_selector.InclusionReason.EXCLUDED
+import xyz.block.artifactswap.core.module_selector.InclusionReason.EXPLICITLY_REQUESTED
+import xyz.block.artifactswap.core.module_selector.InclusionReason.LOCAL_CHANGES
+import xyz.block.artifactswap.core.module_selector.InclusionReason.MISSING_ARTIFACT
 import xyz.block.artifactswap.functionaltest.fixtures.ArtifactSwapTestProject
+import xyz.block.artifactswap.functionaltest.fixtures.artifactSwapSelection
 import xyz.block.artifactswap.functionaltest.fixtures.ideSync
 import xyz.block.artifactswap.functionaltest.fixtures.writeFile
 
@@ -46,9 +51,14 @@ class BasicArtifactSwapTest {
     // Then: Should use artifact swap and swap :lib to artifact
     assertThat(result.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(result.output).contains("Using Artifact Swap!")
-    assertThat(result.output).contains("Artifact Swap module selection")
-    assertThat(result.output).contains("1 selected out of 2 candidates")
-    assertThat(result.output).contains("excluded: 1")
+
+    val selection = result.artifactSwapSelection()
+    assertThat(selection.totalSelected).isEqualTo(1)
+    assertThat(selection.totalCandidates).isEqualTo(2)
+    assertThat(selection.explicitCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(1)
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":lib")).isEqualTo(EXCLUDED)
 
     // Dependency tree should show lib as a maven artifact, not a project dependency
     assertThat(result.output).contains("${testProject.mavenGroup}:lib")
@@ -81,10 +91,15 @@ class BasicArtifactSwapTest {
     // Then: lib should be included (not swapped) due to local changes
     assertThat(result.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(result.output).contains("Using Artifact Swap!")
-    assertThat(result.output).contains("local changes:")
-    // Both modules selected: :app (explicit) and :lib (local changes)
-    assertThat(result.output).contains("2 selected out of 2 candidates")
-    assertThat(result.output).contains("excluded: 0")
+
+    val selection = result.artifactSwapSelection()
+    assertThat(selection.totalSelected).isEqualTo(2)
+    assertThat(selection.totalCandidates).isEqualTo(2)
+    assertThat(selection.explicitCount).isEqualTo(1)
+    assertThat(selection.localChangesCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(0)
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":lib")).isEqualTo(LOCAL_CHANGES)
   }
 
   @Test
@@ -104,9 +119,15 @@ class BasicArtifactSwapTest {
     // Then: Both modules selected: :app (explicit) and :lib (missing artifact prevents swap)
     assertThat(result.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(result.output).contains("Using Artifact Swap!")
-    assertThat(result.output).contains("missing artifact:")
-    assertThat(result.output).contains("2 selected out of 2 candidates")
-    assertThat(result.output).contains("excluded: 0")
+
+    val selection = result.artifactSwapSelection()
+    assertThat(selection.totalSelected).isEqualTo(2)
+    assertThat(selection.totalCandidates).isEqualTo(2)
+    assertThat(selection.explicitCount).isEqualTo(1)
+    assertThat(selection.missingArtifactCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(0)
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":lib")).isEqualTo(MISSING_ARTIFACT)
   }
 
   @Test
@@ -129,8 +150,15 @@ class BasicArtifactSwapTest {
     // Then: Both selected: :app (explicit) and :lib (always-keep prevents swap)
     assertThat(result.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(result.output).contains("Using Artifact Swap!")
-    assertThat(result.output).contains("2 selected out of 2 candidates")
-    assertThat(result.output).contains("excluded: 0")
+
+    val selection = result.artifactSwapSelection()
+    assertThat(selection.totalSelected).isEqualTo(2)
+    assertThat(selection.totalCandidates).isEqualTo(2)
+    assertThat(selection.explicitCount).isEqualTo(1)
+    assertThat(selection.alwaysKeepCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(0)
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":lib")).isEqualTo(ALWAYS_KEEP)
   }
 
   @Test
@@ -150,6 +178,12 @@ class BasicArtifactSwapTest {
     // Then: Should show lib as artifact dependency, not project dependency
     assertThat(result.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(result.task(":app:dependencies")).isNotNull()
+
+    val selection = result.artifactSwapSelection()
+    assertThat(selection.explicitCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(1)
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":lib")).isEqualTo(EXCLUDED)
 
     // The dependency tree should show the artifact notation for swapped projects
     // This verifies that project(':lib') was actually swapped to artifact

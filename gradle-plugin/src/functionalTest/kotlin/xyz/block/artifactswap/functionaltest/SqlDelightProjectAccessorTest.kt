@@ -1,14 +1,16 @@
 package xyz.block.artifactswap.functionaltest
 
 import com.autonomousapps.kit.GradleProject
-import com.autonomousapps.kit.truth.BuildTaskSubject.Companion.assertThat
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Path
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import xyz.block.artifactswap.core.module_selector.InclusionReason.ALWAYS_KEEP
+import xyz.block.artifactswap.core.module_selector.InclusionReason.EXPLICITLY_REQUESTED
 import xyz.block.artifactswap.functionaltest.fixtures.ArtifactSwapTestProject
+import xyz.block.artifactswap.functionaltest.fixtures.artifactSwapSelection
 import xyz.block.artifactswap.functionaltest.fixtures.ideSync
 
 /**
@@ -51,13 +53,16 @@ class SqlDelightProjectAccessorTest {
     val result = project.ideSync()
 
     // Then: Build should succeed with both modules included
-    assertThat(result.task(":help")).isNotNull()
     assertThat(result.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(result.output).contains("Using Artifact Swap!")
 
-    // :db kept via always-keep, :consumer via explicit request — nothing swapped
-    assertThat(result.output).contains("2 selected out of 2 candidates")
-    assertThat(result.output).contains("excluded: 0")
+    val selection = result.artifactSwapSelection()
+    assertThat(selection.totalSelected).isEqualTo(2)
+    assertThat(selection.totalCandidates).isEqualTo(2)
+    assertThat(selection.alwaysKeepCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(0)
+    assertThat(selection.decisionFor(":consumer")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":db")).isEqualTo(ALWAYS_KEEP)
 
     // Verify no errors about missing dependency() method — this confirms
     // SQLDelight's `dependency projects.db` received a real project accessor

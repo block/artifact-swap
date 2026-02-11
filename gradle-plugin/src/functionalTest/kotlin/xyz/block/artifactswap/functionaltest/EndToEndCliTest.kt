@@ -9,9 +9,14 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import xyz.block.artifactswap.core.module_selector.InclusionReason.EXCLUDED
+import xyz.block.artifactswap.core.module_selector.InclusionReason.EXPLICITLY_REQUESTED
+import xyz.block.artifactswap.core.module_selector.InclusionReason.LOCAL_CHANGES
+import xyz.block.artifactswap.core.module_selector.InclusionReason.MISSING_ARTIFACT
 import xyz.block.artifactswap.functionaltest.fixtures.ArtifactSwapTestProject
 import xyz.block.artifactswap.functionaltest.fixtures.CliRunner
 import xyz.block.artifactswap.functionaltest.fixtures.CliRunner.Companion.parseHashFile
+import xyz.block.artifactswap.functionaltest.fixtures.artifactSwapSelection
 import xyz.block.artifactswap.functionaltest.fixtures.build
 import xyz.block.artifactswap.functionaltest.fixtures.ideSync
 
@@ -109,11 +114,14 @@ class EndToEndCliTest {
     // Then: IDE sync should succeed and show artifact swap is active
     assertThat(syncResult.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(syncResult.output).contains("Using Artifact Swap!")
-    assertThat(syncResult.output).contains("Artifact Swap module selection")
 
-    // Verify :lib was excluded (swapped to artifact) - only :app should be selected
-    assertThat(syncResult.output).contains("1 selected out of 2 candidates")
-    assertThat(syncResult.output).contains("excluded: 1")
+    val selection = syncResult.artifactSwapSelection()
+    assertThat(selection.totalSelected).isEqualTo(1)
+    assertThat(selection.totalCandidates).isEqualTo(2)
+    assertThat(selection.explicitCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(1)
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":lib")).isEqualTo(EXCLUDED)
 
     // The dependency tree should show the maven artifact for lib (swapped)
     assertThat(syncResult.output).contains("${testProject.mavenGroup}:lib")
@@ -160,10 +168,15 @@ class EndToEndCliTest {
     // Then: Both modules selected: :app (explicit) and :lib (local changes prevent swap)
     assertThat(syncResult.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(syncResult.output).contains("Using Artifact Swap!")
-    assertThat(syncResult.output).contains("Artifact Swap module selection")
-    assertThat(syncResult.output).contains("local changes:")
-    assertThat(syncResult.output).contains("2 selected out of 2 candidates")
-    assertThat(syncResult.output).contains("excluded: 0")
+
+    val selection = syncResult.artifactSwapSelection()
+    assertThat(selection.totalSelected).isEqualTo(2)
+    assertThat(selection.totalCandidates).isEqualTo(2)
+    assertThat(selection.explicitCount).isEqualTo(1)
+    assertThat(selection.localChangesCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(0)
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":lib")).isEqualTo(LOCAL_CHANGES)
   }
 
   @Test
@@ -222,20 +235,17 @@ class EndToEndCliTest {
     assertThat(bomResult.isSuccess).isTrue()
 
     // When: Run IDE sync WITHOUT any local changes
-    // With :lib having a published artifact and not in ide-projects.txt, it should be excluded
     val syncResult = project.ideSync(":app:dependencies", "--configuration", "runtimeClasspath")
 
     // Then: IDE sync should succeed with artifact swap active
     assertThat(syncResult.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(syncResult.output).contains("Using Artifact Swap!")
-    assertThat(syncResult.output).contains("Artifact Swap module selection")
 
-    // Verify that :lib was excluded (swapped to artifact) because:
-    // - It's not in ide-projects.txt
-    // - It has a published artifact with matching content hash
-    // - It has no local changes
-    // The selection should show "excluded: 1" for :lib being swapped
-    assertThat(syncResult.output).contains("excluded: 1")
+    val selection = syncResult.artifactSwapSelection()
+    assertThat(selection.explicitCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(1)
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":lib")).isEqualTo(EXCLUDED)
 
     // The dependency tree should show the maven artifact for lib (not project :lib)
     assertThat(syncResult.output).contains("${testProject.mavenGroup}:lib")
@@ -273,13 +283,15 @@ class EndToEndCliTest {
     // Then: IDE sync should succeed with artifact swap active
     assertThat(syncResult.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
     assertThat(syncResult.output).contains("Using Artifact Swap!")
-    assertThat(syncResult.output).contains("Artifact Swap module selection")
 
-    // Verify :lib was included due to missing artifact (not excluded/swapped)
-    // Both modules should be selected: :app (explicit) and :lib (missing artifact)
-    assertThat(syncResult.output).contains("2 selected out of 2 candidates")
-    assertThat(syncResult.output).contains("missing artifact: 1")
-    assertThat(syncResult.output).contains("excluded: 0")
+    val selection = syncResult.artifactSwapSelection()
+    assertThat(selection.totalSelected).isEqualTo(2)
+    assertThat(selection.totalCandidates).isEqualTo(2)
+    assertThat(selection.explicitCount).isEqualTo(1)
+    assertThat(selection.missingArtifactCount).isEqualTo(1)
+    assertThat(selection.excludedCount).isEqualTo(0)
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":lib")).isEqualTo(MISSING_ARTIFACT)
 
     // The dependency tree should show :lib as a project dependency (not artifact)
     assertThat(syncResult.output).contains("project :lib")

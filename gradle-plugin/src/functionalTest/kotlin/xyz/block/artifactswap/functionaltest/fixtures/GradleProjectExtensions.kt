@@ -27,8 +27,13 @@ fun GradleProject.build(vararg args: String): BuildResult =
  */
 fun GradleProject.ideSync(vararg additionalArgs: String): BuildResult {
   val args =
-    arrayOf("help", "-Didea.sync.active=true", "--no-configuration-cache", "--stacktrace") +
-      additionalArgs
+    arrayOf(
+      "help",
+      "-Didea.sync.active=true",
+      "--no-configuration-cache",
+      "--stacktrace",
+      "--info",
+    ) + additionalArgs
   return GradleBuilder.build(testGradleVersion, rootDir, *args)
 }
 
