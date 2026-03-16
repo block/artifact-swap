@@ -20,10 +20,8 @@ import xyz.block.artifactswap.gradle.internal.hasPublishableComponent
 import xyz.block.artifactswap.tooling.ArtifactSwapModelBuilder
 import xyz.block.gradle.ARTIFACT_SWAP_ENABLED
 import xyz.block.gradle.ArtifactSwapDependencyHandler
-import xyz.block.gradle.LOCAL_PROTOS_ARTIFACTS
 import xyz.block.gradle.isArtifactPublishingEnabled
 import xyz.block.gradle.services.services
-import xyz.block.gradle.useLocalProtos
 import xyz.block.ide.isIdeSync
 
 /**
@@ -68,7 +66,6 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
         }
         setupKtsDependencyHandlerOverride(artifactSwapIsActive)
         maybeApplyPublishPlugin()
-        maybeUseLocalProtos()
       }
     }
 
@@ -178,33 +175,6 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
       repos.exclusiveContent { ex ->
         ex.forRepositories(repos.mavenLocal())
         ex.filter { config -> config.includeGroup(artifactSwapMavenGroupId) }
-      }
-    }
-  }
-
-  private fun Settings.maybeUseLocalProtos() {
-    if (dslService.enabled && useLocalProtos) {
-      logger.warn(
-        "Using locally synced protos artifacts! " +
-          "If you have issues set $LOCAL_PROTOS_ARTIFACTS=false"
-      )
-      dependencyResolutionManagement.setupLocalProtosRepository()
-    } else {
-      logger.info("Not using locally synced protos artifacts")
-    }
-  }
-
-  /**
-   * The artifact sync downloader tool runs on git checkout and similar hooks to pre-fetch the jars
-   * for protos dependencies in an optimized way. We force Gradle to only look for these in maven
-   * local to avoid having Gradle waste time searching for or refreshing metadata for these from
-   * remote repos.
-   */
-  private fun DependencyResolutionManagement.setupLocalProtosRepository() {
-    repositories.let { repos ->
-      repos.exclusiveContent { ex ->
-        ex.forRepositories(repos.mavenLocal())
-        ex.filter { config -> config.includeGroup("com.squareup.protos") }
       }
     }
   }

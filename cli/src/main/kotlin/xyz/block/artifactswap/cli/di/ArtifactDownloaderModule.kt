@@ -1,7 +1,6 @@
 package xyz.block.artifactswap.cli.di
 
 import java.nio.file.Path
-import java.util.Properties
 import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.KoinApplication
 import org.koin.core.module.Module
@@ -16,17 +15,12 @@ import xyz.block.artifactswap.core.download.services.RealArtifactRepository
 import xyz.block.artifactswap.core.download.services.RealArtifactSyncBomLoader
 import xyz.block.artifactswap.core.download.services.RealEventStream
 import xyz.block.artifactswap.core.eventstream.Eventstream
-import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
-import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
-import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
-import xyz.block.artifactswap.core.gradle.RealGradlePropertiesProvider
-import xyz.block.artifactswap.core.gradle.SettingsGradleHashingProjectsProvider
 import xyz.block.artifactswap.core.network.ArtifactoryService
 import xyz.block.artifactswap.core.shared_services.git.RealSquareGit
 import xyz.block.artifactswap.core.shared_services.git.SquareGit
 
 /** Configuration options for the artifact downloader module. */
-data class ArtifactDownloaderConfig(val bomVersion: String = "", val settingsGradleFile: Path?)
+data class ArtifactDownloaderConfig(val bomVersion: String = "")
 
 fun artifactDownloaderModules(
   application: KoinApplication,
@@ -67,34 +61,11 @@ fun artifactDownloaderModules(
         config = get<ArtifactSwapConfig>(),
       )
     }
-    single<GradleProjectsProvider> {
-      if (config.settingsGradleFile != null && config.settingsGradleFile.toFile().exists()) {
-        SettingsGradleHashingProjectsProvider(
-          application.directory,
-          config.settingsGradleFile.toRealPath(),
-          application.ioDispatcher,
-          get<ArtifactSwapConfig>(),
-        )
-      } else {
-        // No-op provider when settings file not available
-        object : GradleProjectsProvider {
-          override suspend fun getProjectHashingInfos(): Result<List<ProjectHashingInfo>> =
-            Result.success(emptyList())
-
-          override suspend fun cleanup() {}
-        }
-      }
-    }
-    single<GradlePropertiesProvider> {
-      RealGradlePropertiesProvider(get<Properties>(named("gradleProperties")))
-    }
     single<ArtifactDownloader> {
       ArtifactDownloader(
         bomLoader = get(),
         artifactEventStream = get(),
         artifactRepository = get(),
-        settingsGradleProjectsProvider = get(),
-        gradlePropertiesProvider = get(),
         config = get<ArtifactSwapConfig>(),
       )
     }

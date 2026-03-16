@@ -22,11 +22,7 @@ class ArtifactDownloaderCommand : AbstractArtifactSwapCommand() {
   private lateinit var downloader: ArtifactDownloader
 
   override fun init(application: KoinApplication) {
-    val config =
-      ArtifactDownloaderConfig(
-        bomVersion = artifactDownloaderOptions.bomVersion,
-        settingsGradleFile = artifactDownloaderOptions.settingsGradleFile,
-      )
+    val config = ArtifactDownloaderConfig(bomVersion = artifactDownloaderOptions.bomVersion)
     application.modules(artifactDownloaderModules(application, config))
   }
 
@@ -37,10 +33,7 @@ class ArtifactDownloaderCommand : AbstractArtifactSwapCommand() {
 
     // Execute the download and installation process
     val result =
-      downloader.downloadAndInstallArtifacts(
-        bomVersion = artifactDownloaderOptions.bomVersion,
-        settingsGradleFile = artifactDownloaderOptions.settingsGradleFile,
-      )
+      downloader.downloadAndInstallArtifacts(bomVersion = artifactDownloaderOptions.bomVersion)
 
     logger.info { "Artifact downloader completed with result: ${result.result}" }
     return result.result.exitCode

@@ -30,31 +30,11 @@ private fun createArtifactSwapConfig(properties: Properties): ArtifactSwapConfig
 
   return ArtifactSwapConfig(
     primaryRepositoryName = getProperty("artifactswap.primaryRepositoryName"),
-    secondaryRepositoryName =
-      getProperty(
-        "artifactswap.secondaryRepositoryName",
-        ArtifactSwapConfig.SECONDARY_REPOSITORY_NAME,
-      ),
     primaryArtifactsMavenGroup = getProperty("artifactswap.primaryArtifactsMavenGroup"),
-    secondaryArtifactsMavenGroup =
-      getProperty(
-        "artifactswap.secondaryArtifactsMavenGroup",
-        ArtifactSwapConfig.SECONDARY_ARTIFACTS_MAVEN_GROUP,
-      ),
     eventstreamBaseUrl =
       getProperty("artifactswap.eventstreamBaseUrl", ArtifactSwapConfig.EVENTSTREAM_BASE_URL),
     artifactoryPublisherTokenFileName =
       getProperty("artifactswap.artifactoryPublisherTokenFileName"),
-    protosGeneratedVersionProperty =
-      getProperty(
-        "artifactswap.protosGeneratedVersionProperty",
-        ArtifactSwapConfig.PROTOS_GENERATED_VERSION_PROPERTY,
-      ),
-    protosSchemaVersionProperty =
-      getProperty(
-        "artifactswap.protosSchemaVersionProperty",
-        ArtifactSwapConfig.PROTOS_SCHEMA_VERSION_PROPERTY,
-      ),
     excludeGradleProjects = emptyList(),
     artifactoryBaseUrl =
       getProperty("artifactswap.artifactoryBaseUrl", ArtifactSwapConfig.ARTIFACTORY_BASE_URL),

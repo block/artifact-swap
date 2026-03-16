@@ -3,7 +3,6 @@ package xyz.block.artifactswap.core.download
 import kotlin.time.Duration.Companion.milliseconds
 import okhttp3.ResponseBody.Companion.toResponseBody
 import okio.ByteString.Companion.encodeUtf8
-import xyz.block.artifactswap.core.config.testArtifactSwapConfig
 import xyz.block.artifactswap.core.download.models.Artifact
 import xyz.block.artifactswap.core.download.models.DownloadFileType
 import xyz.block.artifactswap.core.download.models.DownloadedArtifactFileResult
@@ -11,7 +10,6 @@ import xyz.block.artifactswap.core.download.models.InstallArtifactFilesResult
 import xyz.block.artifactswap.core.download.models.InstallArtifactFilesResult.Success
 import xyz.block.artifactswap.core.download.models.LocalArtifactState
 import xyz.block.artifactswap.core.download.services.ArtifactRepository
-import xyz.block.artifactswap.core.download.services.SQUARE_PUBLIC_REPO
 import xyz.block.artifactswap.core.maven.Project
 
 val FAKE_SUCCESS_DURATION = 200.milliseconds
@@ -19,8 +17,6 @@ val FAKE_FAILURE_DURATION = 100.milliseconds
 
 const val FAKE_ARTIFACT_DOWNLOAD_SIZE_BYTES = 1024 * 1024 * 5L
 const val FAKE_ARTIFACT_DOWNLOAD_SIZE_MB = FAKE_ARTIFACT_DOWNLOAD_SIZE_BYTES / (1024 * 1024)
-
-internal val SQUARE_PROTOS_ARTIFACT_GROUP = testArtifactSwapConfig().secondaryArtifactsMavenGroup
 
 class FakeArtifactRepository(
   var getBomResult: Result<List<Artifact>> = Result.success(emptyList())
@@ -67,19 +63,7 @@ class FakeArtifactRepository(
     )
   }
 
-  private val allProtos =
-    Artifact(
-      groupId = SQUARE_PROTOS_ARTIFACT_GROUP,
-      artifactId = "all-protos",
-      version = "1.2.3",
-      repo = SQUARE_PUBLIC_REPO,
-    )
-
-  // The all-protos artifact is an implicit artifact, so we default it to always being installed
-  val localArtifactStateCache =
-    DownloadFileType.entries
-      .associate { allProtos to it to LocalArtifactState.INSTALLED }
-      .toMutableMap()
+  val localArtifactStateCache = mutableMapOf<Pair<Artifact, DownloadFileType>, LocalArtifactState>()
 
   fun setLocalArtifactState(
     artifact: Artifact,
@@ -99,11 +83,7 @@ class FakeArtifactRepository(
     )
   }
 
-  // The all-protos artifact is an implicit artifact, so we default it to always being installed
-  val installArtifactResultsCache: MutableMap<Artifact, InstallArtifactFilesResult> =
-    DownloadFileType.entries
-      .associate { allProtos to InstallArtifactFilesResult.NoOp }
-      .toMutableMap()
+  val installArtifactResultsCache: MutableMap<Artifact, InstallArtifactFilesResult> = mutableMapOf()
 
   fun setInstallArtifactResult(artifact: Artifact, result: InstallArtifactFilesResult) {
     installArtifactResultsCache[artifact] = result

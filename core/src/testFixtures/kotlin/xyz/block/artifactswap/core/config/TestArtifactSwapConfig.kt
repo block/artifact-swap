@@ -12,13 +12,9 @@ package xyz.block.artifactswap.core.config
  */
 fun testArtifactSwapConfig(
   primaryRepositoryName: String = "test-primary-repo",
-  secondaryRepositoryName: String = ArtifactSwapConfig.SECONDARY_REPOSITORY_NAME,
   primaryArtifactsMavenGroup: String = "com.test.artifacts",
-  secondaryArtifactsMavenGroup: String = ArtifactSwapConfig.SECONDARY_ARTIFACTS_MAVEN_GROUP,
   eventstreamBaseUrl: String = ArtifactSwapConfig.EVENTSTREAM_BASE_URL,
   artifactoryPublisherTokenFileName: String = "test-token.txt",
-  protosGeneratedVersionProperty: String = ArtifactSwapConfig.PROTOS_GENERATED_VERSION_PROPERTY,
-  protosSchemaVersionProperty: String = ArtifactSwapConfig.PROTOS_SCHEMA_VERSION_PROPERTY,
   excludeGradleProjects: List<String> = emptyList(),
   bomSourceBranchName: String = "origin/main",
   artifactoryBaseUrl: String = ArtifactSwapConfig.ARTIFACTORY_BASE_URL,
@@ -26,13 +22,9 @@ fun testArtifactSwapConfig(
 ): ArtifactSwapConfig =
   ArtifactSwapConfig(
     primaryRepositoryName = primaryRepositoryName,
-    secondaryRepositoryName = secondaryRepositoryName,
     primaryArtifactsMavenGroup = primaryArtifactsMavenGroup,
-    secondaryArtifactsMavenGroup = secondaryArtifactsMavenGroup,
     eventstreamBaseUrl = eventstreamBaseUrl,
     artifactoryPublisherTokenFileName = artifactoryPublisherTokenFileName,
-    protosGeneratedVersionProperty = protosGeneratedVersionProperty,
-    protosSchemaVersionProperty = protosSchemaVersionProperty,
     excludeGradleProjects = excludeGradleProjects,
     bomSourceBranchName = bomSourceBranchName,
     artifactoryBaseUrl = artifactoryBaseUrl,

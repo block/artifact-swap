@@ -40,7 +40,6 @@ import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 
 private const val BOM = "bom"
-internal const val SQUARE_PUBLIC_REPO = "square-public-repo"
 
 interface ArtifactRepository {
   suspend fun getInstalledBom(bomVersion: String): Result<Project>

@@ -8,21 +8,9 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import xyz.block.artifactswap.ArtifactSwapProjectPlugin
 
-private const val SQUARE_GENERATED_PROTOS_VERSION = "square.protosGeneratedVersion"
-private const val SQUARE_PROTOS_SCHEMA_VERSION = "square.protosSchemaVersion"
-internal const val LOCAL_PROTOS_ARTIFACTS = "square.useLocalProtos"
 public const val ARTIFACT_SWAP_ENABLED: String = "artifactswap.enabled"
 private const val IS_ARTIFACT_SWAP_PUBLISHING_ENABLED = "artifactswap.publishingEnabled"
 private const val ARTIFACT_VERSION_FILE = "artifactswap.artifactVersionFile"
-internal val Settings.useLocalProtos: Boolean
-  get() = providers.gradleProperty(LOCAL_PROTOS_ARTIFACTS).getOrElse("false").toBoolean()
-
-internal val Project.generatedProtosVersion
-  get() = providers.gradleProperty(SQUARE_GENERATED_PROTOS_VERSION).get()
-
-internal val Project.protosSchemaVersion
-  get() = providers.gradleProperty(SQUARE_PROTOS_SCHEMA_VERSION).get()
-
 internal val ProviderFactory.isArtifactSwapEnabledByGradleProperty: Provider<Boolean>
   get() = gradleProperty(ARTIFACT_SWAP_ENABLED).map { it.toBoolean() }
 
