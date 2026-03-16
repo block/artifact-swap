@@ -25,13 +25,9 @@ class BomPublisherTest {
   private val testConfig =
     ArtifactSwapConfig(
       primaryRepositoryName = "test-repo",
-      secondaryRepositoryName = "test-secondary-repo",
       primaryArtifactsMavenGroup = "xyz.block.artifactswap.artifacts",
-      secondaryArtifactsMavenGroup = "xyz.block.artifactswap.secondary",
       eventstreamBaseUrl = "https://eventstream.test.com",
       artifactoryPublisherTokenFileName = "test-token.txt",
-      protosGeneratedVersionProperty = "test.protosGeneratedVersion",
-      protosSchemaVersionProperty = "test.protosSchemaVersion",
       excludeGradleProjects = emptyList(),
       bomSourceBranchName = "origin/main",
       artifactoryBaseUrl = "https://artifactory.test.com",

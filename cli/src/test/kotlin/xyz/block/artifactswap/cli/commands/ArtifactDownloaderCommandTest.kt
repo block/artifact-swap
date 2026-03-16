@@ -21,15 +21,11 @@ import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.config.testArtifactSwapConfig
 import xyz.block.artifactswap.core.download.FakeArtifactRepository
 import xyz.block.artifactswap.core.download.FakeEventStream
-import xyz.block.artifactswap.core.download.FakeGradleProjectsProvider
-import xyz.block.artifactswap.core.download.FakeGradlePropertiesProvider
 import xyz.block.artifactswap.core.download.models.Artifact
 import xyz.block.artifactswap.core.download.models.ArtifactDownloaderResult
 import xyz.block.artifactswap.core.download.services.ArtifactDownloaderEventStream
 import xyz.block.artifactswap.core.download.services.ArtifactRepository
 import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
-import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
-import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
 
 /**
  * Integration tests for the CLI command that verify picocli argument parsing and proper wiring with
@@ -41,16 +37,12 @@ class ArtifactDownloaderCommandTest {
   val mockArtifactSyncBomLoader = mock<ArtifactSyncBomLoader>()
   lateinit var fakeArtifactRepository: FakeArtifactRepository
   lateinit var fakeEventStream: FakeEventStream
-  lateinit var projectsProvider: GradleProjectsProvider
-  lateinit var propertiesProvider: GradlePropertiesProvider
   lateinit var commandLine: CommandLine
 
   @BeforeEach
   fun setUp() {
     fakeArtifactRepository = FakeArtifactRepository()
     fakeEventStream = FakeEventStream()
-    projectsProvider = FakeGradleProjectsProvider(emptyList())
-    propertiesProvider = FakeGradlePropertiesProvider()
     commandLine = CommandLine(ArtifactDownloaderCommand())
   }
 
@@ -88,8 +80,6 @@ class ArtifactDownloaderCommandTest {
           single<ArtifactSyncBomLoader> { mockArtifactSyncBomLoader }
           single<ArtifactRepository> { fakeArtifactRepository }
           single<ArtifactDownloaderEventStream> { fakeEventStream }
-          single<GradleProjectsProvider> { projectsProvider }
-          single<GradlePropertiesProvider> { propertiesProvider }
         }
       )
 
@@ -122,8 +112,6 @@ class ArtifactDownloaderCommandTest {
         single<ArtifactSyncBomLoader> { mockArtifactSyncBomLoader }
         single<ArtifactRepository> { fakeArtifactRepository }
         single<ArtifactDownloaderEventStream> { fakeEventStream }
-        single<GradleProjectsProvider> { projectsProvider }
-        single<GradlePropertiesProvider> { propertiesProvider }
       }
     )
 

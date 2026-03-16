@@ -1,8 +1,6 @@
 package xyz.block.artifactswap.core.download
 
 import java.io.File
-import java.nio.file.Paths
-import kotlin.io.path.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
@@ -24,9 +22,6 @@ import xyz.block.artifactswap.core.download.models.DownloadFileType
 import xyz.block.artifactswap.core.download.models.InstallArtifactFilesResult
 import xyz.block.artifactswap.core.download.models.LocalArtifactState
 import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
-import xyz.block.artifactswap.core.gradle.GradleProjectsProvider
-import xyz.block.artifactswap.core.gradle.GradlePropertiesProvider
-import xyz.block.artifactswap.core.gradle.ProjectHashingInfo
 
 class ArtifactDownloaderTest {
 
@@ -34,8 +29,6 @@ class ArtifactDownloaderTest {
   val mockArtifactSyncBomLoader = mock<ArtifactSyncBomLoader>()
   lateinit var fakeArtifactRepository: FakeArtifactRepository
   lateinit var fakeEventStream: FakeEventStream
-  lateinit var projectsProvider: GradleProjectsProvider
-  lateinit var propertiesProvider: GradlePropertiesProvider
   lateinit var downloader: ArtifactDownloader
   val testConfig = testArtifactSwapConfig() // Use test config for tests
 
@@ -43,15 +36,11 @@ class ArtifactDownloaderTest {
   fun setUp() {
     fakeArtifactRepository = FakeArtifactRepository()
     fakeEventStream = FakeEventStream()
-    projectsProvider = FakeGradleProjectsProvider(emptyList())
-    propertiesProvider = FakeGradlePropertiesProvider()
     downloader =
       ArtifactDownloader(
         bomLoader = mockArtifactSyncBomLoader,
         artifactEventStream = fakeEventStream,
         artifactRepository = fakeArtifactRepository,
-        settingsGradleProjectsProvider = projectsProvider,
-        gradlePropertiesProvider = propertiesProvider,
         config = testConfig,
       )
   }
@@ -67,41 +56,26 @@ class ArtifactDownloaderTest {
         Artifact("com.squareup", "sqlbrite", "1.9.0", "test-repo"),
       )
 
-    // the all-protos artifact is an implicit item to download
-    const val ALL_PROTOS_COUNT = 1
-
     const val FAKE_BOM_VERSION = "abdcd12345"
-
-    // Use the test config's secondary artifacts group for protos
-    val SQUARE_PROTOS_ARTIFACT_GROUP = testArtifactSwapConfig().secondaryArtifactsMavenGroup
   }
 
   @Test
   fun `GIVEN can't fetch bom WHEN executing THEN log failure and stop`() = runTest {
     fakeArtifactRepository.getBomResult = Result.failure(Exception("Failed to fetch BOM"))
-    val result =
-      downloader.downloadAndInstallArtifacts(
-        bomVersion = FAKE_BOM_VERSION,
-        settingsGradleFile = Path(tempDir.absolutePath),
-      )
+    val result = downloader.downloadAndInstallArtifacts(bomVersion = FAKE_BOM_VERSION)
 
     assertEquals(FAILED_TO_DOWNLOAD_BOM, result.result)
     assertEquals(1, fakeEventStream.receivedEvents.size)
   }
 
   @Test
-  fun `GIVEN requested bom not found WHEN executing THEN only download all-protos, success result`() =
+  fun `GIVEN requested bom not found WHEN executing THEN download nothing, success result`() =
     runTest {
-      // we don't find anything at that bom version
       fakeArtifactRepository.getBomResult = Result.success(emptyList())
-      val result =
-        downloader.downloadAndInstallArtifacts(
-          bomVersion = FAKE_BOM_VERSION,
-          settingsGradleFile = Path(tempDir.absolutePath),
-        )
+      val result = downloader.downloadAndInstallArtifacts(bomVersion = FAKE_BOM_VERSION)
 
       assertEquals(SUCCESS, result.result)
-      assertEquals(ALL_PROTOS_COUNT, result.countArtifactsToDownload)
+      assertEquals(0, result.countArtifactsToDownload)
       assertEquals(1, fakeEventStream.receivedEvents.size)
     }
 
@@ -112,14 +86,10 @@ class ArtifactDownloaderTest {
         .thenReturn(Result.success(FAKE_BOM_VERSION))
       fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
 
-      val result =
-        downloader.downloadAndInstallArtifacts(
-          bomVersion = "", // empty means find best
-          settingsGradleFile = Path(tempDir.absolutePath),
-        )
+      val result = downloader.downloadAndInstallArtifacts(bomVersion = "")
 
       assertEquals(SUCCESS, result.result)
-      assertEquals(FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT, result.countArtifactsToDownload)
+      assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
       assertEquals(1, fakeEventStream.receivedEvents.size)
     }
 
@@ -129,11 +99,7 @@ class ArtifactDownloaderTest {
       wheneverBlocking { mockArtifactSyncBomLoader.findBestBomVersion(any()) }
         .thenReturn(Result.failure(Exception("Failed to find bom version")))
 
-      val result =
-        downloader.downloadAndInstallArtifacts(
-          bomVersion = "",
-          settingsGradleFile = Path(tempDir.absolutePath),
-        )
+      val result = downloader.downloadAndInstallArtifacts(bomVersion = "")
 
       assertEquals(FAILED_TO_FIND_VALID_BOM_VERSION, result.result)
       assertEquals(1, fakeEventStream.receivedEvents.size)
@@ -143,30 +109,20 @@ class ArtifactDownloaderTest {
   fun `GIVEN all services working, no artifacts installed WHEN executing THEN download and install all artifacts`() =
     runTest {
       fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
-      val result =
-        downloader.downloadAndInstallArtifacts(
-          bomVersion = FAKE_BOM_VERSION,
-          settingsGradleFile = Path(tempDir.absolutePath),
-        )
+      val result = downloader.downloadAndInstallArtifacts(bomVersion = FAKE_BOM_VERSION)
 
       assertEquals(SUCCESS, result.result)
-      assertEquals(FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT, result.countArtifactsToDownload)
-      // All artifacts plus the all-protos artifact are downloaded
+      assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
       assertEquals(
-        (FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT) * DownloadFileType.entries.size,
+        FAKE_ARTIFACTS.size * DownloadFileType.entries.size,
         result.countSuccessfulDownloadedArtifactFiles.toInt(),
       )
       assertEquals(0, result.countFailedDownloadedArtifactFiles.toInt())
       assertEquals(
-        FAKE_ARTIFACT_DOWNLOAD_SIZE_MB *
-          (FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT) *
-          DownloadFileType.entries.size,
+        FAKE_ARTIFACT_DOWNLOAD_SIZE_MB * FAKE_ARTIFACTS.size * DownloadFileType.entries.size,
         result.totalDownloadSizeMb,
       )
-      assertEquals(
-        FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT,
-        result.countSuccessfulInstalledArtifacts.toInt(),
-      )
+      assertEquals(FAKE_ARTIFACTS.size, result.countSuccessfulInstalledArtifacts.toInt())
       assertEquals(0, result.countFailedInstalledArtifacts.toInt())
 
       // validate all durations are set to a non-negative value
@@ -194,23 +150,15 @@ class ArtifactDownloaderTest {
     }
     fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
 
-    val result =
-      downloader.downloadAndInstallArtifacts(
-        bomVersion = FAKE_BOM_VERSION,
-        settingsGradleFile = Path(tempDir.absolutePath),
-      )
+    val result = downloader.downloadAndInstallArtifacts(bomVersion = FAKE_BOM_VERSION)
 
     assertEquals(MANY_DOWNLOADS_FAILED, result.result)
-    assertEquals(FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT, result.countArtifactsToDownload)
-    // Half of FAKE_ARTIFACTS fail, plus the all-protos artifact succeeds
+    assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
     assertEquals(
-      ((FAKE_ARTIFACTS.size / 2) + ALL_PROTOS_COUNT) * DownloadFileType.entries.size,
+      (FAKE_ARTIFACTS.size / 2) * DownloadFileType.entries.size,
       result.countSuccessfulDownloadedArtifactFiles.toInt(),
     )
-    assertEquals(
-      FAKE_ARTIFACTS.size / 2 + ALL_PROTOS_COUNT,
-      result.countSuccessfulInstalledArtifacts.toInt(),
-    )
+    assertEquals(FAKE_ARTIFACTS.size / 2, result.countSuccessfulInstalledArtifacts.toInt())
     assertEquals(1, fakeEventStream.receivedEvents.size)
   }
 
@@ -225,23 +173,15 @@ class ArtifactDownloaderTest {
     }
     fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
 
-    val result =
-      downloader.downloadAndInstallArtifacts(
-        bomVersion = FAKE_BOM_VERSION,
-        settingsGradleFile = Path(tempDir.absolutePath),
-      )
+    val result = downloader.downloadAndInstallArtifacts(bomVersion = FAKE_BOM_VERSION)
 
     assertEquals(MANY_INSTALLS_FAILED, result.result)
-    assertEquals(FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT, result.countArtifactsToDownload)
-    // All artifacts plus the all-protos artifact are downloaded
+    assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
     assertEquals(
-      (FAKE_ARTIFACTS.size + ALL_PROTOS_COUNT) * DownloadFileType.entries.size,
+      FAKE_ARTIFACTS.size * DownloadFileType.entries.size,
       result.countSuccessfulDownloadedArtifactFiles.toInt(),
     )
-    assertEquals(
-      FAKE_ARTIFACTS.size / 2 + ALL_PROTOS_COUNT,
-      result.countSuccessfulInstalledArtifacts.toInt(),
-    )
+    assertEquals(FAKE_ARTIFACTS.size / 2, result.countSuccessfulInstalledArtifacts.toInt())
     assertEquals(1, fakeEventStream.receivedEvents.size)
   }
 
@@ -262,11 +202,7 @@ class ArtifactDownloaderTest {
         }
       fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
 
-      val result =
-        downloader.downloadAndInstallArtifacts(
-          bomVersion = FAKE_BOM_VERSION,
-          settingsGradleFile = Path(tempDir.absolutePath),
-        )
+      val result = downloader.downloadAndInstallArtifacts(bomVersion = FAKE_BOM_VERSION)
 
       assertEquals(SUCCESS, result.result)
       val downloadedArtifactFiles = fakeArtifactRepository.requestedArtifactFilesForDownload.toSet()
@@ -274,262 +210,5 @@ class ArtifactDownloaderTest {
         assertFalse { downloadedArtifactFiles.contains(localArtifact to localArtifactFileType) }
       }
       assertEquals(1, fakeEventStream.receivedEvents.size)
-    }
-
-  @Test
-  fun `GIVEN protos not already installed WHEN executing THEN downloads the protos`() = runTest {
-    // Fake repo defaults to indicating that protos are downloaded already
-    fakeArtifactRepository.localArtifactStateCache.clear()
-    fakeArtifactRepository.getBomResult = Result.success(emptyList())
-    val fakeProtosProjects =
-      listOf(
-        ProjectHashingInfo(":foo:public", Paths.get("foo/public"), emptySequence()),
-        ProjectHashingInfo(":bar:public", Paths.get("bar/public"), emptySequence()),
-      )
-    // Total count to be downloaded is the protos build projects plus 1 for `all-protos`
-    val totalProtosProjects = fakeProtosProjects.size + 1
-    projectsProvider = FakeGradleProjectsProvider(fakeProtosProjects)
-    downloader =
-      ArtifactDownloader(
-        bomLoader = mockArtifactSyncBomLoader,
-        artifactEventStream = fakeEventStream,
-        artifactRepository = fakeArtifactRepository,
-        settingsGradleProjectsProvider = projectsProvider,
-        gradlePropertiesProvider = propertiesProvider,
-        config = testConfig,
-      )
-
-    val result =
-      downloader.downloadAndInstallArtifacts(
-        bomVersion = FAKE_BOM_VERSION,
-        settingsGradleFile = Path(tempDir.absolutePath),
-      )
-
-    val downloadedArtifacts =
-      fakeArtifactRepository.requestedArtifactFilesForDownload
-        .map { (artifact, _) -> artifact }
-        .distinct()
-    assertEquals(
-      listOf(
-        Artifact(SQUARE_PROTOS_ARTIFACT_GROUP, "foo", "1.2.3", testConfig.secondaryRepositoryName),
-        Artifact(SQUARE_PROTOS_ARTIFACT_GROUP, "bar", "1.2.3", testConfig.secondaryRepositoryName),
-        Artifact(
-          SQUARE_PROTOS_ARTIFACT_GROUP,
-          "all-protos",
-          "1.2.3",
-          testConfig.secondaryRepositoryName,
-        ),
-      ),
-      downloadedArtifacts,
-    )
-    assertEquals(SUCCESS, result.result)
-    // Protos don't come from a BOM file
-    assertEquals(totalProtosProjects, result.countArtifactsToDownload)
-    assertEquals(
-      totalProtosProjects * DownloadFileType.entries.size,
-      result.countSuccessfulDownloadedArtifactFiles.toInt(),
-    )
-    assertEquals(0, result.countFailedDownloadedArtifactFiles.toInt())
-    assertEquals(
-      FAKE_ARTIFACT_DOWNLOAD_SIZE_MB * totalProtosProjects * DownloadFileType.entries.size,
-      result.totalDownloadSizeMb,
-    )
-    assertEquals(totalProtosProjects, result.countSuccessfulInstalledArtifacts.toInt())
-    assertEquals(0, result.countFailedInstalledArtifacts.toInt())
-
-    // validate all durations are set to a non-negative value
-    listOf(
-        result.totalDurationMs,
-        result.getArtifactsToDownloadDurationMs,
-        result.p50DownloadTimeMs,
-        result.p90DownloadTimeMs,
-        result.p99DownloadTimeMs,
-        result.maxDownloadTimeMs,
-        result.p50InstallTimeMs,
-        result.p90InstallTimeMs,
-        result.p99InstallTimeMs,
-        result.maxInstallTimeMs,
-      )
-      .forEach { assertNotEquals(-1, it) }
-    assertEquals(1, fakeEventStream.receivedEvents.size)
-  }
-
-  @Test
-  fun `GIVEN missing both protos properties WHEN executing THEN skips protos and downloads BOM only`() =
-    runTest {
-      // Clear properties to simulate missing configuration
-      (propertiesProvider as FakeGradlePropertiesProvider).clearAllProperties()
-      fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
-
-      val result =
-        downloader.downloadAndInstallArtifacts(
-          bomVersion = FAKE_BOM_VERSION,
-          settingsGradleFile = null,
-        )
-
-      assertEquals(SUCCESS, result.result)
-      // Should only download BOM artifacts (no protos)
-      assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
-      assertEquals(1, fakeEventStream.receivedEvents.size)
-    }
-
-  @Test
-  fun `GIVEN missing protosGeneratedVersion WHEN executing THEN skips protos`() = runTest {
-    // Set up properties provider with only schema version
-    val customPropertiesProvider =
-      object : GradlePropertiesProvider {
-        override fun get(key: String): String =
-          if (key == testConfig.protosSchemaVersionProperty) "1.0.0" else error("Property not set")
-
-        override fun getOrNull(key: String): String? =
-          if (key == testConfig.protosSchemaVersionProperty) "1.0.0" else null
-      }
-
-    downloader =
-      ArtifactDownloader(
-        bomLoader = mockArtifactSyncBomLoader,
-        artifactEventStream = fakeEventStream,
-        artifactRepository = fakeArtifactRepository,
-        settingsGradleProjectsProvider = projectsProvider,
-        gradlePropertiesProvider = customPropertiesProvider,
-        config = testConfig,
-      )
-
-    fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
-
-    val result =
-      downloader.downloadAndInstallArtifacts(
-        bomVersion = FAKE_BOM_VERSION,
-        settingsGradleFile = Path(tempDir.absolutePath),
-      )
-
-    assertEquals(SUCCESS, result.result)
-    assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
-  }
-
-  @Test
-  fun `GIVEN missing protosSchemaVersion WHEN executing THEN skips protos`() = runTest {
-    // Set up properties provider with only generated version
-    val customPropertiesProvider =
-      object : GradlePropertiesProvider {
-        override fun get(key: String): String =
-          if (key == testConfig.protosGeneratedVersionProperty) "1.0.0"
-          else error("Property not set")
-
-        override fun getOrNull(key: String): String? =
-          if (key == testConfig.protosGeneratedVersionProperty) "1.0.0" else null
-      }
-
-    downloader =
-      ArtifactDownloader(
-        bomLoader = mockArtifactSyncBomLoader,
-        artifactEventStream = fakeEventStream,
-        artifactRepository = fakeArtifactRepository,
-        settingsGradleProjectsProvider = projectsProvider,
-        gradlePropertiesProvider = customPropertiesProvider,
-        config = testConfig,
-      )
-
-    fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
-
-    val result =
-      downloader.downloadAndInstallArtifacts(
-        bomVersion = FAKE_BOM_VERSION,
-        settingsGradleFile = Path(tempDir.absolutePath),
-      )
-
-    assertEquals(SUCCESS, result.result)
-    assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
-  }
-
-  @Test
-  fun `GIVEN settings file not provided WHEN executing THEN skips protos`() = runTest {
-    fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
-
-    val result =
-      downloader.downloadAndInstallArtifacts(
-        bomVersion = FAKE_BOM_VERSION,
-        settingsGradleFile = null,
-      )
-
-    assertEquals(SUCCESS, result.result)
-    assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
-  }
-
-  @Test
-  fun `GIVEN settings file parse failure WHEN executing THEN skips protos and continues with BOM`() =
-    runTest {
-      // Set up properties provider with both properties
-      val customPropertiesProvider =
-        object : GradlePropertiesProvider {
-          override fun get(key: String): String = "1.0.0"
-
-          override fun getOrNull(key: String): String? = "1.0.0"
-        }
-
-      // Set up projects provider that returns a failure
-      val failingProjectsProvider =
-        object : GradleProjectsProvider {
-          override suspend fun getProjectHashingInfos(): Result<List<ProjectHashingInfo>> =
-            Result.failure(Exception("Failed to parse settings.gradle"))
-
-          override suspend fun cleanup() {}
-        }
-
-      downloader =
-        ArtifactDownloader(
-          bomLoader = mockArtifactSyncBomLoader,
-          artifactEventStream = fakeEventStream,
-          artifactRepository = fakeArtifactRepository,
-          settingsGradleProjectsProvider = failingProjectsProvider,
-          gradlePropertiesProvider = customPropertiesProvider,
-          config = testConfig,
-        )
-
-      fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
-
-      val result =
-        downloader.downloadAndInstallArtifacts(
-          bomVersion = FAKE_BOM_VERSION,
-          settingsGradleFile = Path(tempDir.absolutePath),
-        )
-
-      // Should succeed with just BOM artifacts
-      assertEquals(SUCCESS, result.result)
-      assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
-    }
-
-  @Test
-  fun `GIVEN empty string property values WHEN executing THEN treated as missing and skips protos`() =
-    runTest {
-      // Set up properties provider that returns empty strings
-      val customPropertiesProvider =
-        object : GradlePropertiesProvider {
-          override fun get(key: String): String = ""
-
-          override fun getOrNull(key: String): String? = ""
-        }
-
-      downloader =
-        ArtifactDownloader(
-          bomLoader = mockArtifactSyncBomLoader,
-          artifactEventStream = fakeEventStream,
-          artifactRepository = fakeArtifactRepository,
-          settingsGradleProjectsProvider = projectsProvider,
-          gradlePropertiesProvider = customPropertiesProvider,
-          config = testConfig,
-        )
-
-      fakeArtifactRepository.getBomResult = Result.success(FAKE_ARTIFACTS)
-
-      val result =
-        downloader.downloadAndInstallArtifacts(
-          bomVersion = FAKE_BOM_VERSION,
-          settingsGradleFile = Path(tempDir.absolutePath),
-        )
-
-      assertEquals(SUCCESS, result.result)
-      // Should skip protos due to blank properties
-      assertEquals(FAKE_ARTIFACTS.size, result.countArtifactsToDownload)
     }
 }

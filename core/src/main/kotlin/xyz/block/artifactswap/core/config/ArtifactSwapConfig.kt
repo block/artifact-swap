@@ -23,13 +23,6 @@ data class ArtifactSwapConfig(
    */
   val primaryRepositoryName: String,
 
-  /**
-   * Name of the secondary Artifactory/Maven repository if not all are present in primary.
-   *
-   * Example: "my-company-public-protos"
-   */
-  val secondaryRepositoryName: String,
-
   // ============================================================================
   // Maven Group ID Configuration
   // ============================================================================
@@ -41,14 +34,6 @@ data class ArtifactSwapConfig(
    * Example: "com.demo.artifactswap.artifacts"
    */
   val primaryArtifactsMavenGroup: String,
-
-  /**
-   * Maven group ID for artifacts in secondary repository (e.g. if your org publishes artifacts
-   * publicly and internally).
-   *
-   * Example: "com.mycompany.publicprotos"
-   */
-  val secondaryArtifactsMavenGroup: String,
 
   // ============================================================================
   // API Endpoints
@@ -77,22 +62,6 @@ data class ArtifactSwapConfig(
   // ============================================================================
   // Gradle Properties
   // ============================================================================
-
-  /**
-   * Gradle property key for the generated protos version. Used to specify which version of
-   * generated protocol buffer code to use.
-   *
-   * Example: "square.protosGeneratedVersion" or "mycompany.protosGeneratedVersion"
-   */
-  val protosGeneratedVersionProperty: String,
-
-  /**
-   * Gradle property key for the protos schema version. Used to specify which version of the
-   * protocol buffer schema definitions to use.
-   *
-   * Example: "square.protosSchemaVersion" or "mycompany.protosSchemaVersion"
-   */
-  val protosSchemaVersionProperty: String,
 
   // ============================================================================
   // Gradle Projects Settings
@@ -133,11 +102,7 @@ data class ArtifactSwapConfig(
   val primaryArtifactsMavenGroupArtifactoryPath = primaryArtifactsMavenGroup.replace('.', '/')
 
   companion object Defaults {
-    const val SECONDARY_REPOSITORY_NAME = "demo-secondary-repo"
-    const val SECONDARY_ARTIFACTS_MAVEN_GROUP = "com.demo.artifactswap.secondary"
     const val EVENTSTREAM_BASE_URL = "https://analytics.example.com"
-    const val PROTOS_GENERATED_VERSION_PROPERTY = "square.protosGeneratedVersion"
-    const val PROTOS_SCHEMA_VERSION_PROPERTY = "square.protosSchemaVersion"
     const val ARTIFACTORY_BASE_URL = "https://artifactory.example.com"
     const val DEFAULT_MAVEN_LOCAL_DIRECTORY = "\${user.home}/.m2/repository"
   }

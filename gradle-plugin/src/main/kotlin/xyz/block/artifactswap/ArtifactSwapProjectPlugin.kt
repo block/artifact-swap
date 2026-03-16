@@ -8,8 +8,6 @@ import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import xyz.block.artifactswap.gradle.internal.artifactSwapConfig
 import xyz.block.gradle.asProjectPath
-import xyz.block.gradle.generatedProtosVersion
-import xyz.block.gradle.protosSchemaVersion
 import xyz.block.gradle.services.services
 
 /**
@@ -63,18 +61,6 @@ internal class ArtifactSwapProjectPlugin : Plugin<Project> {
 
             else -> useTarget(p) // If the project exists, substitute the artifact with the project
           }
-        } else if (requested.group == PROTOS_MAVEN_GROUP) {
-          // When artifact sync is active, the project artifacts may reference old versions of
-          // protos.
-          // Protos should be force resolved to the current version otherwise it may cause
-          // unnecessary downloads of oudated artifacts.
-          val version =
-            when (requested.module) {
-              // all-protos is the input to the protos generator and is versioned separately
-              "all-protos" -> protosSchemaVersion
-              else -> generatedProtosVersion
-            }
-          useTarget("${requested.group}:${requested.module}:$version")
         }
 
         // TODO: In the future, we should rewrite all of the dependencies of artifacts to the
