@@ -9,7 +9,7 @@ pluginManagement {
 
   plugins {
     id("conventions.settings")
-    id("com.google.devtools.ksp") version "2.2.20-2.0.4"
+    id("com.google.devtools.ksp") version "2.3.11"
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("com.gradleup.shadow") version "9.3.1"
     id("org.jetbrains.intellij.platform") version "2.11.0"
