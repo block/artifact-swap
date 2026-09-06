@@ -11,10 +11,10 @@ pluginManagement {
     id("conventions.settings")
     id("com.google.devtools.ksp") version "2.2.20-2.0.4"
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-    id("com.gradleup.shadow") version "9.3.1"
-    id("org.jetbrains.intellij.platform") version "2.11.0"
-    id("com.fueledbycaffeine.spotlight") version "1.6.6"
-    id("com.autonomousapps.testkit") version "0.17"
+    id("com.gradleup.shadow") version "9.6.1"
+    id("org.jetbrains.intellij.platform") version "2.18.1"
+    id("com.fueledbycaffeine.spotlight") version "1.7.1"
+    id("com.autonomousapps.testkit") version "0.20"
   }
 }
 
@@ -34,7 +34,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath("com.squareup.okhttp3:okhttp:5.3.2")
+    classpath("com.squareup.okhttp3:okhttp:5.5.0")
   }
 }
 
