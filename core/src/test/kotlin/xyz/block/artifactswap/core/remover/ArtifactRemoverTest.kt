@@ -133,9 +133,9 @@ class ArtifactRemoverTest {
       assertTrue(result.endRepoStats != null)
 
       // Verify stats have reasonable values
-      assertEquals(1, result.startRepoStats?.countInstalledProjects)
-      assertEquals(1, result.startRepoStats?.countInstalledBoms)
-      assertTrue(result.startRepoStats?.measurementDuration != null)
+      assertEquals(1, result.startRepoStats.countInstalledProjects)
+      assertEquals(1, result.startRepoStats.countInstalledBoms)
+      assertTrue(result.startRepoStats.measurementDuration != null)
     }
 
   @Test

@@ -168,7 +168,7 @@ object SourceFileFinder {
       current = current.parent
     }
 
-    val tag = current as? XmlTag ?: return null
+    val tag = current ?: return null
 
     // The tag name is the resource type (e.g., <string>, <color>, <dimen>)
     return tag.name
