@@ -8,6 +8,7 @@ import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import javax.inject.Inject
 import org.gradle.api.Plugin
+import org.gradle.api.configuration.BuildFeatures
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.logging.Logger
@@ -47,7 +48,10 @@ import xyz.block.ide.isIdeSync
 @Suppress("unused")
 public class ArtifactSwapSettingsPlugin
 @Inject
-constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings> {
+constructor(
+  private val registry: ToolingModelBuilderRegistry,
+  private val buildFeatures: BuildFeatures,
+) : Plugin<Settings> {
 
   private lateinit var extension: ArtifactSwapExtension
   private lateinit var dslService: ArtifactSwapDslService
@@ -99,6 +103,7 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
    * 4. Transitive dependencies (from spotlight graph)
    *
    * Uses a ValueSource to encapsulate all I/O operations for configuration cache compatibility.
+   * When the configuration cache is active the selection runs serially inside the ValueSource.
    */
   private fun Settings.selectProjectsForArtifactSwap():
     ArtifactSwapModuleSelectionValueSource.Result {
@@ -107,6 +112,7 @@ constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Settings
         it.parameters.rootDirectory.set(settingsDir)
         it.parameters.rootProjectName.set(rootProject.name)
         it.parameters.config.set(artifactSwapConfig)
+        it.parameters.configurationCacheActive.set(buildFeatures.configurationCache.active)
       }
       .get()
   }

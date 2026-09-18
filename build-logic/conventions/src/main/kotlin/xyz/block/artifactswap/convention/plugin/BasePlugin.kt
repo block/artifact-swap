@@ -16,9 +16,6 @@ class BasePlugin : Plugin<Project> {
       task.compilerOptions {
         jvmTarget.set(JVM_TARGET)
         allWarningsAsErrors.set(true)
-        freeCompilerArgs.addAll(
-          "-Xannotation-default-target=param-property",
-        )
       }
     }
     tasks.withType(GroovyCompile::class.java).configureEach { task ->

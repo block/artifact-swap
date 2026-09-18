@@ -7,6 +7,8 @@ import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import java.io.Serializable
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.Dispatchers
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
@@ -31,6 +33,16 @@ internal abstract class ArtifactSwapModuleSelectionValueSource :
     val rootDirectory: DirectoryProperty
     val rootProjectName: Property<String>
     val config: Property<ArtifactSwapConfig>
+    /**
+     * Whether the configuration cache (or Isolated Projects) is active for this build.
+     *
+     * Gradle only exempts the thread that calls [obtain] from configuration input tracking, so file
+     * reads and external processes started on other threads would be recorded as inputs or rejected
+     * outright ("Starting an external process during configuration time is unsupported"). When this
+     * is `true` all selection work runs serially on the calling thread. See
+     * https://github.com/gradle/gradle/issues/36121.
+     */
+    val configurationCacheActive: Property<Boolean>
   }
 
   data class Result(
@@ -78,7 +90,16 @@ internal abstract class ArtifactSwapModuleSelectionValueSource :
     val typeSafeAccessorRule = TypeSafeProjectAccessorRule(rootProjectAccessor, typeSafeAccessorMap)
     val allRules = spotlightRules.implicitRules + typeSafeAccessorRule
 
-    val selector = ArtifactSwapModuleSelectorFactory.create(rootDir, config, allRules)
+    // With an empty context, every coroutine inherits the runBlocking event loop and stays on
+    // this thread, which is the only one Gradle exempts from configuration input tracking.
+    val ioContext =
+      if (parameters.configurationCacheActive.getOrElse(false)) {
+        logger.info("Configuration cache is active, running module selection serially")
+        EmptyCoroutineContext
+      } else {
+        Dispatchers.IO
+      }
+    val selector = ArtifactSwapModuleSelectorFactory.create(rootDir, config, allRules, ioContext)
     val selectionResult = selector.selectProjects(requestedProjects)
 
     val result =

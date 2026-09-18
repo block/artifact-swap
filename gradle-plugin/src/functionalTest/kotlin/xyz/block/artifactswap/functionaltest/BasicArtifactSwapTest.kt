@@ -190,4 +190,50 @@ class BasicArtifactSwapTest {
     assertThat(result.output).contains("${testProject.mavenGroup}:lib")
     assertThat(result.output).doesNotContain("project :lib")
   }
+
+  /**
+   * Regression test for configuration cache and Isolated Projects compatibility.
+   *
+   * Gradle only exempts the thread that calls `ValueSource.obtain()` from configuration input
+   * tracking, so running `git status` on a worker thread fails with "Starting an external process
+   * during configuration time is unsupported". Isolated Projects additionally forbids
+   * `BuildServiceRegistry.getRegistrations().getAt()`. Both paths are exercised here: module
+   * selection always runs `git status`, and resolving the swapped `:lib` looks up the BOM service.
+   */
+  @Test
+  fun `GIVEN configuration cache and isolated projects WHEN IDE sync THEN selection succeeds`() {
+    val project = testProject.createBasicProject(GradleProject.DslKind.GROOVY)
+
+    testProject.initializeGitRepo(project)
+    testProject.publishArtifactsToMavenLocal(project, listOf(":lib", ":app"))
+    testProject.setupIdeProjectsList(project, listOf(":app"))
+
+    // Uncommitted change in :app so the git status process actually runs
+    project.writeFile(
+      "app/src/main/java/com/test/app/NewFile.java",
+      """
+      package com.test.app;
+      public class NewFile {}
+      """
+        .trimIndent(),
+    )
+
+    val result =
+      project.ideSync(
+        ":app:dependencies",
+        "--configuration",
+        "compileClasspath",
+        configurationCache = true,
+      )
+
+    assertThat(result.task(":help")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+    assertThat(result.output).contains("Using Artifact Swap!")
+    assertThat(result.output).contains("running module selection serially")
+    assertThat(result.output).doesNotContain("external process")
+
+    val selection = result.artifactSwapSelection()
+    assertThat(selection.decisionFor(":app")).isEqualTo(EXPLICITLY_REQUESTED)
+    assertThat(selection.decisionFor(":lib")).isEqualTo(EXCLUDED)
+    assertThat(result.output).contains("${testProject.mavenGroup}:lib")
+  }
 }

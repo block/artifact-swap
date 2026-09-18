@@ -44,15 +44,18 @@ internal class SharedServices(private val gradle: Gradle) {
 
   /** Returns the service registered with the matching [key]. */
   fun <T : BuildService<P>, P : BuildServiceParameters> get(key: SharedServiceKey<T, P>): T {
-    @Suppress("UNCHECKED_CAST")
-    return gradle.sharedServices.registrations.getAt(key.name).service.get() as T
+    return provider(key).get()
   }
 
+  /** Returns a provider for the service registered with the matching [key]. */
   fun <T : BuildService<P>, P : BuildServiceParameters> provider(
     key: SharedServiceKey<T, P>
   ): Provider<T> {
+    val registration =
+      gradle.sharedServices.registrations.findByName(key.name)
+        ?: throw IllegalStateException("Shared service '${key.name}' has not been registered")
     @Suppress("UNCHECKED_CAST")
-    return gradle.sharedServices.registrations.getAt(key.name).service as Provider<T>
+    return registration.service as Provider<T>
   }
 }
 

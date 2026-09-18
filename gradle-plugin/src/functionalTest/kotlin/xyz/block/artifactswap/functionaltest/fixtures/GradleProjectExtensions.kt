@@ -24,16 +24,26 @@ fun GradleProject.build(vararg args: String): BuildResult =
 /**
  * Simulates an IDE sync by running with -Didea.sync.active=true. This is how we test artifact swap
  * behavior during sync.
+ *
+ * @param configurationCache when `true`, runs with the configuration cache and Isolated Projects
+ *   enabled so that configuration-time input tracking is enforced.
  */
-fun GradleProject.ideSync(vararg additionalArgs: String): BuildResult {
+fun GradleProject.ideSync(
+  vararg additionalArgs: String,
+  configurationCache: Boolean = false,
+): BuildResult {
+  val ccArgs =
+    if (configurationCache) {
+      arrayOf(
+        "--configuration-cache",
+        "--configuration-cache-problems=fail",
+        "-Dorg.gradle.unsafe.isolated-projects=true",
+      )
+    } else {
+      arrayOf("--no-configuration-cache")
+    }
   val args =
-    arrayOf(
-      "help",
-      "-Didea.sync.active=true",
-      "--no-configuration-cache",
-      "--stacktrace",
-      "--info",
-    ) + additionalArgs
+    arrayOf("help", "-Didea.sync.active=true", "--stacktrace", "--info") + ccArgs + additionalArgs
   return GradleBuilder.build(testGradleVersion, rootDir, *args)
 }
 

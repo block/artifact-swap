@@ -5,6 +5,8 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import java.nio.file.Path
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.jvm.java
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -28,10 +30,18 @@ import xyz.block.artifactswap.core.repository.RealLocalArtifactRepository
 import xyz.block.artifactswap.core.shared_services.git.RealSquareGit
 
 internal object ArtifactSwapModuleSelectorFactory {
+  /**
+   * @param ioContext the coroutine context used for I/O work. Pass [Dispatchers.IO] to run the
+   *   selection steps in parallel, or [EmptyCoroutineContext] to keep every step on the calling
+   *   thread. The latter is required inside a [org.gradle.api.provider.ValueSource] when the
+   *   configuration cache is active, because Gradle only exempts the thread that called `obtain()`
+   *   from input tracking (https://github.com/gradle/gradle/issues/36121).
+   */
   fun create(
     rootDir: Path,
     config: ArtifactSwapConfig,
     spotlightRules: Set<DependencyRule>,
+    ioContext: CoroutineContext = Dispatchers.IO,
   ): ArtifactSwapModuleSelector {
     val xmlMapper =
       XmlMapper.builder()
@@ -57,22 +67,15 @@ internal object ArtifactSwapModuleSelectorFactory {
 
     val artifactoryEndpoints = retrofit.create(ArtifactoryEndpoints::class.java)
     val artifactoryService = ArtifactoryService(artifactoryEndpoints, config)
-    val squareGit = RealSquareGit(rootDir, Dispatchers.IO)
-    val localArtifactRepository =
-      RealLocalArtifactRepository(xmlMapper, Dispatchers.IO, config = config)
+    val squareGit = RealSquareGit(rootDir, ioContext)
+    val localArtifactRepository = RealLocalArtifactRepository(xmlMapper, ioContext, config = config)
 
     // Create download package instances for BOM loading
-    val downloadSquareGit = RealSquareGit(rootDir, Dispatchers.IO)
+    val downloadSquareGit = RealSquareGit(rootDir, ioContext)
     val localMavenPath =
       Path.of(config.mavenLocalDirectory.replace("\${user.home}", System.getProperty("user.home")))
     val downloadArtifactRepository =
-      RealArtifactRepository(
-        localMavenPath,
-        artifactoryEndpoints,
-        Dispatchers.IO,
-        xmlMapper,
-        config,
-      )
+      RealArtifactRepository(localMavenPath, artifactoryEndpoints, ioContext, xmlMapper, config)
     val bomLoader: ArtifactSyncBomLoader =
       RealArtifactSyncBomLoader(
         downloadSquareGit,
@@ -96,7 +99,7 @@ internal object ArtifactSwapModuleSelectorFactory {
       localArtifactRepository,
       squareGit,
       bomLoader,
-      Dispatchers.IO,
+      ioContext,
       eventstream,
       spotlightRules,
       alwaysKeepProjects,

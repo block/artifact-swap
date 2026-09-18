@@ -160,9 +160,9 @@ class ArtifactSwapTestProject(
           additions =
             """
             plugins {
-              id 'org.jetbrains.kotlin.jvm' version '2.1.0'
+              id 'org.jetbrains.kotlin.jvm' version '2.4.20'
               id 'java-library'
-              id 'app.cash.sqldelight' version '2.0.2'
+              id 'app.cash.sqldelight' version '2.4.0'
             }
 
             sqldelight {
@@ -186,9 +186,9 @@ class ArtifactSwapTestProject(
           additions =
             """
             plugins {
-              id 'org.jetbrains.kotlin.jvm' version '2.1.0'
+              id 'org.jetbrains.kotlin.jvm' version '2.4.20'
               id 'java-library'
-              id 'app.cash.sqldelight' version '2.0.2'
+              id 'app.cash.sqldelight' version '2.4.0'
             }
 
             sqldelight {
@@ -562,12 +562,9 @@ class ArtifactSwapTestProject(
 
     // Get version from git commit SHA
     def getGitCommitSha() {
-      def stdout = new ByteArrayOutputStream()
-      exec {
+      return providers.exec {
         commandLine 'git', 'rev-parse', 'HEAD'
-        standardOutput = stdout
-      }
-      return stdout.toString().trim()
+      }.standardOutput.asText.get().trim()
     }
 
     publishing {
