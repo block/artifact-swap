@@ -1,3 +1,9 @@
+## 0.1.13
+- Support Gradle Isolated Projects and configuration cache during module selection
+- Update to Gradle 9.7.1 and Kotlin 2.4.20
+- Remove protos downloader integration
+- Update spotlight
+
 ## 0.1.12
 - Allow configuring maven local directory via gradle.properties
 - Expose mavenLocalDirectory through tooling model to IDE plugin
