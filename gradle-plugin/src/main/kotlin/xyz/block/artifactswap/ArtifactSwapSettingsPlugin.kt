@@ -5,6 +5,7 @@ package xyz.block.artifactswap
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
 import com.fueledbycaffeine.spotlight.applySpotlightConfiguration
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
+import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
 import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import javax.inject.Inject
 import org.gradle.api.Plugin
@@ -59,6 +60,7 @@ constructor(
   public override fun apply(target: Settings): Unit =
     target.run {
       requireSpotlightAvailable()
+      extensions.getSpotlightExtension()
       dslService = ArtifactSwapDslService.of(settings).get()
       extension = ArtifactSwapExtension.create(settings, dslService)
       gradle.rootProject { registry.register(ArtifactSwapModelBuilder()) }

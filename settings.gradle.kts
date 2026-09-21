@@ -13,7 +13,7 @@ pluginManagement {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("com.gradleup.shadow") version "9.3.1"
     id("org.jetbrains.intellij.platform") version "2.11.0"
-    id("com.fueledbycaffeine.spotlight") version "1.6.6"
+    id("com.fueledbycaffeine.spotlight") version "1.8.0"
     id("com.autonomousapps.testkit") version "0.17"
   }
 }

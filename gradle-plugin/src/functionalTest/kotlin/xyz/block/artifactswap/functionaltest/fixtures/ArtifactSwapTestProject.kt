@@ -45,6 +45,32 @@ class ArtifactSwapTestProject(
       "org.gradle.configuration-cache=false",
     )
 
+  /** Creates a project that configures Spotlight while Artifact Swap owns plugin application. */
+  fun createSpotlightConfiguredProject(): GradleProject =
+    newGradleProjectBuilder(GradleProject.DslKind.GROOVY)
+      .withRootProject {
+        gradleProperties = gradleProperties()
+
+        withSettingsScript {
+          plugins(
+            Plugin("com.fueledbycaffeine.spotlight", "1.8.0", apply = false),
+            Plugin("xyz.block.artifactswap.settings", PLUGIN_UNDER_TEST_VERSION),
+          )
+
+          additions =
+            """
+            spotlight {
+              targetsOverride = providers.provider { ':app' }
+            }
+            """
+              .trimIndent()
+        }
+      }
+      .withSubproject("lib") { withBuildScript { plugins(Plugin("java-library")) } }
+      .withSubproject("app") { withBuildScript { plugins(Plugin("java-library")) } }
+      .write()
+      .also { project -> convertIncludesToAllProjectsFile(project, GradleProject.DslKind.GROOVY) }
+
   /** Creates a basic multi-module project with artifact swap configured. */
   fun createBasicProject(
     dslKind: GradleProject.DslKind = GradleProject.DslKind.GROOVY
@@ -56,7 +82,7 @@ class ArtifactSwapTestProject(
         withSettingsScript {
           plugins(
             Plugin("com.gradle.develocity", "4.3.1"),
-            Plugin("com.fueledbycaffeine.spotlight", "1.6.6", apply = false),
+            Plugin("com.fueledbycaffeine.spotlight", "1.8.0", apply = false),
             Plugin("xyz.block.artifactswap.settings", PLUGIN_UNDER_TEST_VERSION),
           )
 
@@ -138,7 +164,7 @@ class ArtifactSwapTestProject(
         withSettingsScript {
           plugins(
             Plugin("com.gradle.develocity", "4.3.1"),
-            Plugin("com.fueledbycaffeine.spotlight", "1.6.6", apply = false),
+            Plugin("com.fueledbycaffeine.spotlight", "1.8.0", apply = false),
             Plugin("xyz.block.artifactswap.settings", PLUGIN_UNDER_TEST_VERSION),
           )
 
@@ -220,7 +246,7 @@ class ArtifactSwapTestProject(
         withSettingsScript {
           plugins(
             Plugin("com.gradle.develocity", "4.3.1"),
-            Plugin("com.fueledbycaffeine.spotlight", "1.6.6", apply = false),
+            Plugin("com.fueledbycaffeine.spotlight", "1.8.0", apply = false),
             Plugin("xyz.block.artifactswap.settings", PLUGIN_UNDER_TEST_VERSION),
           )
 
@@ -477,7 +503,7 @@ class ArtifactSwapTestProject(
         withSettingsScript {
           plugins(
             Plugin("com.gradle.develocity", "4.3.1"),
-            Plugin("com.fueledbycaffeine.spotlight", "1.6.6", apply = false),
+            Plugin("com.fueledbycaffeine.spotlight", "1.8.0", apply = false),
             Plugin("xyz.block.artifactswap.settings", PLUGIN_UNDER_TEST_VERSION),
           )
 
