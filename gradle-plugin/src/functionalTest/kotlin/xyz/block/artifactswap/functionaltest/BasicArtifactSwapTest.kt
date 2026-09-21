@@ -14,6 +14,7 @@ import xyz.block.artifactswap.core.module_selector.InclusionReason.LOCAL_CHANGES
 import xyz.block.artifactswap.core.module_selector.InclusionReason.MISSING_ARTIFACT
 import xyz.block.artifactswap.functionaltest.fixtures.ArtifactSwapTestProject
 import xyz.block.artifactswap.functionaltest.fixtures.artifactSwapSelection
+import xyz.block.artifactswap.functionaltest.fixtures.build
 import xyz.block.artifactswap.functionaltest.fixtures.ideSync
 import xyz.block.artifactswap.functionaltest.fixtures.writeFile
 
@@ -32,6 +33,16 @@ class BasicArtifactSwapTest {
   @BeforeEach
   fun setup() {
     testProject = ArtifactSwapTestProject(mavenRepo)
+  }
+
+  @Test
+  fun `GIVEN Spotlight configuration WHEN Artifact Swap is inactive THEN configuration is used`() {
+    val project = testProject.createSpotlightConfiguredProject()
+
+    val result = project.build("projects")
+
+    assertThat(result.output).contains("Project ':app'")
+    assertThat(result.output).doesNotContain("Project ':lib'")
   }
 
   @Test
