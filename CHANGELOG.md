@@ -1,3 +1,7 @@
+## 0.1.14
+- Allow configuring Spotlight in settings scripts while Artifact Swap defers plugin application
+- Update Spotlight to 1.8.0
+
 ## 0.1.13
 - Support Gradle Isolated Projects and configuration cache during module selection
 - Update to Gradle 9.7.1 and Kotlin 2.4.20
