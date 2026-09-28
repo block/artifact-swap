@@ -1,5 +1,7 @@
+import org.gradle.plugin.compatibility.compatibility
+
 plugins {
-  id("java-gradle-plugin")
+  id("com.gradle.plugin-publish")
   id("groovy")
   id("com.autonomousapps.testkit")
 }
@@ -16,6 +18,12 @@ gradlePlugin {
     create("artifactSwapSettingsPlugin") {
       id = "xyz.block.artifactswap.settings"
       implementationClass = "xyz.block.artifactswap.ArtifactSwapSettingsPlugin"
+      compatibility {
+        features {
+          isolatedProjects = true
+          configurationCache = true
+        }
+      }
     }
     create("artifactSwapProjectPlugin") {
       id = "xyz.block.artifactswap"
