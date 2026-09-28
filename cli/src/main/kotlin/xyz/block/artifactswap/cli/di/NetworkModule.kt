@@ -31,7 +31,6 @@ import xyz.block.artifactswap.core.eventstream.EventstreamService
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.network.ArtifactoryService
 
-private val UNAUTHENTICATED_HTTP_METHODS = listOf("GET", "HEAD")
 private const val MAX_RETRY_ATTEMPTS = 5
 
 internal fun artifactoryNetworkModule() = module {
@@ -110,17 +109,14 @@ internal fun artifactoryNetworkModule() = module {
       }
       .addNetworkInterceptor(get<Interceptor>(named("cache404Interceptor")))
       .addInterceptor { chain ->
-        // GET/HEAD methods don't require authentication
-        if (chain.request().method !in UNAUTHENTICATED_HTTP_METHODS) {
-          val newRequest =
-            chain
-              .request()
-              .newBuilder()
-              .addHeader("Authorization", "Bearer ${get<String>(named("artifactoryToken"))}")
-              .build()
-          return@addInterceptor chain.proceed(newRequest)
-        }
-        return@addInterceptor chain.proceed(chain.request())
+        val token = get<String>(named("artifactoryToken"))
+        val request =
+          if (token.isBlank()) {
+            chain.request()
+          } else {
+            chain.request().newBuilder().addHeader("Authorization", "Bearer $token").build()
+          }
+        chain.proceed(request)
       }
       .build()
   }
@@ -136,10 +132,9 @@ internal fun artifactoryNetworkModule() = module {
 
   single(named("artifactoryToken")) {
     val config = get<ArtifactSwapConfig>()
-    Path(get<String>(named("artifactorySecretsPath")))
-      .resolve(config.artifactoryPublisherTokenFileName)
-      .readLines()
-      .first()
+    val secretsPath = get<String>(named("artifactorySecretsPath"))
+    if (secretsPath.isBlank()) return@single ""
+    Path(secretsPath).resolve(config.artifactoryPublisherTokenFileName).readLines().first()
   }
 
   single<Retrofit>(named("artifactoryRetrofit")) {
@@ -156,7 +151,7 @@ internal fun artifactoryNetworkModule() = module {
     get<Retrofit>(named("artifactoryRetrofit")).create<ArtifactoryEndpoints>()
   }
 
-  single(named("artifactorySecretsPath")) { System.getenv("SECRETS_PATH") }
+  single(named("artifactorySecretsPath")) { System.getenv("SECRETS_PATH").orEmpty() }
 }
 
 internal fun analyticsNetworkModule() = module {
