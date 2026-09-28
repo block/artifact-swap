@@ -27,7 +27,7 @@ import xyz.block.artifactswap.core.module_selector.RealArtifactSwapModuleSelecto
 import xyz.block.artifactswap.core.network.ArtifactoryEndpoints
 import xyz.block.artifactswap.core.network.ArtifactoryService
 import xyz.block.artifactswap.core.repository.RealLocalArtifactRepository
-import xyz.block.artifactswap.core.shared_services.git.RealSquareGit
+import xyz.block.artifactswap.core.shared_services.git.RealGitClient
 
 internal object ArtifactSwapModuleSelectorFactory {
   /**
@@ -67,18 +67,18 @@ internal object ArtifactSwapModuleSelectorFactory {
 
     val artifactoryEndpoints = retrofit.create(ArtifactoryEndpoints::class.java)
     val artifactoryService = ArtifactoryService(artifactoryEndpoints, config)
-    val squareGit = RealSquareGit(rootDir, ioContext)
+    val gitClient = RealGitClient(rootDir, ioContext)
     val localArtifactRepository = RealLocalArtifactRepository(xmlMapper, ioContext, config = config)
 
     // Create download package instances for BOM loading
-    val downloadSquareGit = RealSquareGit(rootDir, ioContext)
+    val downloadGitClient = RealGitClient(rootDir, ioContext)
     val localMavenPath =
       Path.of(config.mavenLocalDirectory.replace("\${user.home}", System.getProperty("user.home")))
     val downloadArtifactRepository =
       RealArtifactRepository(localMavenPath, artifactoryEndpoints, ioContext, xmlMapper, config)
     val bomLoader: ArtifactSyncBomLoader =
       RealArtifactSyncBomLoader(
-        downloadSquareGit,
+        downloadGitClient,
         downloadArtifactRepository,
         artifactoryService,
         config,
@@ -97,7 +97,7 @@ internal object ArtifactSwapModuleSelectorFactory {
 
     return RealArtifactSwapModuleSelector(
       localArtifactRepository,
-      squareGit,
+      gitClient,
       bomLoader,
       ioContext,
       eventstream,
