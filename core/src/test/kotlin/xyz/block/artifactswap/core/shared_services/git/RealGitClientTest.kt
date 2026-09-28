@@ -11,16 +11,18 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class RealSquareGitTest {
+class RealGitClientTest {
 
   /** Test repo created in system temp dir so it's outside any existing git repo. */
   private lateinit var repoDir: Path
   private lateinit var remoteDir: Path
+  private lateinit var worktreeDir: Path
 
   @BeforeEach
   fun setup() {
-    repoDir = createTempDirectory("square-git-test-repo-")
-    remoteDir = createTempDirectory("square-git-test-remote-")
+    repoDir = createTempDirectory("git-client-test-repo-")
+    remoteDir = createTempDirectory("git-client-test-remote-")
+    worktreeDir = repoDir.resolveSibling("${repoDir.fileName}-worktree")
 
     git("init", "-b", "main")
     git("config", "user.name", "Test")
@@ -41,11 +43,12 @@ class RealSquareGitTest {
 
   @AfterEach
   fun cleanup() {
+    worktreeDir.toFile().deleteRecursively()
     repoDir.toFile().deleteRecursively()
     remoteDir.toFile().deleteRecursively()
   }
 
-  private fun newSquareGit(): RealSquareGit = RealSquareGit(repoDir, EmptyCoroutineContext)
+  private fun newGitClient(): RealGitClient = RealGitClient(repoDir, EmptyCoroutineContext)
 
   @Test
   fun `findChangedFiles detects untracked new files`() = runTest {
@@ -85,9 +88,23 @@ class RealSquareGitTest {
     assertEquals(emptySet(), findChangedRelativePaths())
   }
 
+  @Test
+  fun `findChangedFiles resolves files from a linked worktree`() = runTest {
+    git("worktree", "add", "-b", "feature", worktreeDir.toString())
+    val changedFile = worktreeDir.resolve("worktree-only.txt")
+    changedFile.writeText("new content")
+
+    val changedFiles =
+      RealGitClient(worktreeDir, EmptyCoroutineContext)
+        .findChangedFiles(baseRef = "origin/main")
+        .getOrThrow()
+
+    assertEquals(setOf(changedFile.toRealPath()), changedFiles)
+  }
+
   private suspend fun findChangedRelativePaths(): Set<String> {
     val root = repoDir.absolute().normalize()
-    return newSquareGit()
+    return newGitClient()
       .findChangedFiles(baseRef = "origin/main")
       .getOrThrow()
       .map { root.relativize(it).toString() }

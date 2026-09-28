@@ -22,7 +22,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.slf4j.LoggerFactory
 
 /** Helper class to access git information via JGit */
-interface SquareGit {
+interface GitClient {
 
   /** Returns the commit hash of the youngest ancestor between HEAD and the base branch. */
   suspend fun findRecentSharedCommits(baseRef: String, count: Int = 50): List<ObjectId>
@@ -36,14 +36,14 @@ interface SquareGit {
   suspend fun findChangedFiles(baseRef: String): Result<Set<Path>>
 }
 
-private val LOGGER = LoggerFactory.getLogger(SquareGit::class.java)
+private val LOGGER = LoggerFactory.getLogger(GitClient::class.java)
 
-class RealSquareGit(rootDir: Path, private val context: CoroutineContext) : SquareGit {
+class RealGitClient(rootDir: Path, private val context: CoroutineContext) : GitClient {
 
   private val repository =
     FileRepositoryBuilder().readEnvironment().findGitDir(rootDir.toFile()).build()
 
-  private val repoRoot = repository.directory.toPath().parent
+  private val repoRoot = repository.workTree.toPath()
 
   private val git = Git(repository)
 

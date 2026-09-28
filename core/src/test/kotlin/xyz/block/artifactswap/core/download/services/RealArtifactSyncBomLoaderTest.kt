@@ -17,7 +17,7 @@ import xyz.block.artifactswap.core.maven.Dependency
 import xyz.block.artifactswap.core.maven.DependencyManagement
 import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.network.ArtifactoryService
-import xyz.block.artifactswap.core.shared_services.git.SquareGit
+import xyz.block.artifactswap.core.shared_services.git.GitClient
 
 class RealArtifactSyncBomLoaderTest {
 
@@ -51,20 +51,20 @@ class RealArtifactSyncBomLoaderTest {
   @Test
   fun `GIVEN checkRemote false WHEN finding best bom THEN only checks local repository`() =
     runTest {
-      val mockSquareGit = mock<SquareGit>()
+      val mockGitClient = mock<GitClient>()
       val mockLocalRepo = mock<ArtifactRepository>()
       val mockArtifactory = mock<ArtifactoryService>()
 
       val commitHash = "e272a0091dda8d4d14056560df3dd34c45b0d94a"
       val commits = listOf(ObjectId.fromString(commitHash))
 
-      wheneverBlocking { mockSquareGit.findRecentSharedCommits(any(), any()) }.thenReturn(commits)
+      wheneverBlocking { mockGitClient.findRecentSharedCommits(any(), any()) }.thenReturn(commits)
       wheneverBlocking { mockLocalRepo.getInstalledBom(commitHash) }
         .thenReturn(Result.success(DEFAULT_MAVEN_POM))
 
       val bomLoader =
         RealArtifactSyncBomLoader(
-          squareGit = mockSquareGit,
+          gitClient = mockGitClient,
           localArtifactRepository = mockLocalRepo,
           artifactoryService = mockArtifactory,
           config = TEST_CONFIG,
@@ -82,14 +82,14 @@ class RealArtifactSyncBomLoaderTest {
   @Test
   fun `GIVEN checkRemote true and BOM exists in Artifactory WHEN finding best bom THEN checks Artifactory`() =
     runTest {
-      val mockSquareGit = mock<SquareGit>()
+      val mockGitClient = mock<GitClient>()
       val mockLocalRepo = mock<ArtifactRepository>()
       val mockArtifactory = mock<ArtifactoryService>()
 
       val commitHash = "e272a0091dda8d4d14056560df3dd34c45b0d94a"
       val commits = listOf(ObjectId.fromString(commitHash))
 
-      wheneverBlocking { mockSquareGit.findRecentSharedCommits(any(), any()) }.thenReturn(commits)
+      wheneverBlocking { mockGitClient.findRecentSharedCommits(any(), any()) }.thenReturn(commits)
       // BOM not found locally
       wheneverBlocking { mockLocalRepo.getInstalledBom(commitHash) }
         .thenReturn(Result.failure(FileNotFoundException("Not found locally")))
@@ -98,7 +98,7 @@ class RealArtifactSyncBomLoaderTest {
 
       val bomLoader =
         RealArtifactSyncBomLoader(
-          squareGit = mockSquareGit,
+          gitClient = mockGitClient,
           localArtifactRepository = mockLocalRepo,
           artifactoryService = mockArtifactory,
           config = TEST_CONFIG,
@@ -116,21 +116,21 @@ class RealArtifactSyncBomLoaderTest {
   @Test
   fun `GIVEN checkRemote true and BOM exists locally WHEN finding best bom THEN finds it without calling Artifactory`() =
     runTest {
-      val mockSquareGit = mock<SquareGit>()
+      val mockGitClient = mock<GitClient>()
       val mockLocalRepo = mock<ArtifactRepository>()
       val mockArtifactory = mock<ArtifactoryService>()
 
       val commitHash = "e272a0091dda8d4d14056560df3dd34c45b0d94a"
       val commits = listOf(ObjectId.fromString(commitHash))
 
-      wheneverBlocking { mockSquareGit.findRecentSharedCommits(any(), any()) }.thenReturn(commits)
+      wheneverBlocking { mockGitClient.findRecentSharedCommits(any(), any()) }.thenReturn(commits)
       // BOM found locally
       wheneverBlocking { mockLocalRepo.getInstalledBom(commitHash) }
         .thenReturn(Result.success(DEFAULT_MAVEN_POM))
 
       val bomLoader =
         RealArtifactSyncBomLoader(
-          squareGit = mockSquareGit,
+          gitClient = mockGitClient,
           localArtifactRepository = mockLocalRepo,
           artifactoryService = mockArtifactory,
           config = TEST_CONFIG,
@@ -148,7 +148,7 @@ class RealArtifactSyncBomLoaderTest {
   @Test
   fun `GIVEN checkRemote true and first commit has no BOM but second has remote BOM WHEN finding best bom THEN returns second commit`() =
     runTest {
-      val mockSquareGit = mock<SquareGit>()
+      val mockGitClient = mock<GitClient>()
       val mockLocalRepo = mock<ArtifactRepository>()
       val mockArtifactory = mock<ArtifactoryService>()
 
@@ -156,7 +156,7 @@ class RealArtifactSyncBomLoaderTest {
       val commitHash2 = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       val commits = listOf(ObjectId.fromString(commitHash1), ObjectId.fromString(commitHash2))
 
-      wheneverBlocking { mockSquareGit.findRecentSharedCommits(any(), any()) }.thenReturn(commits)
+      wheneverBlocking { mockGitClient.findRecentSharedCommits(any(), any()) }.thenReturn(commits)
       // Neither commit has local BOM
       wheneverBlocking { mockLocalRepo.getInstalledBom(any()) }
         .thenReturn(Result.failure(FileNotFoundException("Not found locally")))
@@ -172,7 +172,7 @@ class RealArtifactSyncBomLoaderTest {
 
       val bomLoader =
         RealArtifactSyncBomLoader(
-          squareGit = mockSquareGit,
+          gitClient = mockGitClient,
           localArtifactRepository = mockLocalRepo,
           artifactoryService = mockArtifactory,
           config = TEST_CONFIG,
@@ -191,15 +191,15 @@ class RealArtifactSyncBomLoaderTest {
   @Test
   fun `GIVEN findBestBomVersion returns failure WHEN no commits found THEN returns failure`() =
     runTest {
-      val mockSquareGit = mock<SquareGit>()
+      val mockGitClient = mock<GitClient>()
       val mockLocalRepo = mock<ArtifactRepository>()
       val mockArtifactory = mock<ArtifactoryService>()
 
-      wheneverBlocking { mockSquareGit.findRecentSharedCommits(any(), any()) }.thenReturn(null)
+      wheneverBlocking { mockGitClient.findRecentSharedCommits(any(), any()) }.thenReturn(null)
 
       val bomLoader =
         RealArtifactSyncBomLoader(
-          squareGit = mockSquareGit,
+          gitClient = mockGitClient,
           localArtifactRepository = mockLocalRepo,
           artifactoryService = mockArtifactory,
           config = TEST_CONFIG,
@@ -211,7 +211,7 @@ class RealArtifactSyncBomLoaderTest {
 
   @Test
   fun `GIVEN loadBom WHEN BOM available locally THEN returns local BOM`() = runTest {
-    val mockSquareGit = mock<SquareGit>()
+    val mockGitClient = mock<GitClient>()
     val mockLocalRepo = mock<ArtifactRepository>()
     val mockArtifactory = mock<ArtifactoryService>()
 
@@ -221,7 +221,7 @@ class RealArtifactSyncBomLoaderTest {
 
     val bomLoader =
       RealArtifactSyncBomLoader(
-        squareGit = mockSquareGit,
+        gitClient = mockGitClient,
         localArtifactRepository = mockLocalRepo,
         artifactoryService = mockArtifactory,
         config = TEST_CONFIG,
@@ -238,7 +238,7 @@ class RealArtifactSyncBomLoaderTest {
   @Test
   fun `GIVEN loadBom WHEN BOM not available locally but in Artifactory THEN fetches from Artifactory`() =
     runTest {
-      val mockSquareGit = mock<SquareGit>()
+      val mockGitClient = mock<GitClient>()
       val mockLocalRepo = mock<ArtifactRepository>()
       val mockArtifactory = mock<ArtifactoryService>()
 
@@ -250,7 +250,7 @@ class RealArtifactSyncBomLoaderTest {
 
       val bomLoader =
         RealArtifactSyncBomLoader(
-          squareGit = mockSquareGit,
+          gitClient = mockGitClient,
           localArtifactRepository = mockLocalRepo,
           artifactoryService = mockArtifactory,
           config = TEST_CONFIG,
@@ -266,7 +266,7 @@ class RealArtifactSyncBomLoaderTest {
 
   @Test
   fun `GIVEN loadBom WHEN BOM not available anywhere THEN returns failure`() = runTest {
-    val mockSquareGit = mock<SquareGit>()
+    val mockGitClient = mock<GitClient>()
     val mockLocalRepo = mock<ArtifactRepository>()
     val mockArtifactory = mock<ArtifactoryService>()
 
@@ -278,7 +278,7 @@ class RealArtifactSyncBomLoaderTest {
 
     val bomLoader =
       RealArtifactSyncBomLoader(
-        squareGit = mockSquareGit,
+        gitClient = mockGitClient,
         localArtifactRepository = mockLocalRepo,
         artifactoryService = mockArtifactory,
         config = TEST_CONFIG,

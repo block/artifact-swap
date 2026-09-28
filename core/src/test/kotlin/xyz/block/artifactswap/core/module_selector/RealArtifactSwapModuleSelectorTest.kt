@@ -17,7 +17,7 @@ class RealArtifactSwapModuleSelectorTest {
   @TempDir lateinit var rootDir: Path
 
   private val fakeLocalArtifactRepository = FakeLocalArtifactRepository()
-  private val fakeSquareGit = FakeSquareGit()
+  private val fakeGitClient = FakeGitClient()
   private val fakeBomHelper = FakeArtifactSwapBomLoader()
   private val fakeEventstream = mock<Eventstream>()
 
@@ -62,7 +62,7 @@ class RealArtifactSwapModuleSelectorTest {
     val selector =
       RealArtifactSwapModuleSelector(
         localArtifactRepository = fakeLocalArtifactRepository,
-        squareGit = fakeSquareGit,
+        gitClient = fakeGitClient,
         bomLoader = fakeBomHelper,
         ioDispatcher = Dispatchers.Unconfined,
         eventstream = fakeEventstream,
@@ -75,7 +75,7 @@ class RealArtifactSwapModuleSelectorTest {
         InstalledArtifact(":module:1", setOf("abc123")),
         InstalledArtifact(":module:2", setOf("def456")),
       )
-    fakeSquareGit.changedFiles = emptySet()
+    fakeGitClient.changedFiles = emptySet()
 
     // Request both modules so they're both candidates, but only module1 is "explicitly requested"
     // (this tests that module2 gets excluded even though it's a candidate)
@@ -96,7 +96,7 @@ class RealArtifactSwapModuleSelectorTest {
     val selector =
       RealArtifactSwapModuleSelector(
         localArtifactRepository = fakeLocalArtifactRepository,
-        squareGit = fakeSquareGit,
+        gitClient = fakeGitClient,
         bomLoader = fakeBomHelper,
         ioDispatcher = Dispatchers.Unconfined,
         eventstream = fakeEventstream,
@@ -109,7 +109,7 @@ class RealArtifactSwapModuleSelectorTest {
         InstalledArtifact(":module:1", setOf("abc123")),
         InstalledArtifact(":module:2", setOf("def456")),
       )
-    fakeSquareGit.changedFiles = setOf(rootDir.resolve("module/2/SomeFile.kt"))
+    fakeGitClient.changedFiles = setOf(rootDir.resolve("module/2/SomeFile.kt"))
 
     val result = selector.selectProjects(setOf(module1))
 
@@ -127,7 +127,7 @@ class RealArtifactSwapModuleSelectorTest {
     val selector =
       RealArtifactSwapModuleSelector(
         localArtifactRepository = fakeLocalArtifactRepository,
-        squareGit = fakeSquareGit,
+        gitClient = fakeGitClient,
         bomLoader = fakeBomHelper,
         ioDispatcher = Dispatchers.Unconfined,
         eventstream = fakeEventstream,
@@ -137,7 +137,7 @@ class RealArtifactSwapModuleSelectorTest {
     // Only module 1 has an artifact
     fakeLocalArtifactRepository.installedArtifacts =
       setOf(InstalledArtifact(":module:1", setOf("abc123")))
-    fakeSquareGit.changedFiles = emptySet()
+    fakeGitClient.changedFiles = emptySet()
 
     val result = selector.selectProjects(setOf(module1))
 
@@ -155,7 +155,7 @@ class RealArtifactSwapModuleSelectorTest {
     val selector =
       RealArtifactSwapModuleSelector(
         localArtifactRepository = fakeLocalArtifactRepository,
-        squareGit = fakeSquareGit,
+        gitClient = fakeGitClient,
         bomLoader = fakeBomHelper,
         ioDispatcher = Dispatchers.Unconfined,
         eventstream = fakeEventstream,
@@ -168,7 +168,7 @@ class RealArtifactSwapModuleSelectorTest {
         InstalledArtifact(":module:1", setOf("abc123")),
         InstalledArtifact(":module:2", setOf("def456")),
       )
-    fakeSquareGit.changedFiles = emptySet()
+    fakeGitClient.changedFiles = emptySet()
 
     val result = selector.selectProjects(setOf(module1))
 

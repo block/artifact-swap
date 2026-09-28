@@ -16,8 +16,8 @@ import xyz.block.artifactswap.core.download.services.RealArtifactSyncBomLoader
 import xyz.block.artifactswap.core.download.services.RealEventStream
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.network.ArtifactoryService
-import xyz.block.artifactswap.core.shared_services.git.RealSquareGit
-import xyz.block.artifactswap.core.shared_services.git.SquareGit
+import xyz.block.artifactswap.core.shared_services.git.GitClient
+import xyz.block.artifactswap.core.shared_services.git.RealGitClient
 
 /** Configuration options for the artifact downloader module. */
 data class ArtifactDownloaderConfig(val bomVersion: String = "")
@@ -50,12 +50,12 @@ fun artifactDownloaderModules(
         config = artifactSwapConfig,
       )
     }
-    single<SquareGit> {
-      RealSquareGit(rootDir = application.directory, context = application.ioDispatcher)
+    single<GitClient> {
+      RealGitClient(rootDir = application.directory, context = application.ioDispatcher)
     }
     single<ArtifactSyncBomLoader> {
       RealArtifactSyncBomLoader(
-        squareGit = get<SquareGit>(),
+        gitClient = get<GitClient>(),
         localArtifactRepository = get<ArtifactRepository>(),
         artifactoryService = get<ArtifactoryService>(),
         config = get<ArtifactSwapConfig>(),

@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 import xyz.block.artifactswap.core.config.ArtifactSwapConfig
 import xyz.block.artifactswap.core.maven.Project
 import xyz.block.artifactswap.core.network.ArtifactoryService
-import xyz.block.artifactswap.core.shared_services.git.SquareGit
+import xyz.block.artifactswap.core.shared_services.git.GitClient
 
 private val LOGGER = LoggerFactory.getLogger(ArtifactSyncBomLoader::class.java)
 
@@ -27,7 +27,7 @@ interface ArtifactSyncBomLoader {
 }
 
 class RealArtifactSyncBomLoader(
-  private val squareGit: SquareGit,
+  private val gitClient: GitClient,
   private val localArtifactRepository: ArtifactRepository,
   private val artifactoryService: ArtifactoryService,
   private val config: ArtifactSwapConfig,
@@ -45,7 +45,7 @@ class RealArtifactSyncBomLoader(
     val bomBranch = config.bomSourceBranchName
     val originRef = if (bomBranch.startsWith("origin/")) bomBranch else "origin/$bomBranch"
     val recentSharedCommits =
-      squareGit.findRecentSharedCommits(
+      gitClient.findRecentSharedCommits(
         baseRef = originRef,
         count = COUNT_SHARED_COMMITS_TO_CHECK_FOR_BOM,
       )

@@ -16,7 +16,7 @@ import xyz.block.artifactswap.core.download.services.ArtifactSyncBomLoader
 import xyz.block.artifactswap.core.eventstream.Eventstream
 import xyz.block.artifactswap.core.repository.InstalledArtifact
 import xyz.block.artifactswap.core.repository.LocalArtifactRepository
-import xyz.block.artifactswap.core.shared_services.git.SquareGit
+import xyz.block.artifactswap.core.shared_services.git.GitClient
 
 /** Reason a module was included or excluded during artifact swap selection. */
 enum class InclusionReason {
@@ -62,7 +62,7 @@ interface ArtifactSwapModuleSelector {
 
 class RealArtifactSwapModuleSelector(
   private val localArtifactRepository: LocalArtifactRepository,
-  private val squareGit: SquareGit,
+  private val gitClient: GitClient,
   private val bomLoader: ArtifactSyncBomLoader,
   private val ioDispatcher: CoroutineContext,
   private val eventstream: Eventstream,
@@ -160,7 +160,7 @@ class RealArtifactSwapModuleSelector(
   ): TimedValue<Pair<Set<GradlePath>, Int>> {
     return measureTimedValue {
       try {
-        val files = squareGit.findChangedFiles(baseRef = bomVersion).getOrThrow()
+        val files = gitClient.findChangedFiles(baseRef = bomVersion).getOrThrow()
 
         // Convert changed files to the projects that contain them
         val projectsWithChanges =
