@@ -28,6 +28,9 @@ class ArtifactSwapTestProject(
 
     // Regex to extract include statements from settings.gradle
     private val INCLUDE_PATTERN = Regex("include[(\\s]+?[\"'](\\S+)[\"']")
+
+    private val develocityVersion = System.getProperty("develocityVersion")
+    private val spotlightVersion = System.getProperty("spotlightVersion")
   }
 
   private fun gradleProperties() =
@@ -53,7 +56,7 @@ class ArtifactSwapTestProject(
 
         withSettingsScript {
           plugins(
-            Plugin("com.fueledbycaffeine.spotlight", "1.8.0", apply = false),
+            Plugin("com.fueledbycaffeine.spotlight", spotlightVersion, apply = false),
             Plugin("xyz.block.artifactswap.settings", PLUGIN_UNDER_TEST_VERSION),
           )
 
@@ -81,8 +84,8 @@ class ArtifactSwapTestProject(
 
         withSettingsScript {
           plugins(
-            Plugin("com.gradle.develocity", "4.3.1"),
-            Plugin("com.fueledbycaffeine.spotlight", "1.8.0", apply = false),
+            Plugin("com.gradle.develocity", develocityVersion),
+            Plugin("com.fueledbycaffeine.spotlight", spotlightVersion, apply = false),
             Plugin("xyz.block.artifactswap.settings", PLUGIN_UNDER_TEST_VERSION),
           )
 
@@ -163,8 +166,8 @@ class ArtifactSwapTestProject(
 
         withSettingsScript {
           plugins(
-            Plugin("com.gradle.develocity", "4.3.1"),
-            Plugin("com.fueledbycaffeine.spotlight", "1.8.0", apply = false),
+            Plugin("com.gradle.develocity", develocityVersion),
+            Plugin("com.fueledbycaffeine.spotlight", spotlightVersion, apply = false),
             Plugin("xyz.block.artifactswap.settings", PLUGIN_UNDER_TEST_VERSION),
           )
 
@@ -245,8 +248,8 @@ class ArtifactSwapTestProject(
 
         withSettingsScript {
           plugins(
-            Plugin("com.gradle.develocity", "4.3.1"),
-            Plugin("com.fueledbycaffeine.spotlight", "1.8.0", apply = false),
+            Plugin("com.gradle.develocity", develocityVersion),
+            Plugin("com.fueledbycaffeine.spotlight", spotlightVersion, apply = false),
             Plugin("xyz.block.artifactswap.settings", PLUGIN_UNDER_TEST_VERSION),
           )
 
@@ -502,8 +505,8 @@ class ArtifactSwapTestProject(
 
         withSettingsScript {
           plugins(
-            Plugin("com.gradle.develocity", "4.3.1"),
-            Plugin("com.fueledbycaffeine.spotlight", "1.8.0", apply = false),
+            Plugin("com.gradle.develocity", develocityVersion),
+            Plugin("com.fueledbycaffeine.spotlight", spotlightVersion, apply = false),
             Plugin("xyz.block.artifactswap.settings", PLUGIN_UNDER_TEST_VERSION),
           )
 
