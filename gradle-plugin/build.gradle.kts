@@ -29,6 +29,8 @@ gradlePlugin {
 }
 
 tasks.named<Test>("functionalTest") {
+  systemProperty("develocityVersion", libs.versions.develocity.get())
+  systemProperty("spotlightVersion", libs.versions.spotlight.get())
   useJUnitPlatform()
   
   testLogging {
