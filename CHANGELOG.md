@@ -1,3 +1,10 @@
+## 0.1.15
+- Support Git worktrees
+- Make the Develocity plugin optional
+- Handle Maven metadata without a release version
+- Authenticate repository reads when a bearer token is configured
+- Declare configuration cache and Isolated Projects support
+
 ## 0.1.14
 - Allow configuring Spotlight in settings scripts while Artifact Swap defers plugin application
 - Update Spotlight to 1.8.0
