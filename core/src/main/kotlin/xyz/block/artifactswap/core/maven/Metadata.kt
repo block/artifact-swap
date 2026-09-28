@@ -8,7 +8,7 @@ data class Metadata(val groupId: String, val artifactId: String, val versioning:
 
 data class Versioning(
   val latest: String,
-  val release: String,
+  val release: String?,
   val versions: Versions,
   val lastUpdated: Long,
 )
